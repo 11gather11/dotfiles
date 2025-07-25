@@ -1,0 +1,7 @@
+# all ignore #
+/*
+/.**
+
+# global #
+!/README.md
+!.gitignore

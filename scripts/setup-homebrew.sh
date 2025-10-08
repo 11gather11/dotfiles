@@ -8,7 +8,7 @@ source "$(dirname "$0")/common.sh"
 [ "$(uname)" = "Darwin" ] && exit 0
 
 # Skip if SKIP_HOMEBREW is set
-[ -n "$SKIP_HOMEBREW" ] && exit 0
+[ -n "${SKIP_HOMEBREW:-}" ] && exit 0
 
 # Check if Homebrew is already installed
 if command -v brew &> /dev/null; then

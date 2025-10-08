@@ -11,17 +11,17 @@ source "$(dirname "$0")/common.sh"
 [ -n "${SKIP_HOMEBREW:-}" ] && exit 0
 
 # Check if Homebrew is already installed
-if command -v brew &> /dev/null; then
-    echo "Homebrew is already installed."
+if command -v brew &>/dev/null; then
+  echo "Homebrew is already installed."
 else
-    # Install Homebrew
-    echo "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # Install Homebrew
+  echo "Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-    # Add Homebrew to PATH for this session
-    if [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-    fi
+  # Add Homebrew to PATH for this session
+  if [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+  fi
 fi
 
 # Update Homebrew

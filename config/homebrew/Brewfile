@@ -1,3 +1,16 @@
+# Shell
+brew "zsh"
 
-
+# Version Control
 brew "git"
+
+# Editor
+brew "neovim"
+brew "vim"
+
+# Runtime & Package Managers
+brew "bun"
+brew "node"
+
+# Fonts
+cask "font-plemol-jp-nf"

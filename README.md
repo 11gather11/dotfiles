@@ -8,5 +8,5 @@
 To install or update the dotfiles, run the following command in your terminal:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/11gather11/dotfiles/main/install)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/11gather11/dotfiles/main/install.sh)"
 ```

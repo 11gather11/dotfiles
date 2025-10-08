@@ -24,8 +24,8 @@ else
   }
 fi
 
-if [ -f "$INSTALL_DIR/scripts/setup" ]; then
-  /bin/bash "$INSTALL_DIR/scripts/setup"
+if [ -f "$INSTALL_DIR/scripts/setup.sh" ]; then
+  /bin/bash "$INSTALL_DIR/scripts/setup.sh"
 else
   echo "Warning: setup script not found"
 fi

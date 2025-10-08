@@ -4,4 +4,4 @@ set -euxo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-/bin/bash "$CUR_DIR/setup_homebrew"
+/bin/bash "$CUR_DIR/setup_homebrew.sh"

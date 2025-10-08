@@ -30,4 +30,4 @@ brew update
 
 # Install packages from Brewfile
 echo "Installing packages from Brewfile..."
-brew bundle install --file "${REPO_DIR}/config/homebrew/Brewfile" --no-lock --verbose
+brew bundle install --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose

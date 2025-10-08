@@ -15,4 +15,4 @@ jobs:
 
     steps:
       - name: Setup
-        uses: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/11gather11/dotfiles/main/install)"
+        run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/11gather11/dotfiles/main/install)"

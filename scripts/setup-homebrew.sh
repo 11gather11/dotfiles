@@ -25,13 +25,20 @@ brew update
 log_success "Homebrew updated."
 
 # Unlink openssl@1.1 on macOS to avoid conflicts with openssl@3
-if [[ "$OSTYPE" == "darwin"* ]] && brew list openssl@1.1 &>/dev/null; then
-  log_info "Unlinking openssl@1.1 on macOS..."
-  brew unlink openssl@1.1
-  log_success "openssl@1.1 unlinked."
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  if brew list openssl@1.1 &>/dev/null; then
+    log_info "Unlinking openssl@1.1 on macOS..."
+    brew unlink openssl@1.1
+  fi
+  # Force remove openssl symlink if it still exists
+  if [[ -L /opt/homebrew/bin/openssl ]]; then
+    log_info "Removing conflicting openssl symlink..."
+    rm -f /opt/homebrew/bin/openssl
+    log_success "Conflicting symlink removed."
+  fi
 fi
 
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."
-brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose
+brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile"
 log_success "Packages installed from Brewfile."

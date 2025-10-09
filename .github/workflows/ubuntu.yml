@@ -14,15 +14,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Homebrew packages
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/Homebrew
             /home/linuxbrew/.linuxbrew
-          key: ${{ runner.os }}-brew-${{ hashFiles('config/homebrew/Brewfile') }}
+            ~/.local/share/mise
+            ~/.local/state/mise
+          key: ${{ runner.os }}-deps-${{ hashFiles('config/homebrew/Brewfile', 'config/mise/config.toml') }}
           restore-keys: |
-            ${{ runner.os }}-brew-
+            ${{ runner.os }}-deps-
 
       - name: Setup dotfiles
         run: bash ./install.sh

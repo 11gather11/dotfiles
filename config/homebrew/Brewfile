@@ -1,6 +1,3 @@
-
-tap "oven-sh/bun"
-
 # Shell
 brew "zsh"
 
@@ -12,7 +9,7 @@ brew "neovim"
 brew "vim"
 
 # Runtime & Package Managers
-brew "bun"
+brew "oven-sh/bun/bun"
 brew "node"
 
 # Fonts

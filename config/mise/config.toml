@@ -1,7 +1,4 @@
 [tools]
-node = "latest"
+node = "lts"
 bun = "latest"
-pnpm = "latest"
-
-[env]
-NODE_BUILD_MIRROR_URL = "https://nodejs.org/dist"
+pnpm = "lts"

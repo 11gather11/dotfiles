@@ -19,7 +19,7 @@ export RIPGREP_CONFIG_PATH="$HOME/.config/ripgrep/config"
 
 fpath=(
     $DOTFILES/config/zsh/functions
-    /usr/local/share/zsh/site-functions
+    ${HOMEBREW_PREFIX:-/usr/local}/share/zsh/site-functions
     $fpath
 )
 

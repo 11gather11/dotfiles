@@ -3,5 +3,5 @@ node = "latest"
 bun = "latest"
 pnpm = "latest"
 
-[settings]
-node.compile = false
+[env]
+NODE_BUILD_MIRROR_URL = "https://nodejs.org/dist"

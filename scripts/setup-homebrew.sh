@@ -4,9 +4,6 @@ set -euxo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-# Skip if SKIP_HOMEBREW is set
-[ -n "${SKIP_HOMEBREW:-}" ] && exit 0
-
 # Check if Homebrew is already installed
 if command -v brew &>/dev/null; then
   log_success "Homebrew is already installed."

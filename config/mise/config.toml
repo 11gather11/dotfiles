@@ -1,4 +1,4 @@
 [tools]
 node = "lts"
 bun = "latest"
-pnpm = "lts"
+pnpm = "latest"

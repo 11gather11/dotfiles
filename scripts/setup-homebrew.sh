@@ -4,9 +4,6 @@ set -euxo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-# Skip if running on macOS (Homebrew is already installed)
-[ "$(uname)" = "Darwin" ] && exit 0
-
 # Skip if SKIP_HOMEBREW is set
 [ -n "${SKIP_HOMEBREW:-}" ] && exit 0
 

@@ -26,5 +26,5 @@ log_success "Homebrew updated."
 
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."
-brew bundle install --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose
+brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose
 log_success "Packages installed from Brewfile."

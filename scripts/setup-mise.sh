@@ -15,7 +15,7 @@ log_info "Installing tools from mise config..."
 mise install
 log_success "mise tools installed."
 
-# Trust the config
+# Trust the config (ignore if already trusted)
 log_info "Trusting mise config..."
-mise trust
+mise trust 2>/dev/null || true
 log_success "mise config trusted."

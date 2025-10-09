@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
+# Guard against multiple sourcing
+if [[ -n "${COMMON_SH_LOADED:-}" ]]; then
+  return 0
+fi
+readonly COMMON_SH_LOADED=1
+
 CUR_DIR="$(cd "$(dirname "$0")" && pwd)" || exit 1
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)" || exit 1
 export CUR_DIR REPO_DIR

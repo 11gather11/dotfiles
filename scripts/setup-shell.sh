@@ -10,12 +10,16 @@ if ! command -v zsh &>/dev/null; then
   exit 1
 fi
 
-# Change default shell to zsh
-current_shell=$(basename "$SHELL")
-if [[ "$current_shell" != "zsh" ]]; then
-  log_info "Changing default shell to zsh..."
-  chsh -s "$(command -v zsh)"
-  log_success "Default shell changed to zsh. Please log out and log back in for changes to take effect."
+# Change default shell to zsh (skip in CI)
+if [[ -n "${CI:-}" ]]; then
+  log_info "Skipping shell change in CI environment."
 else
-  log_success "Default shell is already zsh."
+  current_shell=$(basename "$SHELL")
+  if [[ "$current_shell" != "zsh" ]]; then
+    log_info "Changing default shell to zsh..."
+    chsh -s "$(command -v zsh)"
+    log_success "Default shell changed to zsh. Please log out and log back in for changes to take effect."
+  else
+    log_success "Default shell is already zsh."
+  fi
 fi

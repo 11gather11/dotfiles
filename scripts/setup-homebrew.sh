@@ -19,11 +19,6 @@ else
   log_success "Homebrew installed successfully."
 fi
 
-# Update Homebrew
-log_info "Updating Homebrew..."
-brew update
-log_success "Homebrew updated."
-
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."
 brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose

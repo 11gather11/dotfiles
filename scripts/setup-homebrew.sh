@@ -24,10 +24,12 @@ log_info "Updating Homebrew..."
 brew update
 log_success "Homebrew updated."
 
-# Clean up old packages to avoid conflicts
-log_info "Cleaning up Homebrew..."
-brew cleanup
-log_success "Homebrew cleaned up."
+# Unlink openssl@1.1 on macOS to avoid conflicts with openssl@3
+if [[ "$OSTYPE" == "darwin"* ]] && brew list openssl@1.1 &>/dev/null; then
+  log_info "Unlinking openssl@1.1 on macOS..."
+  brew unlink openssl@1.1
+  log_success "openssl@1.1 unlinked."
+fi
 
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."

@@ -1,31 +1,46 @@
 #!/usr/bin/env bash
-set -e # Exit on error
+set -euxo pipefail
+
+# Determine script directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)" || exit 1
+
+# Load common utilities if available
+if [ -f "$SCRIPT_DIR/scripts/common.sh" ]; then
+  # shellcheck source=scripts/common.sh
+  source "$SCRIPT_DIR/scripts/common.sh"
+else
+  echo "Error: Unable to source common.sh"
+  exit 1
+fi
 
 INSTALL_DIR="${INSTALL_DIR:-$HOME/repos/github.com/11gather11/dotfiles}"
 
-# Check if the git is installed
+# Check if git is installed
 if ! command -v git &>/dev/null; then
-  echo "Error: git is not installed."
+  log_error "git is not installed"
   exit 1
 fi
 
 if [ -d "$INSTALL_DIR" ]; then
-  echo "Updating dotfiles..."
+  log_info "Updating dotfiles..."
   git -C "$INSTALL_DIR" pull || {
-    echo "Failed to update dotfiles."
+    log_error "Failed to update dotfiles"
     exit 1
   }
+  log_success "Dotfiles updated successfully"
 else
-  echo "Installing dotfiles..."
+  log_info "Installing dotfiles..."
   mkdir -p "$(dirname "$INSTALL_DIR")"
   git clone https://github.com/11gather11/dotfiles "$INSTALL_DIR" || {
-    echo "Failed to clone dotfiles."
+    log_error "Failed to clone dotfiles"
     exit 1
   }
+  log_success "Dotfiles installed successfully"
 fi
 
 if [ -f "$INSTALL_DIR/scripts/setup.sh" ]; then
+  log_info "Running setup script..."
   /bin/bash "$INSTALL_DIR/scripts/setup.sh"
 else
-  echo "Warning: setup script not found"
+  log_warning "Setup script not found"
 fi

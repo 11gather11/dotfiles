@@ -2,3 +2,6 @@
 node = "latest"
 bun = "latest"
 pnpm = "latest"
+
+[settings]
+node.compile = false

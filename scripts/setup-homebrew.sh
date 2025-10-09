@@ -19,6 +19,16 @@ else
   log_success "Homebrew installed successfully."
 fi
 
+# Update Homebrew
+log_info "Updating Homebrew..."
+brew update
+log_success "Homebrew updated."
+
+# Clean up old packages to avoid conflicts
+log_info "Cleaning up Homebrew..."
+brew cleanup
+log_success "Homebrew cleaned up."
+
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."
 brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile" --verbose

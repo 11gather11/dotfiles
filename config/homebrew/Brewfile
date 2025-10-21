@@ -3,6 +3,7 @@ brew "fish"
 
 # Version Control
 brew "git"
+brew "ghq"
 
 # Editor
 brew "neovim"
@@ -10,6 +11,11 @@ brew "vim"
 
 # Version Management
 brew "mise"
+
+# CLI Tools
+brew "fzf"
+brew "eza"
+brew "bat"
 
 # Fonts
 cask "font-plemol-jp-nf"

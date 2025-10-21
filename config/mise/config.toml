@@ -2,3 +2,6 @@
 node = "lts"
 bun = "latest"
 pnpm = "latest"
+python = "latest"
+uv = "latest"
+pipx = "latest"

@@ -26,7 +26,7 @@ fi
 log_info "Creating XDG directories..."
 mkdir -p \
   "$XDG_CONFIG_HOME" \
-  "$XDG_STATE_HOME" \
+  "$XDG_STATE_HOME"
 log_success "XDG directories created."
 
 # Create symlinks for config files

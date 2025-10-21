@@ -17,7 +17,16 @@ else
   current_shell=$(basename "$SHELL")
   if [[ "$current_shell" != "fish" ]]; then
     log_info "Changing default shell to fish..."
-    chsh -s "$(command -v fish)"
+    fish_path=$(command -v fish)
+
+    # Add fish to /etc/shells if not already present
+    if ! grep -q "^${fish_path}$" /etc/shells 2>/dev/null; then
+      log_info "Adding ${fish_path} to /etc/shells..."
+      echo "$fish_path" | sudo tee -a /etc/shells >/dev/null
+      log_success "Added ${fish_path} to /etc/shells."
+    fi
+
+    chsh -s "$fish_path"
     log_success "Default shell changed to fish. Please log out and log back in for changes to take effect."
   else
     log_success "Default shell is already fish."

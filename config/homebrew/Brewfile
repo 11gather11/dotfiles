@@ -17,5 +17,8 @@ brew "fzf"
 brew "eza"
 brew "bat"
 
+# AI Development Tools
+brew "claude-code"
+
 # Fonts
 cask "font-plemol-jp-nf"

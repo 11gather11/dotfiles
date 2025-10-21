@@ -1,0 +1,12 @@
+# Claude Code - exclude sensitive and runtime files
+config/claude/.credentials.json
+config/claude/history.jsonl
+config/claude/logs/
+config/claude/debug/
+config/claude/file-history/
+config/claude/shell-snapshots/
+config/claude/todos/
+config/claude/backups/
+config/claude/ide/
+config/claude/statsig/
+config/claude/.superclaude-metadata.json

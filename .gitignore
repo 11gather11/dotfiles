@@ -1,0 +1,16 @@
+# Fish
+config/fish/conf.d/*
+!config/fish/conf.d/tide.fish
+
+config/fish/completions/*
+
+config/fish/functions/*
+!config/fish/functions/fish_user_key_bindings.fish
+!config/fish/functions/fzf_change_directory.fish
+
+config/fish/fish_variables
+
+# Claude
+
+config/claude/*
+!config/claude/settings.json

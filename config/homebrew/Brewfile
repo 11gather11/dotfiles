@@ -12,6 +12,11 @@ brew "vim"
 # Version Management
 brew "mise"
 
+# Python
+brew "python"
+brew "pipx"
+brew "uv"
+
 # CLI Tools
 brew "fzf"
 brew "eza"

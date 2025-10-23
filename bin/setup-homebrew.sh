@@ -11,7 +11,7 @@ if test "$(command -v brew)"; then
   log_info "Homebrew already installed."
 else
   # Install Homebrew
-  curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash --login
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   # Add Homebrew to PATH for this session
   if [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then

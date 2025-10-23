@@ -5,7 +5,9 @@ trap cleanup SIGINT SIGTERM ERR EXIT
 
 cleanup() {
   trap - SIGINT SIGTERM ERR EXIT
-  tput cnorm # enable cursor
+  if [[ -t 1 ]] && [[ -n "${TERM:-}" ]] && command -v tput &>/dev/null; then
+    tput cnorm 2>/dev/null || true
+  fi
   # script cleanup here
 }
 
@@ -17,9 +19,6 @@ else
   echo "Error: Unable to source common.sh"
   exit 1
 fi
-
-
-
 
 source "$DOTFILES/bin/setup-links.sh"
 source "$DOTFILES/bin/setup-homebrew.sh"

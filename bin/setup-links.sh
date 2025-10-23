@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -Eeuo pipefail
 
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/lib/common.sh"
+
+# Set XDG Base Directory variables with defaults
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+fmt_title_underline "Setting up directories and symlinks"
 
 # Setup security directories with proper permissions
 log_info "Setting up security directories..."
@@ -31,6 +39,6 @@ log_success "XDG directories created."
 
 # Create symlinks for config files
 log_info "Creating symlinks..."
-ln -sfnv "$REPO_DIR/config/"* "$XDG_CONFIG_HOME"
+ln -sfnv "$DOTFILES/config/"* "$XDG_CONFIG_HOME"
 ln -sfn "$XDG_CONFIG_HOME/claude" "$HOME/.claude"
 log_success "Symlinks created."

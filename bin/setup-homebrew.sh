@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -Eeuo pipefail
 
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/lib/common.sh"
+
+fmt_title_underline "Setting up Homebrew"
 
 # Check if Homebrew is already installed
-if command -v brew &>/dev/null; then
-  log_success "Homebrew is already installed."
+if test "$(command -v brew)"; then
+  log_info "Homebrew already installed."
 else
   # Install Homebrew
-  log_info "Installing Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh | bash --login
 
   # Add Homebrew to PATH for this session
   if [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
@@ -40,5 +41,5 @@ fi
 
 # Install packages from Brewfile
 log_info "Installing packages from Brewfile..."
-brew bundle --file "${REPO_DIR}/config/homebrew/Brewfile"
+brew bundle --file="${DOTFILES}/config/homebrew/Brewfile"
 log_success "Packages installed from Brewfile."

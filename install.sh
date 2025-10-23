@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -Eeuo pipefail
 
 INSTALL_DIR="${INSTALL_DIR:-$HOME/repos/github.com/11gather11/dotfiles}"
 
@@ -24,8 +24,8 @@ else
   }
 fi
 
-if [ -f "$INSTALL_DIR/scripts/setup.sh" ]; then
-  /bin/bash "$INSTALL_DIR/scripts/setup.sh"
+if [ -f "$INSTALL_DIR/bin/setup.sh" ]; then
+  /bin/bash "$INSTALL_DIR/bin/setup.sh"
 else
   echo "Warning: setup script not found"
 fi

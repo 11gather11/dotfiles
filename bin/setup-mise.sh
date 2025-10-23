@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -Eeuo pipefail
 
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/lib/common.sh"
+
+fmt_title_underline "Setting up mise"
 
 # Check if mise is installed
 if ! command -v mise &>/dev/null; then

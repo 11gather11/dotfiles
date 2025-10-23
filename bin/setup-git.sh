@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -Eeuo pipefail
 
-source "$(dirname "$0")/common.sh"
+source "$(dirname "$0")/lib/common.sh"
 
-log_info "Setting up Git configuration..."
+fmt_title_underline "Setting up Git configuration"
 
 GITCONFIG_LOCAL="$HOME/.gitconfig-local"
 

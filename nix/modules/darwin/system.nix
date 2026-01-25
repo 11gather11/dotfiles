@@ -2,7 +2,7 @@
   pkgs,
   lib,
   username,
-  homeDir,
+  homedir,
   ...
 }:
 let
@@ -119,7 +119,7 @@ in
 
   # Define user
   users.users.${username} = {
-    home = homeDir;
+    home = homedir;
     shell = pkgs.fish;
     ignoreShellProgramCheck = true;
   };

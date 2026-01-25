@@ -64,8 +64,8 @@
     }:
     let
       username = "11gather11";
-      darwinHomeDir = "/Users/${username}";
-      linuxHomeDir = "/home/${username}";
+      darwinHomedir = "/Users/${username}";
+      linuxHomedir = "/home/${username}";
 
       # Create pkgs with overlays
       mkPkgs =
@@ -85,6 +85,56 @@
               brew-nix.overlays.default
             ];
         };
+
+      # Helper to create Linux home configuration
+      mkLinuxHomeConfig = 
+        linuxSystem:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs linuxSystem;
+          modules = [
+            {
+              home.username = username;
+              home.homeDirectory = linuxHomedir;
+            }
+            (
+              {
+                pkgs,
+                config,
+                lib,
+                ...
+              }:
+              let
+                helpers = import ./nix/modules/lib/helpers { inherit lib; };
+              in
+              {
+                imports = [
+                  nix-index-database.hmModules.nix-index
+
+                  (import ./nix/modules/home {
+                    inherit
+                      pkgs
+                      config
+                      lib
+                      ;
+                    dotfilesDir = "${linuxHomedir}/ghq/github.com/${username}/dotfiles";
+                    system = linuxSystem;
+                    nodePackages = import ./nix/packages/node { inherit pkgs; };
+                  })
+
+                  # (import ./nix/modules/linux {
+                  #   inherit
+                  #     pkgs
+                  #     config
+                  #     lib
+                  #     helpers
+                  #     ;
+                  #   homedir = linuxHomedir;
+                  # })
+                ];
+              }
+            )
+          ];
+        };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ 
@@ -102,7 +152,7 @@
               pkgs = mkPkgs "aarch64-darwin";
               inherit (nixpkgs) lib;
               inherit username;
-              homeDir = darwinHomeDir;
+              homedir = darwinHomedir;
             })
 
             nix-index-database.darwinModules.nix-index
@@ -133,7 +183,7 @@
                           config
                           lib
                           ;
-                        dotfilesDir = "${darwinHomeDir}/ghq/github.com/${username}/dotfiles";
+                        dotfilesDir = "${darwinHomedir}/ghq/github.com/${username}/dotfiles";
                         system = "aarch64-darwin";
                         nodePackages = import ./nix/packages/node { inherit pkgs; };
                       })
@@ -142,6 +192,12 @@
               };
             }
           ];
+        };
+
+        # Linux configurations with standalone Home Manager
+        homeConfigurations = {
+          ${username} = mkLinuxHomeConfig "x86_64-linux";
+          "${username}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
         };
       };
     };

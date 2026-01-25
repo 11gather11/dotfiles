@@ -35,4 +35,4 @@ in
     ++ lib.optionals (isDarwin || isX86Linux) [
       discord
     ];
-};
+}

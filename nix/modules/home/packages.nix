@@ -10,7 +10,7 @@ let
 in
 {
   home.packages = 
-    with pkgs:
+    with pkgs;
     [
       # Essentials
       curl

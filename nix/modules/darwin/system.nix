@@ -135,4 +135,14 @@ in
     nix-index.enable = true;
     nix-index-database.comma.enable = true;
   };
+
+  homebrew = {
+    enable = true;
+    onActivation.cleanup = "uninstall";
+
+    casks = [
+      "1password"
+      "claude"
+    ];
+  };
 }

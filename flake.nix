@@ -230,8 +230,6 @@
           ];
         };
 
-
-
         # Linux configurations with standalone Home Manager
         homeConfigurations = {
           ${username} = mkLinuxHomeConfig "x86_64-linux";

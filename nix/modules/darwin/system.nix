@@ -45,7 +45,7 @@ in
         mineffect = "genie";
         orientation = "bottom"; # Dock position
       };
-    
+
       # Finder settings
       finder = {
         AppleShowAllExtensions = true; # Show all file extensions

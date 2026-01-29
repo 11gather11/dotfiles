@@ -31,6 +31,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     brew-nix = {
       url = "github:BatteredBunny/brew-nix";
       inputs = {
@@ -51,13 +56,14 @@
     };
   };
 
-  outputs = 
+  outputs =
     inputs@{
       nixpkgs,
       flake-parts,
       nix-darwin,
       home-manager,
       claude-code-overlay,
+      treefmt-nix,
       brew-nix,
       nix-index-database,
       ...
@@ -81,13 +87,13 @@
               _claude-code-overlay = claude-code-overlay;
             })
           ]
-            ++ nixpkgs.lib.optionals isDarwin [
-              brew-nix.overlays.default
-            ];
+          ++ nixpkgs.lib.optionals isDarwin [
+            brew-nix.overlays.default
+          ];
         };
 
       # Helper to create Linux home configuration
-      mkLinuxHomeConfig = 
+      mkLinuxHomeConfig =
         linuxSystem:
         home-manager.lib.homeManagerConfiguration {
           pkgs = mkPkgs linuxSystem;
@@ -137,11 +143,41 @@
         };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ 
+      systems = [
         "aarch64-darwin"
         "x86_64-linux"
         "aarch64-linux"
       ];
+
+      imports = [
+        inputs.treefmt-nix.flakeModule
+      ];
+
+      perSystem =
+        {
+          config,
+          system,
+          ...
+        }:
+        let
+          localPkgs = mkPkgs system;
+          inherit (localPkgs.stdenv) isDarwin;
+          homedir = if isDarwin then darwinHomedir else linuxHomedir;
+          hostname = username;
+        in
+        {
+          # Treefmt configuration
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs = {
+              nixfmt = {
+                enable = true;
+                package = localPkgs.nixfmt-rfc-style;
+              };
+            };
+          };
+
+        };
 
       flake = {
         darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
@@ -156,16 +192,16 @@
             })
 
             nix-index-database.darwinModules.nix-index
-            
+
             home-manager.darwinModules.home-manager
             {
               home-manager = {
                 useGlobalPkgs = false;
                 useUserPackages = true;
-                extraSpecialArgs = { 
+                extraSpecialArgs = {
                   pkgs = mkPkgs "aarch64-darwin";
                 };
-                users.${username} = 
+                users.${username} =
                   {
                     pkgs,
                     config,

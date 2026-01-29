@@ -9,7 +9,7 @@ let
   isX86Linux = pkgs.stdenv.hostPlatform.system == "x86_64-linux";
 in
 {
-  home.packages = 
+  home.packages =
     with pkgs;
     [
       # Essentials

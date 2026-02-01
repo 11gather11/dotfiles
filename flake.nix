@@ -116,6 +116,7 @@
           ]
           ++ nixpkgs.lib.optionals isDarwin [
             brew-nix.overlays.default
+            kanata-darwin-nix.overlays.default
           ];
         };
 

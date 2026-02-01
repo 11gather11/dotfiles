@@ -166,6 +166,9 @@
                     lib,
                     ...
                   }:
+                  let
+                    helpers = import ./nix/modules/lib/helpers { inherit lib; };
+                  in
                   {
                     imports = [
                       (import ./nix/modules/home {
@@ -173,9 +176,20 @@
                           pkgs
                           config
                           lib
+                          helpers
                           ;
-                        homedir = darwinHomedir;
+                        dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
                         system = "aarch64-darwin";
+                      })
+
+                      (import ./nix/modules/darwin {
+                        inherit
+                          pkgs
+                          config
+                          lib
+                          helpers
+                          ;
+                        dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
                       })
                     ];
                   };

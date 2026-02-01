@@ -4,16 +4,16 @@
   lib,
   helpers,
   dotfilesDir,
-  # system,
-  ...
 }:
 {
   imports = [
-    # Common packages
+    # macOS-specific packages
     ./packages.nix
 
-    # Common dotfiles symlinks
-    (import ./dotfiles.nix {
+    # macOS-specific dotfiles
+    import
+    ./dotfiles.nix
+    {
       inherit
         pkgs
         config
@@ -21,10 +21,6 @@
         helpers
         dotfilesDir
         ;
-    })
+    }
   ];
-
-  home.stateVersion = "25.11";
-
-  programs.home-manager.enable = true;
 }

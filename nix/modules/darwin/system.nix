@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   username,
   homedir,
   ...
@@ -136,6 +135,7 @@ in
     nix-index-database.comma.enable = true;
   };
 
+  # Homebrew configuration
   homebrew = {
     enable = true;
     onActivation.cleanup = "uninstall";

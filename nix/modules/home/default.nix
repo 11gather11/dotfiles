@@ -1,16 +1,16 @@
 {
-  pkgs,
-  config,
-  lib,
-  dotfilesDir,
-  system,
-  nodePackages,
+  # pkgs,
+  # config,
+  # lib,
+  # homedir,
+  # dotfilesDir,
+  # system,
   ...
 }:
-let
-  # Import common helpers once
-  helpers = import ../lib/helpers { inherit lib; };
-in
+# let
+#   # Import common helpers once
+#   helpers = import ../lib/helpers { inherit lib; };
+# in
 {
   imports = [
     # Common packages

@@ -14,6 +14,7 @@ in
     [
       # Essentials
       curl
+      devenv
       fish
       # VCS
       git

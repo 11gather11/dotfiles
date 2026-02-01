@@ -12,9 +12,7 @@
     ./packages.nix
 
     # macOS-specific dotfiles
-    import
-    ./dotfiles.nix
-    {
+    (import ./dotfiles.nix {
       inherit
         pkgs
         config
@@ -22,6 +20,6 @@
         helpers
         dotfilesDir
         ;
-    }
+    })
   ];
 }

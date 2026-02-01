@@ -4,6 +4,14 @@
   # Note: cachix configuration is defined in nix/cachix.nix
   # but nixConfig must be a literal set, so we inline it here
   nixConfig = {
+    extra-substituters = [
+      "https://cache.nixos.org"
+      "https://cache.numtide.com"
+    ];
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
   };
 
   inputs = {
@@ -44,9 +52,9 @@
       # Create pkgs with overlays
       mkPkgs =
         system:
-        let
-          # isDarwin = builtins.match ".*-darwin" system != null;
-        in
+        # let
+        #   isDarwin = builtins.match ".*-darwin" system != null;
+        # in
         import nixpkgs {
           inherit system;
           config.allowUnfree = true;

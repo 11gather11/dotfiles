@@ -5,6 +5,8 @@
 {
   home.packages = with pkgs; [
     # macOS-specific packages
+    kanata
+    kanata-vk-agent
     mas
 
     # macOS GUI applications (not available on Linux in nixpkgs)

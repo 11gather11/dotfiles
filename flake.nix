@@ -36,6 +36,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    llm-agents.url = "github:numtide/llm-agents.nix";
+
+    claude-code-overlay = {
+      url = "github:ryoppippi/claude-code-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    brew-nix = {
+      url = "github:BatteredBunny/brew-nix";
+      inputs = {
+        brew-api.follows = "brew-api";
+        nix-darwin.follows = "nix-darwin";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
+    brew-api = {
+      url = "github:BatteredBunny/brew-api";
+      flake = false;
+    };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -58,6 +79,9 @@
       flake-parts,
       nix-darwin,
       home-manager,
+      llm-agents,
+      claude-code-overlay,
+      brew-nix,
       nix-index-database,
       treefmt-nix,
       git-hooks,
@@ -71,16 +95,21 @@
       # Create pkgs with overlays
       mkPkgs =
         system:
-        # let
-        #   isDarwin = builtins.match ".*-darwin" system != null;
-        # in
+        let
+          isDarwin = builtins.match ".*-darwin" system != null;
+        in
         import nixpkgs {
           inherit system;
           config.allowUnfree = true;
           overlays = [
-            # (final: prev: {
-            #   home-manager = prev.callPackage ./nix/home-manager-overlay.nix { inherit isDarwin darwinHomedir linuxHomedir; };
-            # })
+            (_final: _prev: {
+              _llm-agents = llm-agents;
+              _claude-code-overlay = claude-code-overlay;
+            })
+            (import ./nix/overlays)
+          ]
+          ++ nixpkgs.lib.optionals isDarwin [
+            brew-nix.overlays.default
           ];
         };
 
@@ -164,6 +193,23 @@
               nixfmt = {
                 enable = true;
                 package = localPkgs.nixfmt-rfc-style;
+              };
+            };
+            settings = {
+              global.execlude = [
+                ".git/**"
+                "*.lock"
+              ];
+              formatter = {
+                oxfmt = {
+                  command = "${localPkgs.oxfmt}/bin/oxfmt";
+                  options = [ "--no-error-on-unmatched-pattern" ];
+                  includes = [ "*" ];
+                  excludes = [
+                    "nvim/template/**"
+                    "nvim/lazy-lock.json"
+                  ];
+                };
               };
             };
           };

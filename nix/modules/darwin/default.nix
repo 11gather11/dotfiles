@@ -4,6 +4,7 @@
   lib,
   helpers,
   dotfilesDir,
+  ...
 }:
 {
   imports = [

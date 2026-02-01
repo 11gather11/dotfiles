@@ -66,7 +66,7 @@
     let
       username = "11gather11";
       darwinHomedir = "/Users/${username}";
-      # linuxHomedir = "/home/${username}";
+      linuxHomedir = "/home/${username}";
 
       # Create pkgs with overlays
       mkPkgs =
@@ -81,6 +81,55 @@
             # (final: prev: {
             #   home-manager = prev.callPackage ./nix/home-manager-overlay.nix { inherit isDarwin darwinHomedir linuxHomedir; };
             # })
+          ];
+        };
+
+      # Helper to create Linux home configuration
+      mkLinuxHomeConfig =
+        linuxSystem:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = mkPkgs linuxSystem;
+          modules = [
+            {
+              home.username = username;
+              home.homeDirectory = linuxHomedir;
+            }
+            (
+              {
+                pkgs,
+                config,
+                lib,
+                ...
+              }:
+              let
+                helpers = import ./nix/modules/lib/helpers { inherit lib; };
+              in
+              {
+                imports = [
+                  nix-index-database.homeModules.nix-index
+                  (import ./nix/modules/home {
+                    inherit
+                      pkgs
+                      config
+                      lib
+                      helpers
+                      ;
+                    dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
+                    system = "aarch64-darwin";
+                  })
+
+                  (import ./nix/modules/linux {
+                    inherit
+                      pkgs
+                      config
+                      lib
+                      helpers
+                      ;
+                    dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
+                  })
+                ];
+              }
+            )
           ];
         };
     in
@@ -104,6 +153,8 @@
         }:
         let
           localPkgs = mkPkgs system;
+          inherit (localPkgs.stdenv) isDarwin;
+          hostname = username;
         in
         {
           # Treefmt configuration
@@ -126,6 +177,35 @@
               };
               deadnix.enable = true;
               statix.enable = true;
+            };
+          };
+
+          # Apps
+          apps = {
+            build = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript (if isDarwin then "darwin-build" else "home-manager-build") ''
+                  set -e
+                  echo "Building ${if isDarwin then "darwin" else "Home Manager"} configuration..."
+                  nix build .#${
+                    if isDarwin then
+                      "darwinConfigurations.${hostname}.system"
+                    else
+                      "homeConfigurations.${username}.activationPackage"
+                  }
+                  echo "Build successful! Run 'nix run .#switch' to apply."
+                ''
+              );
+            };
+
+            fmt = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript "treefmt-wrapper" ''
+                  exec ${config.treefmt.build.wrapper}/bin/treefmt "$@"
+                ''
+              );
             };
           };
 
@@ -196,6 +276,12 @@
               };
             }
           ];
+        };
+
+        # Linux configurations with standalone Home Manager
+        homeConfigurations = {
+          ${username} = mkLinuxHomeConfig "x86_64-linux";
+          "${username}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
         };
       };
     };

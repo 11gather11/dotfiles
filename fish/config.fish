@@ -1,0 +1,2 @@
+set -gx LC_ALL "en_US.UTF-8"
+set -gx BASH_SILENCE_DEPRECATION_WARNING 1

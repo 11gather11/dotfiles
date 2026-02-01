@@ -71,6 +71,11 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    kanata-darwin-nix = {
+      url = "github:ryoppippi/kanata-darwin-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -85,6 +90,7 @@
       nix-index-database,
       treefmt-nix,
       git-hooks,
+      kanata-darwin-nix,
       ...
     }:
     let
@@ -194,6 +200,8 @@
                 enable = true;
                 package = localPkgs.nixfmt-rfc-style;
               };
+              stylua.enable = true;
+              shfmt.enable = true;
             };
             settings = {
               global.execlude = [
@@ -209,6 +217,11 @@
                     "nvim/template/**"
                     "nvim/lazy-lock.json"
                   ];
+                };
+                fish-indent = {
+                  command = "${localPkgs.fish}/bin/fish_indent";
+                  options = [ "--write" ];
+                  includes = [ "*.fish" ];
                 };
               };
             };
@@ -273,6 +286,16 @@
               pkgs = mkPkgs "aarch64-darwin";
               inherit username;
               homedir = darwinHomedir;
+            })
+
+            {
+              nixpkgs.overlays = [ kanata-darwin-nix.overlays.default ];
+            }
+
+            kanata-darwin-nix.darwinModules.default
+
+            (import ./nix/modules/darwin/services/kanata.nix {
+              dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
             })
 
             nix-index-database.darwinModules.nix-index

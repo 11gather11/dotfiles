@@ -1,5 +1,5 @@
 {
-  pkgs,
+  # pkgs,
   config,
   lib,
   helpers,
@@ -15,7 +15,6 @@
     # Common dotfiles symlinks
     (import ./dotfiles.nix {
       inherit
-        pkgs
         config
         lib
         helpers

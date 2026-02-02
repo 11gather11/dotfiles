@@ -144,6 +144,7 @@ in
       "1password"
       "claude"
       "slack"
+      "karabiner-elements"
     ];
   };
 }

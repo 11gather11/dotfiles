@@ -71,11 +71,6 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
-    kanata-darwin-nix = {
-      url = "github:ryoppippi/kanata-darwin-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -90,7 +85,6 @@
       nix-index-database,
       treefmt-nix,
       git-hooks,
-      kanata-darwin-nix,
       ...
     }:
     let
@@ -116,7 +110,6 @@
           ]
           ++ nixpkgs.lib.optionals isDarwin [
             brew-nix.overlays.default
-            kanata-darwin-nix.overlays.default
           ];
         };
 
@@ -287,16 +280,6 @@
               pkgs = mkPkgs "aarch64-darwin";
               inherit username;
               homedir = darwinHomedir;
-            })
-
-            {
-              nixpkgs.overlays = [ kanata-darwin-nix.overlays.default ];
-            }
-
-            kanata-darwin-nix.darwinModules.default
-
-            (import ./nix/modules/darwin/services/kanata.nix {
-              dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
             })
 
             nix-index-database.darwinModules.nix-index

@@ -183,26 +183,6 @@
         "type": "github"
       }
     },
-    "kanata-darwin-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1769906827,
-        "narHash": "sha256-6uI9yfxqi3LKQshkgT0yaYtVr+LidFSdcGOlwge7GzI=",
-        "owner": "ryoppippi",
-        "repo": "kanata-darwin-nix",
-        "rev": "a9f02c37edc6763d24fee34a0acb8e6ee4b11ed7",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ryoppippi",
-        "repo": "kanata-darwin-nix",
-        "type": "github"
-      }
-    },
     "llm-agents": {
       "inputs": {
         "blueprint": "blueprint",
@@ -303,7 +283,6 @@
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",
         "home-manager": "home-manager",
-        "kanata-darwin-nix": "kanata-darwin-nix",
         "llm-agents": "llm-agents",
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",

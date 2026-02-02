@@ -19,6 +19,10 @@ in
       # VCS
       git
       ghq
+
+      # Containers
+      lazydocker
+
       # Search & file utilities
 
       # Development languages

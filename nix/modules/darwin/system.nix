@@ -145,6 +145,7 @@ in
       "claude"
       "slack"
       "karabiner-elements"
+      "orbstack"
     ];
   };
 }

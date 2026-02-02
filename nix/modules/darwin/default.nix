@@ -21,5 +21,8 @@
         dotfilesDir
         ;
     })
+
+    # Docker configuration (OrbStack)
+    ./programs/docker.nix
   ];
 }

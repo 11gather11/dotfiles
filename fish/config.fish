@@ -25,3 +25,7 @@ set -g FISH_CONFIG $FISH_CONFIG_DIR/config.fish
 set -g FISH_CACHE_DIR /tmp/fish-cache
 
 # PATH setup is managed by Nix (see ~/.config/fish/conf.d/*.fish)
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init2.fish 2>/dev/null || :

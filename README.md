@@ -120,4 +120,4 @@ This configuration is heavily inspired by [ryoppippi/dotfiles](https://github.co
 
 ## Stats
 
-![Alt](https://repobeats.axiom.co/api/embed/5e32b941f5629fed0c306f74130d9eb3b15a334b.svg "Repobeats analytics image")
+![Alt](https://repobeats.axiom.co/api/embed/5e32b941f5629fed0c306f74130d9eb3b15a334b.svg 'Repobeats analytics image')

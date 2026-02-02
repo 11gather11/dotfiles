@@ -13,7 +13,7 @@
       google-chrome
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
-    # Note: imageoptim excluded due to tar.xz extraction issues with brew-nix
+    # Note: imageoptim and hhkb excluded due to extraction issues with brew-nix
     ++ (with pkgs.brewCasks; [
       stats
     ]);

@@ -12,6 +12,9 @@
     # Common packages
     ./packages.nix
 
+    # Programs
+    ./programs
+
     # Common dotfiles symlinks
     (import ./dotfiles.nix {
       inherit

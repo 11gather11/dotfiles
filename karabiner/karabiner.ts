@@ -2,9 +2,15 @@ import * as k from 'karabiner.ts';
 import * as utils from './utils.ts';
 
 const IDENTIFIERS = {
-	discord: await utils.extractIdentifier('Discord'),
-	chatgpt: await utils.extractIdentifier('ChatGPT'),
+	discord: await utils.extractIdentifierOptional('Discord'),
+	chatgpt: await utils.extractIdentifierOptional('ChatGPT'),
+	claude: await utils.extractIdentifierOptional('Claude'),
 } as const;
+
+// アプリが見つかった場合のみbundle_identifiersに追加
+const chatAppBundleIds = [IDENTIFIERS.discord, IDENTIFIERS.chatgpt, IDENTIFIERS.claude].filter(
+	(id): id is string => id != null,
+);
 
 k.writeToProfile(
 	'Default profile',
@@ -37,30 +43,35 @@ k.writeToProfile(
 				}),
 		]),
 
-		k
-			.rule(
-				'Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord and ChatGPT',
-				k.ifApp({ bundle_identifiers: [IDENTIFIERS.discord, IDENTIFIERS.chatgpt] }),
-			)
-			.manipulators([
-				k
-					.map({
-						key_code: 'return_or_enter',
-						modifiers: { mandatory: ['shift'] },
-					})
-					.to({ key_code: 'return_or_enter' }),
+		// Discord/ChatGPT/Claudeがインストールされている場合のみルールを追加
+		...(chatAppBundleIds.length > 0
+			? [
+					k
+						.rule(
+							'Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord/ChatGPT/Claude',
+							k.ifApp(chatAppBundleIds),
+						)
+						.manipulators([
+							k
+								.map({
+									key_code: 'return_or_enter',
+									modifiers: { mandatory: ['shift'] },
+								})
+								.to({ key_code: 'return_or_enter' }),
 
-				k
-					.map({
-						key_code: 'return_or_enter',
-						modifiers: { mandatory: ['command'] },
-					})
-					.to({ key_code: 'return_or_enter' }),
+							k
+								.map({
+									key_code: 'return_or_enter',
+									modifiers: { mandatory: ['command'] },
+								})
+								.to({ key_code: 'return_or_enter' }),
 
-				k
-					.map({ key_code: 'return_or_enter' })
-					.to({ key_code: 'return_or_enter', modifiers: ['shift'] }),
-			]),
+							k
+								.map({ key_code: 'return_or_enter' })
+								.to({ key_code: 'return_or_enter', modifiers: ['shift'] }),
+						]),
+				]
+			: []),
 
 		k.rule('Tap CMD to toggle Kana/Eisuu').manipulators([
 			k.withMapper<k.ModifierKeyCode, k.JapaneseKeyCode>({

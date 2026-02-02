@@ -9,9 +9,20 @@ export function toHideApp(name: string) {
 }
 
 async function findAppPath(appName: string): Promise<string | undefined> {
+	// Try mdfind first
 	const output =
 		await $`mdfind "kMDItemKind == 'Application' && kMDItemFSName == '${appName}.app'"`.text();
-	return output.trim().split('\n').at(0) || undefined;
+	const mdfindResult = output.trim().split('\n').at(0);
+
+	if (mdfindResult) {
+		return mdfindResult;
+	}
+
+	// Fallback: check /Applications directly
+	const directPath = `/Applications/${appName}.app`;
+	const exists = await $`test -d ${directPath}`.quiet().nothrow();
+
+	return exists.exitCode === 0 ? directPath : undefined;
 }
 
 export async function extractIdentifier(appName: string): Promise<string> {
@@ -31,6 +42,14 @@ export async function extractIdentifier(appName: string): Promise<string> {
 	return z.string().parse(identifier, {
 		error: () => `Failed to extract bundle identifier for ${appName}`,
 	});
+}
+
+export async function extractIdentifierOptional(appName: string): Promise<string | undefined> {
+	try {
+		return await extractIdentifier(appName);
+	} catch {
+		return undefined;
+	}
 }
 
 export async function getDeviceId(

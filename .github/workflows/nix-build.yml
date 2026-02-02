@@ -1,4 +1,4 @@
-name: "CI: Nix build"
+name: 'CI: Nix build'
 
 on:
   push:

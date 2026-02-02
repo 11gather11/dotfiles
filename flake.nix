@@ -252,6 +252,37 @@
               );
             };
 
+            switch = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript (if isDarwin then "darwin-switch" else "home-manager-switch") ''
+                  set -e
+                  echo "Building and switching to ${if isDarwin then "darwin" else "Home Manager"} configuration..."
+                  ${
+                    if isDarwin then
+                      "sudo nix run nix-darwin -- switch --flake .#${hostname}"
+                    else
+                      "nix run nixpkgs#home-manager -- switch --flake .#${username}"
+                  }
+                  echo "Clearing fish cache..."
+                  rm -rf "$TMPDIR/fish-cache"
+                  echo "Done!"
+                ''
+              );
+            };
+
+            update = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript "flake-update" ''
+                  set -e
+                  echo "Updating flake.lock..."
+                  nix flake update
+                  echo "Done! Run 'nix run .#switch' to apply changes."
+                ''
+              );
+            };
+
             fmt = {
               type = "app";
               program = toString (

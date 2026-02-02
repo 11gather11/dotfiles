@@ -6,7 +6,10 @@
     # Work-specific configuration (manually managed)
     # Create ~/.gitconfig.work for work-related settings
     includes = [
-      { path = "~/.gitconfig.work"; }
+      {
+        condition = "gitdir:~/work/";
+        path = "~/.gitconfig.work";
+      }
     ];
 
     settings = {

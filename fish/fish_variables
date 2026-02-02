@@ -1,3 +1,4 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
 SETUVAR __fish_initialized:4300
+SETUVAR fish_user_paths:/run/current\x2dsystem/sw/bin\x1e/Users/11gather11/\x2elocal/state/home\x2dmanager/gcroots/current\x2dhome/home\x2dpath/bin

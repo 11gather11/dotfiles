@@ -24,25 +24,96 @@ set -g FISH_CONFIG_DIR $XDG_CONFIG_HOME/fish
 set -g FISH_CONFIG $FISH_CONFIG_DIR/config.fish
 set -g FISH_CACHE_DIR /tmp/fish-cache
 
-# PATH setup is managed by Nix (see ~/.config/fish/conf.d/*.fish)
-
-# Homebrew
-set -l arch (uname -m)
-if test $arch = arm64
-    eval (/opt/homebrew/bin/brew shellenv)
-else if test $arch = x86_64
-    eval (/usr/local/bin/brew shellenv)
+# load user config (functions/ is auto-loaded by Fish)
+for file in $FISH_CONFIG_DIR/config/*.fish
+    source $file &
 end
 
-# anyenv
-if type -q anyenv
-    status --is-interactive; and source (anyenv init - fish | psub)
-end
+# theme
+set -gx theme_nerd_fonts yes
+set -gx BIT_THEME monochrome
+source $FISH_CONFIG_DIR/themes/kanagawa.fish
 
-# Go environment (must be after anyenv to avoid GOROOT being overwritten)
+# general bin paths
+fish_add_path $HOME/.local/bin
+fish_add_path /usr/local/opt/coreutils/libexec/gnubin
+fish_add_path /usr/local/opt/curl/bin
+
+# brew
+fish_add_path /opt/homebrew/bin
+
+# js/ts
+## bun
+fish_add_path $HOME/.bun/bin
+fish_add_path $HOME/.cache/.bun/bin
+
+# nodenv
+fish_add_path ~/.anyenv/envs/nodenv/bin
+status --is-interactive; and nodenv init - fish | source
+
+# go
 set -gx GOPATH $HOME/go
 fish_add_path $GOPATH/bin
 
-# Added by OrbStack: command-line tools and integration
-# This won't be added again if you remove it.
-source ~/.orbstack/shell/init2.fish 2>/dev/null || :
+# user scripts
+fish_add_path $HOME/.scripts
+fish_add_path $HOME/.scripts/bin
+
+# wezterm
+fish_add_path /Applications/WezTerm.app/Contents/MacOS
+
+# Secretive
+set SSH_SECRETIVE_SSH_SOCK $HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
+test -e $SSH_SECRETIVE_SSH_SOCK && set -x SSH_AUTH_SOCK $SSH_SECRETIVE_SSH_SOCK
+
+set -l CONFIG_CACHE $FISH_CACHE_DIR/config.fish
+if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
+    mkdir -p $FISH_CACHE_DIR
+    echo '' >$CONFIG_CACHE
+
+    # homebrew
+    if test (uname -m) = arm64
+        echo $(/opt/homebrew/bin/brew shellenv) >>$CONFIG_CACHE
+        echo "set -gx PATH /opt/homebrew/opt/llvm/bin $PATH" >>$CONFIG_CACHE
+    else
+        echo $(/usr/local/bin/brew shellenv) >>$CONFIG_CACHE
+    end
+
+    # xcode
+    echo "fish_add_path $(ensure_installed xcode-select -p)/usr/bin" >>$CONFIG_CACHE
+    echo "set -gx SDKROOT $(ensure_installed xcrun --sdk macosx --show-sdk-path)" >>$CONFIG_CACHE
+
+    # ruby
+    echo "fish_add_path $(ensure_installed brew --prefix)/opt/ruby/bin" >>$CONFIG_CACHE
+    echo "fish_add_path $(ensure_installed gem environment gemdir)/bin" >>$CONFIG_CACHE
+
+    # tools
+    ensure_installed direnv hook fish >>$CONFIG_CACHE
+    ensure_installed zoxide init fish >>$CONFIG_CACHE
+    # starship init fish >>$CONFIG_CACHE
+
+    # set vivid colors
+    echo "set -gx LS_COLORS '$(ensure_installed vivid generate gruvbox-dark)'" >>$CONFIG_CACHE
+
+    # jj
+    ensure_installed jj util completion fish >>$CONFIG_CACHE
+
+    set_color brmagenta --bold --underline
+    echo "config cache updated"
+    set_color normal
+end
+source $CONFIG_CACHE
+
+# neovim
+set -gx EDITOR nvim
+set -gx GIT_EDITOR nvim
+set -gx VISUAL nvim
+set -gx MANPAGER "nvim -c ASMANPAGER -"
+
+if status is-interactive
+    stty stop undef &
+    stty start undef &
+end
+
+set -g NA_PACKAGE_MANAGER_LIST bun deno pnpm npm yarn
+set -g NA_FUZZYFINDER_OPTIONS --bind 'one:accept' --query '^'

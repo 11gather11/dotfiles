@@ -1,0 +1,20 @@
+{
+	$schema: 'https://docs.renovatebot.com/renovate-schema.json',
+	extends: ['config:recommended'],
+	vulnerabilityAlerts: {
+		labels: ['security'],
+	},
+	labels: ['dependencies', 'renovate'],
+	platformAutomerge: true,
+	dependencyDashboard: false,
+	automerge: true,
+	branchConcurrentLimit: 0,
+	minimumReleaseAge: '3 days',
+	nix: {
+		enabled: false,
+	},
+	lockFileMaintenance: {
+		enabled: false,
+	},
+	packageRules: [],
+}

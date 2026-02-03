@@ -136,6 +136,7 @@
               {
                 imports = [
                   nix-index-database.homeModules.nix-index
+
                   (import ./nix/modules/home {
                     inherit
                       pkgs
@@ -210,6 +211,38 @@
                   excludes = [
                     "nvim/template/**"
                     "nvim/lazy-lock.json"
+                  ];
+                };
+                gitleaks = {
+                  command = "${localPkgs.gitleaks}/bin/gitleaks";
+                  options = [
+                    "detect"
+                    "--no-git"
+                    "--exit-code"
+                    "0"
+                  ];
+                  includes = [ "*" ];
+                  excludes = [
+                    "*.png"
+                    "*.jpg"
+                    "*.jpeg"
+                    "*.gif"
+                    "*.ico"
+                    "*.pdf"
+                    "*.woff"
+                    "*.woff2"
+                    "*.ttf"
+                    "*.eot"
+                    "node_modules/**"
+                    ".direnv/**"
+                    "nix/packages/node/**/package-lock.json"
+                  ];
+                };
+                renovate-validator = {
+                  command = "${localPkgs.renovate}/bin/renovate-config-validator";
+                  options = [ "--strict" ];
+                  includes = [
+                    ".github/renovate.json5"
                   ];
                 };
                 fish-indent = {

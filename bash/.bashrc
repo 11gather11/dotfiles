@@ -1,5 +1,14 @@
 export LC_ALL='en_US.UTF-8'
+##export LANG=ja_JP.UTF-8
 export BASH_SILENCE_DEPRECATION_WARNING=1
+
+
+export EDITOR=nvim
+
+export ARCH=$(uname -m)
+
+# PATH
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # cargo (only if installed via rustup, not Nix)
 if [ -f "$HOME/.cargo/env" ]; then
@@ -7,7 +16,6 @@ if [ -f "$HOME/.cargo/env" ]; then
 fi
 
 # Homebrew
-ARCH=$(uname -m)
 if [[ $ARCH == arm64 ]]; then
     eval $(/opt/homebrew/bin/brew shellenv)
 elif [[ $ARCH == x86_64 ]]; then
@@ -34,4 +42,9 @@ fi
 HM_SESSION_VARS="$HOME/.local/state/home-manager/gcroots/current-home/home-path/etc/profile.d/hm-session-vars.sh"
 if [ -f "$HM_SESSION_VARS" ]; then
     . "$HM_SESSION_VARS"
+fi
+
+if [[ -t 0 ]]; then
+    stty stop undef
+    stty start undef
 fi

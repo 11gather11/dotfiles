@@ -146,6 +146,7 @@ in
       "slack"
       "karabiner-elements"
       "orbstack"
+      "tailscale"
     ];
   };
 }

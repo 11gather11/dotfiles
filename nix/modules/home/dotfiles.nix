@@ -6,7 +6,7 @@
   ...
 }:
 let
-  # inherit (config.home) homeDirectory;
+  inherit (config.home) homeDirectory;
   inherit (config.xdg) configHome;
 in
 {
@@ -16,5 +16,9 @@ in
 
     # Fish shell configuration
     link_force "${dotfilesDir}/fish" "${configHome}/fish"
+
+    # Bash configuration
+    link_force "${dotfilesDir}/bash/.bash_profile" "${homeDirectory}/.bash_profile"
+    link_force "${dotfilesDir}/bash/.bashrc" "${homeDirectory}/.bashrc"
   '';
 }

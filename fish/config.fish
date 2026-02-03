@@ -26,6 +26,23 @@ set -g FISH_CACHE_DIR /tmp/fish-cache
 
 # PATH setup is managed by Nix (see ~/.config/fish/conf.d/*.fish)
 
+# Homebrew
+set -l arch (uname -m)
+if test $arch = arm64
+    eval (/opt/homebrew/bin/brew shellenv)
+else if test $arch = x86_64
+    eval (/usr/local/bin/brew shellenv)
+end
+
+# anyenv
+if type -q anyenv
+    status --is-interactive; and source (anyenv init - fish | psub)
+end
+
+# Go environment (must be after anyenv to avoid GOROOT being overwritten)
+set -gx GOPATH $HOME/go
+fish_add_path $GOPATH/bin
+
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.
 source ~/.orbstack/shell/init2.fish 2>/dev/null || :

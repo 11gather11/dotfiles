@@ -135,6 +135,13 @@ in
     nix-index-database.comma.enable = true;
   };
 
+  # Font configuration
+  fonts = {
+    packages = with pkgs; [
+      plemoljp-nf
+    ];
+  };
+
   # Homebrew configuration
   homebrew = {
     enable = true;
@@ -146,7 +153,7 @@ in
       "slack"
       "karabiner-elements"
       "orbstack"
-      "tailscale"
+      "tailscale-app"
     ];
   };
 }

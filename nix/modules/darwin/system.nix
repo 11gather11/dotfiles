@@ -150,10 +150,14 @@ in
     casks = [
       "1password"
       "claude"
-      "slack"
       "karabiner-elements"
       "orbstack"
+      "slack"
       "tailscale-app"
     ];
+
+    masApps = {
+      "Klack" = 6446206067;
+    };
   };
 }

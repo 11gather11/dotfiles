@@ -26,5 +26,8 @@ in
     # Bash configuration
     link_force "${dotfilesDir}/bash/.bash_profile" "${homeDirectory}/.bash_profile"
     link_force "${dotfilesDir}/bash/.bashrc" "${homeDirectory}/.bashrc"
+
+    # WezTerm configuration
+    link_force "${dotfilesDir}/wezterm" "${configHome}/wezterm"
   '';
 }

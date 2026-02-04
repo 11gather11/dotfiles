@@ -14,6 +14,23 @@ let
   jq = lib.getExe pkgs.jq;
   terminal-notifier =
     if pkgs.stdenv.isDarwin then lib.getExe' pkgs.terminal-notifier "terminal-notifier" else "";
+
+  # Generate settings JSON using Bun merge script
+  settingsJsonText = builtins.readFile (
+    pkgs.runCommand "claude-settings.json"
+      {
+        buildInputs = [ pkgs.bun ];
+        BASE_SETTINGS = ./settings.json;
+        DARWIN_SETTINGS = if pkgs.stdenv.isDarwin then ./settings-darwin.json else "";
+        BUN_PATH = bun;
+        TERMINAL_NOTIFIER_PATH = terminal-notifier;
+        JQ_PATH = jq;
+        IS_DARWIN = if pkgs.stdenv.isDarwin then "1" else "0";
+      }
+      ''
+        ${pkgs.bun}/bin/bun run ${./merge-settings.ts} > $out
+      ''
+  );
 in
 {
   home = {

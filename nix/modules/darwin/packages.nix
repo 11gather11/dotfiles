@@ -7,6 +7,7 @@
     with pkgs;
     [
       # macOS-specific packages
+      terminal-notifier
       mas
 
       # macOS GUI applications (not available on Linux in nixpkgs)

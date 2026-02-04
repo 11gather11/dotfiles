@@ -1,39 +1,172 @@
-{ config, pkgs, ... }:
-let
-  # nix-env.fish plugin for Nix environment support
-  nix-env-fish = pkgs.fetchFromGitHub {
-    owner = "lilyball";
-    repo = "nix-env.fish";
-    rev = "7b65bd228429e852c8fdfa07601159130a818cfa";
-    sha256 = "sha256-RG/0rfhgq6aEKNZ0XwIqOaZ6K5S4+/Y5EEMnIdtfPhk=";
-  };
-in
 {
-  # Install nix-env.fish plugin
-  home.file.".local/share/fish/nix-plugins/nix-env.fish" = {
-    source = nix-env-fish;
-    recursive = true;
-  };
+  pkgs,
+  fish-na,
+  lib,
+  ...
+}:
+let
+  # Define Fish plugins
+  fishPlugins = [
+    # Plugins from nixpkgs (cached and maintained)
+    {
+      name = "autopair-fish";
+      inherit (pkgs.fishPlugins.autopair-fish) src;
+    }
+    {
+      name = "bass";
+      inherit (pkgs.fishPlugins.bass) src;
+    }
+    {
+      name = "fzf";
+      inherit (pkgs.fishPlugins.fzf) src;
+    }
+    {
+      name = "fish-bd";
+      inherit (pkgs.fishPlugins.fish-bd) src;
+    }
+    {
+      name = "hydro";
+      inherit (pkgs.fishPlugins.hydro) src;
+    }
+    {
+      name = "spark";
+      inherit (pkgs.fishPlugins.spark) src;
+    }
 
-  # Generate conf.d files for PATH setup and plugin initialization
-  # Note: config.fish is managed via dotfiles symlink
+    # Environment variable helper
+    {
+      name = "ev-fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "joehillen";
+        repo = "ev-fish";
+        rev = "a3d0658c5e0563ff0f4ade9e83b20e01fea0a9e6";
+        sha256 = "sha256-t7FKKzD42hAZV7CpitrznRYLkCYok7Bqg1JXW7BaKyA=";
+      };
+    }
 
-  xdg.configFile."fish/conf.d/00-nix-env.fish".text = ''
-    # Nix environment support (nix-env.fish plugin)
-    set -gp fish_function_path ${nix-env-fish}/functions
-    if test -d ${nix-env-fish}/conf.d
-      for file in ${nix-env-fish}/conf.d/*.fish
+    # Replay bash/zsh commands in fish
+    {
+      name = "replay.fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "jorgebucaran";
+        repo = "replay.fish";
+        rev = "d2ecacd3fe7126e822ce8918389f3ad93b14c86c";
+        sha256 = "sha256-TzQ97h9tBRUg+A7DSKeTBWLQuThicbu19DHMwkmUXdg=";
+      };
+    }
+
+    # Abbreviation tips
+    {
+      name = "fish-abbreviation-tips";
+      src = pkgs.fetchFromGitHub {
+        owner = "gazorby";
+        repo = "fish-abbreviation-tips";
+        rev = "8ed76a62bb044ba4ad8e3e6832640178880df485";
+        sha256 = "sha256-F1t81VliD+v6WEWqj1c1ehFBXzqLyumx5vV46s/FZRU=";
+      };
+    }
+
+    # Bun + Deno + Node switcher
+    {
+      name = "bdf.fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "ryoppippi";
+        repo = "bdf.fish";
+        rev = "09d7dfc3e2e11196a5172e93406a8d7325f5a64f";
+        sha256 = "sha256-lXNHi7AIFd3h8nEPnTaCdNwfZrrnvWgRsybPH/X9peY=";
+      };
+    }
+
+    # PATH editor
+    {
+      name = "pathed.fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "yuys13";
+        repo = "pathed.fish";
+        rev = "6a761979781c1f4eebb3d0269fab0b3b4fba2b49";
+        sha256 = "sha256-9KmgxaiaCnDXyXXAnvtZ+4YiCqD+mSOg1ymi0adjc5Y=";
+      };
+    }
+
+    # Text expansion for fish
+    {
+      name = "puffer-fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "nickeb96";
+        repo = "puffer-fish";
+        rev = "83174b07de60078be79985ef6123d903329622b8";
+        sha256 = "sha256-Dhx5+XRxJvlhdnFyimNxFyFiASrGU4ZwyefsDwtKnSg=";
+      };
+    }
+
+    # Nix environment support
+    {
+      name = "nix-env.fish";
+      src = pkgs.fetchFromGitHub {
+        owner = "lilyball";
+        repo = "nix-env.fish";
+        rev = "7b65bd228429e852c8fdfa07601159130a818cfa";
+        sha256 = "sha256-RG/0rfhgq6aEKNZ0XwIqOaZ6K5S4+/Y5EEMnIdtfPhk=";
+      };
+    }
+
+    # Runtime version switcher
+    {
+      name = "fish-na";
+      src = fish-na;
+    }
+
+    # Customisable key bindings
+    {
+      name = "by-binds-yourself";
+      src = pkgs.fetchFromGitHub {
+        owner = "atusy";
+        repo = "by-binds-yourself";
+        rev = "c807ba8477f20624022b0146645696c1e48d2267";
+        sha256 = "sha256-WZaZvnOPil9CYjdUzjsM9b27TxP3AmxllbRCnxmHtzY=";
+      };
+    }
+  ];
+
+  # Create a file that adds plugin paths to fish_function_path and fish_complete_path
+  pluginPaths = lib.concatMapStringsSep "\n" (plugin: ''
+    set -gp fish_function_path ${plugin.src}/functions
+    set -gp fish_complete_path ${plugin.src}/completions
+  '') (lib.filter (p: builtins.pathExists "${p.src}/functions") fishPlugins);
+
+  confDFiles = lib.concatMapStringsSep "\n" (plugin: ''
+    if test -d ${plugin.src}/conf.d
+      for file in ${plugin.src}/conf.d/*.fish
         source $file
       end
     end
+  '') fishPlugins;
+in
+{
+  # Install plugins to ~/.local/share/fish/nix-plugins
+  home.file = lib.listToAttrs (
+    map (plugin: {
+      name = ".local/share/fish/nix-plugins/${plugin.name}";
+      value = {
+        source = plugin.src;
+        recursive = true;
+      };
+    }) fishPlugins
+  );
+
+  # Create init file that sets up plugin paths
+  xdg.configFile."fish/conf.d/00-nix-plugins.fish".text = ''
+    # Nix-managed Fish plugins
+    # This file is automatically generated by Home Manager
+
+    ${pluginPaths}
+
+    # Source conf.d files from plugins
+    ${confDFiles}
   '';
 
-  xdg.configFile."fish/conf.d/01-nix-home-manager-path.fish".text = ''
-    # Add Home Manager packages to PATH
-    fish_add_path ~/.local/state/home-manager/gcroots/current-home/home-path/bin
-  '';
-
-  xdg.configFile."fish/conf.d/02-nix-darwin-path.fish".text = ''
+  # Add nix-darwin system path (for comma, nix-locate, etc.)
+  xdg.configFile."fish/conf.d/01-nix-darwin-path.fish".text = ''
     # Add nix-darwin system packages to PATH
     # This includes comma, nix-locate, and other system-level packages
     if test -d /run/current-system/sw/bin

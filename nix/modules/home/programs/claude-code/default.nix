@@ -1,0 +1,55 @@
+{
+  pkgs,
+  lib,
+  config,
+  dotfilesDir,
+  ...
+}:
+let
+  claudeConfigDir = "${config.xdg.configHome}/claude";
+  claudeDotfilesDir = "${dotfilesDir}/claude";
+
+  # Binary paths from Nix store
+  bun = lib.getExe pkgs.bun;
+  jq = lib.getExe pkgs.jq;
+  terminal-notifier =
+    if pkgs.stdenv.isDarwin then lib.getExe' pkgs.terminal-notifier "terminal-notifier" else "";
+in
+{
+  home = {
+    # Claude Code package from overlay
+    packages = [ pkgs.claude-code ];
+
+    # Set CLAUDE_CONFIG_DIR environment variable (sourced via hm-session-vars.sh in fish)
+    sessionVariables = {
+      CLAUDE_CONFIG_DIR = claudeConfigDir;
+    };
+
+    # Validate Claude Code settings.json after generation
+    activation.validateClaudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      SETTINGS_FILE="${claudeConfigDir}/settings.json"
+      SCHEMA_URL=$(${jq} -r '.["$schema"]' "$SETTINGS_FILE")
+
+      echo "🔍 Validating Claude Code settings.json..."
+      if ${pkgs.check-jsonschema}/bin/check-jsonschema --schemafile "$SCHEMA_URL" "$SETTINGS_FILE" 2>&1; then
+        echo "✅ Claude Code settings.json validation passed"
+      else
+        echo "❌ Claude Code settings.json validation failed" >&2
+        exit 1
+      fi
+    '';
+  };
+
+  # Symlink directories and files to ~/.config/claude/
+  # Note: All skills (external and local) are managed by agent-skills module
+  xdg.configFile = {
+    # Generate settings.json from JSON file with path replacements
+    "claude/settings.json".text = settingsJsonText;
+    "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/CLAUDE.md";
+    "claude/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/commands";
+    "claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/agents";
+    "claude/output-styles".source =
+      config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/output-styles";
+    "claude/rules".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/rules";
+  };
+}

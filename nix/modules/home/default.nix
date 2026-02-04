@@ -1,7 +1,8 @@
 {
-  # pkgs,
+  pkgs,
   config,
   lib,
+  fish-na,
   helpers,
   dotfilesDir,
   # system,
@@ -12,8 +13,17 @@
     # Common packages
     ./packages.nix
 
-    # Programs
-    ./programs
+    # Program configurations (Claude Code, Codex, Neovim, etc.)
+    (import ./programs {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        helpers
+        fish-na
+        ;
+    })
 
     # Common dotfiles symlinks
     (import ./dotfiles.nix {

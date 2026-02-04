@@ -57,6 +57,16 @@
       flake = false;
     };
 
+    fish-na = {
+      url = "github:ryoppippi/fish-na";
+      flake = false;
+    };
+
+    gh-graph = {
+      url = "github:kawarimidoll/gh-graph";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -82,6 +92,8 @@
       llm-agents,
       claude-code-overlay,
       brew-nix,
+      fish-na,
+      gh-graph,
       nix-index-database,
       treefmt-nix,
       git-hooks,
@@ -142,6 +154,7 @@
                       pkgs
                       config
                       lib
+                      fish-na
                       helpers
                       ;
                     dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
@@ -373,6 +386,7 @@
                           pkgs
                           config
                           lib
+                          fish-na
                           helpers
                           ;
                         dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";

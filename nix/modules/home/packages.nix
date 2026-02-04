@@ -18,16 +18,31 @@ in
       fish
       # VCS
       git
+      git-wt
+      bit
+      git-lfs
       ghq
-
-      # Containers
+      lazygit
       lazydocker
-
       # Search & file utilities
-
+      ripgrep
+      fd
+      fzf
+      zoxide
+      bat
+      eza
+      wezterm
+      jq
+      dust
+      delta
+      tre
+      vivid
+      pastel
+      hexyl
       # Development languages
       nodejs_24
       bun
+      deno
       # Go is managed in programs/go.nix
       # Package managers
       yarn

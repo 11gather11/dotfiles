@@ -16,7 +16,6 @@
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [
       shottr
-      stats
     ]);
   # brew-nix packages requiring hash override
 }

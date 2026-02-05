@@ -43,6 +43,10 @@ in
       nodejs_24
       bun
       deno
+
+      #LSP
+      nixd
+
       # Go is managed in programs/go.nix
       # Package managers
       yarn

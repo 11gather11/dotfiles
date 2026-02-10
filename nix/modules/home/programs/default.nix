@@ -31,6 +31,19 @@
         ;
     })
 
+    # Direnv configuration with nix-direnv
+    ./direnv.nix
+
+    # jj configuration
+    (import ./jj.nix {
+      inherit
+        pkgs
+        lib
+        config
+        helpers
+        ;
+    })
+
     # Git configuration
     (import ./git {
       inherit

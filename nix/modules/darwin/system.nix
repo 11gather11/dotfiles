@@ -149,7 +149,6 @@ in
 
     casks = [
       "1password"
-      "aqua-voice"
       "claude"
       "karabiner-elements"
       "orbstack"

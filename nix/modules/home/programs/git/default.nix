@@ -53,11 +53,11 @@ in
       credential = {
         "https://github.com".helper = [
           ""
-          "!gh auth git-credential"
+          "!/usr/bin/env GH_TOKEN=$(gh auth token --user ${user.username}) gh auth git-credential"
         ];
         "https://gist.github.com".helper = [
           ""
-          "!gh auth git-credential"
+          "!/usr/bin/env GH_TOKEN=$(gh auth token --user ${user.username}) gh auth git-credential"
         ];
       };
 

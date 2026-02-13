@@ -44,6 +44,15 @@
         ;
     })
 
+    # GitHub CLI configuration
+    (import ./gh.nix {
+      inherit
+        pkgs
+        lib
+        config
+        ;
+    })
+
     # Git configuration
     (import ./git {
       inherit

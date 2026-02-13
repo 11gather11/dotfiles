@@ -47,9 +47,10 @@ fish_add_path /opt/homebrew/bin
 fish_add_path $HOME/.bun/bin
 fish_add_path $HOME/.cache/.bun/bin
 
-# nodenv
-fish_add_path ~/.anyenv/envs/nodenv/bin
-status --is-interactive; and nodenv init - fish | source
+# anyenv
+if type -q anyenv
+    status --is-interactive; and source (anyenv init - fish | psub)
+end
 
 # go
 set -gx GOPATH $HOME/go
@@ -62,9 +63,9 @@ fish_add_path $HOME/.scripts/bin
 # wezterm
 fish_add_path /Applications/WezTerm.app/Contents/MacOS
 
-# Secretive
-set SSH_SECRETIVE_SSH_SOCK $HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
-test -e $SSH_SECRETIVE_SSH_SOCK && set -x SSH_AUTH_SOCK $SSH_SECRETIVE_SSH_SOCK
+# 1Password SSH Agent
+set _1P_SSH_SOCK "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+test -e $_1P_SSH_SOCK && set -x SSH_AUTH_SOCK $_1P_SSH_SOCK
 
 set -l CONFIG_CACHE $FISH_CACHE_DIR/config.fish
 if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"

@@ -33,6 +33,9 @@ export PATH=$GOPATH/bin:$PATH
 export GOROOT=$(go1.24.6 env GOROOT)
 export PATH=$GOROOT/bin:$PATH
 
+# direnv
+eval "$(direnv hook bash)"
+
 # nix
 if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
     . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh

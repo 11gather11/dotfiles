@@ -35,6 +35,12 @@ in
 
     # macOS system defaults
     defaults = {
+      # Window Manager settings
+      WindowManager = {
+        StandardHideWidgets = true; # Hide widgets on desktop
+        StageManagerHideWidgets = true; # Hide widgets in Stage Manager
+      };
+
       # Dock settings
       dock = {
         autohide = true; # Automatically hide and show the Dock
@@ -149,11 +155,15 @@ in
 
     casks = [
       "1password"
+      "bambu-studio"
       "claude"
+      "discord"
+      "google-chrome"
       "karabiner-elements"
       "orbstack"
       "slack"
       "tailscale-app"
+      "visual-studio-code"
     ];
 
     masApps = {

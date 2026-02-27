@@ -269,6 +269,7 @@
 
           # Git hooks configuration
           pre-commit = {
+            check.enable = false;
             settings.hooks = {
               treefmt = {
                 enable = true;

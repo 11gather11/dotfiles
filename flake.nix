@@ -251,13 +251,6 @@
                     "nix/packages/node/**/package-lock.json"
                   ];
                 };
-                renovate-validator = {
-                  command = "${localPkgs.renovate}/bin/renovate-config-validator";
-                  options = [ "--strict" ];
-                  includes = [
-                    ".github/renovate.json5"
-                  ];
-                };
                 fish-indent = {
                   command = "${localPkgs.fish}/bin/fish_indent";
                   options = [ "--write" ];

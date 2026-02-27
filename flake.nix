@@ -118,6 +118,7 @@
               _llm-agents = llm-agents;
               _claude-code-overlay = claude-code-overlay;
             })
+            gh-graph.overlays.default
             (import ./nix/overlays)
           ]
           ++ nixpkgs.lib.optionals isDarwin [
@@ -318,6 +319,18 @@
                   set -e
                   echo "Updating flake.lock..."
                   nix flake update
+                  echo "Done! Run 'nix run .#switch' to apply changes."
+                ''
+              );
+            };
+
+            update-ai-tools = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript "update-ai-tools" ''
+                  set -e
+                  echo "Updating AI tools inputs..."
+                  nix flake update llm-agents
                   echo "Done! Run 'nix run .#switch' to apply changes."
                 ''
               );

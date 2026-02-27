@@ -31,16 +31,12 @@
         ;
     })
 
-    # Direnv configuration with nix-direnv
-    ./direnv.nix
-
-    # jj configuration
-    (import ./jj.nix {
+    # Codex configuration
+    (import ./codex.nix {
       inherit
         pkgs
-        lib
         config
-        helpers
+        dotfilesDir
         ;
     })
 
@@ -60,6 +56,30 @@
         lib
         config
         helpers
+        ;
+    })
+
+    # Bat configuration
+    ./bat.nix
+
+    # Direnv configuration with nix-direnv
+    ./direnv.nix
+
+    # jj configuration
+    (import ./jj.nix {
+      inherit
+        pkgs
+        lib
+        config
+        helpers
+        ;
+    })
+
+    # Lazygit configuration
+    (import ./lazygit {
+      inherit
+        pkgs
+        lib
         ;
     })
   ];

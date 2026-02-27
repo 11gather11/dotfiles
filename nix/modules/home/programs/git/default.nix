@@ -6,8 +6,30 @@
 let
   # User configuration (shared with jj)
   user = helpers.mkUser config;
+
+  # Delta settings (shared with lazygit pager configuration)
+  deltaSettings = {
+    dark = true;
+    syntax-theme = "GitHub";
+    diff-so-fancy = true;
+    keep-plus-minus-markers = true;
+    side-by-side = true;
+    hunk-header-style = "omit";
+    line-numbers = true;
+  };
+
+  # Aliases file path (copied to Nix store to preserve original formatting)
+  # Nix's toGitINI quotes all values, which breaks some tools like 'bit'
+  aliasesFile = ./aliases;
 in
 {
+  # Delta pager configuration (used by git)
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = deltaSettings;
+  };
+
   programs.git = {
     enable = true;
 
@@ -106,6 +128,8 @@ in
         enabled = true;
         autoupdate = true;
       };
+
+      wt.remover = "trash";
     };
 
     # Work-specific configuration (manually managed)
@@ -115,6 +139,7 @@ in
         condition = "gitdir:~/work/";
         path = "~/.gitconfig.work";
       }
+      { path = "${aliasesFile}"; }
     ];
 
     ignores = [

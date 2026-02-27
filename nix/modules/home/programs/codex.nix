@@ -16,7 +16,7 @@ let
 
   # Codex configuration settings
   settings = {
-    model = "gpt-5.3-codex-spark";
+    model = "gpt-5.3-codex";
     approval_policy = "on-request";
     model_reasoning_effort = "high";
     web_search_request = true;

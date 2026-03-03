@@ -9,5 +9,8 @@ let
   });
 in
 {
-  home.packages = [ go_1_24_6 ];
+  home.packages = [
+    go_1_24_6
+    pkgs.golangci-lint
+  ];
 }

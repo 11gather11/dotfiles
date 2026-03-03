@@ -41,6 +41,7 @@
     rustc
     cargo
     cargo-make
+    lefthook
     #LSP
     nixd
   ];

@@ -5,6 +5,8 @@
   fish-na,
   helpers,
   dotfilesDir,
+  ast-grep-skill,
+  local-skills,
   # system,
   ...
 }:
@@ -12,6 +14,25 @@
   imports = [
     # Common packages
     ./packages.nix
+
+    # Agent skills for Claude Code (skills from flake inputs)
+    (import ./agent-skills.nix {
+      inherit
+        pkgs
+        ast-grep-skill
+        local-skills
+        config
+        ;
+    })
+
+    # Git hooks for auto-switching nix config on changes
+    # Note: pre-commit hook is managed by devShell via git-hooks.nix flakeModule
+    (import ./git-hooks.nix {
+      inherit
+        lib
+        dotfilesDir
+        ;
+    })
 
     # Program configurations (Claude Code, Codex, Neovim, etc.)
     (import ./programs {

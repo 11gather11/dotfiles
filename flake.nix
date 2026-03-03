@@ -81,10 +81,25 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Agent skills framework for managing Claude Code skills
+    agent-skills = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Claude Code skills (flake = false for non-flake repos)
+    ast-grep-skill = {
+      url = "github:ast-grep/claude-skill";
+      flake = false;
+    };
+
+    nix-filter.url = "github:numtide/nix-filter";
   };
 
   outputs =
     inputs@{
+      self,
       nixpkgs,
       flake-parts,
       nix-darwin,
@@ -97,12 +112,20 @@
       nix-index-database,
       treefmt-nix,
       git-hooks,
+      agent-skills,
+      ast-grep-skill,
+      nix-filter,
       ...
     }:
     let
       username = "11gather11";
       darwinHomedir = "/Users/${username}";
       linuxHomedir = "/home/${username}";
+
+      local-skills = nix-filter {
+        root = self;
+        include = [ "agents/skills" ];
+      };
 
       # Create pkgs with overlays
       mkPkgs =
@@ -149,6 +172,7 @@
               {
                 imports = [
                   nix-index-database.homeModules.nix-index
+                  agent-skills.homeManagerModules.default
 
                   (import ./nix/modules/home {
                     inherit
@@ -157,6 +181,8 @@
                       lib
                       fish-na
                       helpers
+                      ast-grep-skill
+                      local-skills
                       ;
                     dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
                     system = "aarch64-darwin";
@@ -388,6 +414,8 @@
                   in
                   {
                     imports = [
+                      agent-skills.homeManagerModules.default
+
                       (import ./nix/modules/home {
                         inherit
                           pkgs
@@ -395,6 +423,8 @@
                           lib
                           fish-na
                           helpers
+                          ast-grep-skill
+                          local-skills
                           ;
                         dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
                         system = "aarch64-darwin";

@@ -1,0 +1,89 @@
+name: 'Bot: Auto-rebase PRs'
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: auto-rebase
+  cancel-in-progress: false
+
+jobs:
+  rebase-prs:
+    runs-on: ubuntu-24.04-arm
+    # Run on: 1) merge commits (auto-merge), or 2) manual trigger
+    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.committer.name == 'GitHub'
+    steps:
+      - name: Checkout repository (for local actions)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up git bot identity
+        id: bot
+        uses: ./.github/actions/setup-git-bot
+        with:
+          app-id: ${{ secrets.NIX_UPDATER_APP_ID }}
+          private-key: ${{ secrets.NIX_UPDATER_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository (with bot token)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ steps.bot.outputs.token }}
+          fetch-depth: 0
+
+      - name: Rebase open flake update PRs
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+        run: |
+          set -euo pipefail
+
+          echo "=== Finding open flake update PRs ==="
+
+          # Get all open PRs with update-flake- branches
+          prs=$(gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | startswith("update-flake-")) | "\(.number) \(.headRefName)"')
+
+          if [ -z "$prs" ]; then
+            echo "No open flake update PRs found"
+            exit 0
+          fi
+
+          echo "Found PRs to rebase:"
+          echo "$prs"
+
+          # Process each PR
+          echo "$prs" | while read -r pr_number branch_name; do
+            echo ""
+            echo "=== Processing PR #$pr_number (branch: $branch_name) ==="
+
+            # Fetch the branch
+            git fetch origin "$branch_name"
+
+            # Check if branch is behind main
+            behind_count=$(git rev-list --count "origin/$branch_name..origin/main")
+
+            if [ "$behind_count" -eq 0 ]; then
+              echo "Branch is up to date, skipping"
+              continue
+            fi
+
+            echo "Branch is $behind_count commits behind main, rebasing..."
+
+            # Checkout and rebase
+            git checkout -B "$branch_name" "origin/$branch_name"
+
+            if git rebase origin/main; then
+              echo "Rebase successful, force pushing..."
+              git push --force origin "$branch_name"
+              echo "PR #$pr_number rebased successfully"
+            else
+              echo "Rebase failed for PR #$pr_number, aborting"
+              git rebase --abort
+            fi
+
+            # Return to main
+            git checkout main
+          done
+
+          echo ""
+          echo "=== Rebase complete ==="

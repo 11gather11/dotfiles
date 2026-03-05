@@ -224,6 +224,7 @@
         let
           localPkgs = mkPkgs system;
           inherit (localPkgs.stdenv) isDarwin;
+          homedir = if isDarwin then darwinHomedir else linuxHomedir;
           hostname = username;
         in
         {
@@ -302,6 +303,23 @@
 
           # Apps
           apps = {
+            nvim-restore = {
+              type = "app";
+              program = toString (
+                localPkgs.writeShellScript "nvim-restore" ''
+                  : "''${DOTFILES_DIR:=${homedir}/ghq/github.com/11gather11/dotfiles}"
+                  if [ ! -d "$DOTFILES_DIR" ]; then
+                    DOTFILES_DIR="$(pwd)"
+                  fi
+                  exec ${localPkgs.bash}/bin/bash \
+                    ${./nix/modules/home/programs/neovim/check.sh} \
+                    "$DOTFILES_DIR/nvim" \
+                    "$HOME/.local/share/nvim/lazy" \
+                    ${localPkgs.neovim}/bin/nvim
+                ''
+              );
+            };
+
             build = {
               type = "app";
               program = toString (

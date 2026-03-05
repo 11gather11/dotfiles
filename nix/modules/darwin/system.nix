@@ -159,6 +159,7 @@ in
       "claude"
       "discord"
       "google-chrome"
+      "hhkb"
       "karabiner-elements"
       "orbstack"
       "slack"

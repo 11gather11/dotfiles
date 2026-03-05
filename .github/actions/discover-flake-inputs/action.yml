@@ -42,9 +42,13 @@ runs:
         echo "Skip delay inputs: ${SKIP_DELAY_INPUTS:-<none>}"
         echo
 
+        # Convert exclude inputs to array
         IFS=' ' read -ra exclude_array <<< "${EXCLUDE_INPUTS:-}"
+
+        # Convert skip delay inputs to array
         IFS=' ' read -ra skip_delay_array <<< "${SKIP_DELAY_INPUTS:-}"
 
+        # Function to check if input should be excluded
         should_exclude() {
           local input="$1"
           for exclude_input in "${exclude_array[@]}"; do
@@ -55,6 +59,7 @@ runs:
           return 1
         }
 
+        # Function to check if input should skip delay
         should_skip_delay() {
           local input="$1"
           for skip_input in "${skip_delay_array[@]}"; do
@@ -65,6 +70,7 @@ runs:
           return 1
         }
 
+        # Initialize array for matrix items
         declare -a matrix_items=()
 
         echo "Discovering flake inputs..."
@@ -76,6 +82,7 @@ runs:
           exit 0
         fi
 
+        # Get flake metadata
         if ! metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null); then
           echo "Failed to get flake metadata"
           exit 1
@@ -84,15 +91,18 @@ runs:
         if [ -n "$INPUTS" ]; then
           requested_inputs="$INPUTS"
         else
+          # Get all direct inputs (not transitive dependencies)
           requested_inputs=$(echo "$metadata" | jq -r '.locks.nodes.root.inputs | keys[]' | sort)
         fi
 
         for input in $requested_inputs; do
+          # Check if this input should be excluded
           if [ ${#exclude_array[@]} -gt 0 ] && should_exclude "$input"; then
             echo "  - $input (excluded)"
             continue
           fi
 
+          # Check if this input exists in the flake
           if ! echo "$metadata" | jq -e ".locks.nodes.\"$input\"" >/dev/null 2>&1; then
             echo "Warning: Input $input not found, skipping"
             continue
@@ -103,6 +113,7 @@ runs:
           repo=$(echo "$metadata" | jq -r ".locks.nodes.\"$input\".original.repo // \"unknown\"")
           ref=$(echo "$metadata" | jq -r ".locks.nodes.\"$input\".original.ref // \"\"")
 
+          # Determine if this input should skip delay
           if should_skip_delay "$input"; then
             skip_delay="true"
           else
@@ -120,6 +131,7 @@ runs:
         echo
         echo "=== Discovery Results ==="
 
+        # Create matrix JSON
         if [ ${#matrix_items[@]} -eq 0 ]; then
           matrix='{"include":[]}'
           has_updates="false"

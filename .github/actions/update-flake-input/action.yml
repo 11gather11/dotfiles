@@ -72,18 +72,22 @@ runs:
         echo "Skip delay: $SKIP_DELAY"
         echo "Minimum release age: $MIN_AGE_DAYS days"
 
+        # Calculate minimum age in seconds
         min_age_seconds=$((MIN_AGE_DAYS * 86400))
 
+        # Get current revision before update
         current_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
         current_rev=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.rev // \"unknown\"")
         current_owner=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.owner // \"unknown\"")
         current_repo=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.repo // \"unknown\"")
         echo "Current revision: $current_rev"
 
+        # Function to get package versions from a flake
         get_package_versions() {
           local flake_ref="$1"
           local packages=""
 
+          # Define packages to check for each input
           case "$INPUT_NAME" in
             llm-agents)
               packages="claude-code codex amp cursor-agent gemini-cli opencode goose-cli"
@@ -109,6 +113,7 @@ runs:
           echo "$versions"
         }
 
+        # Get current package versions for special inputs
         current_pkg_versions=""
         if [ "$INPUT_NAME" = "llm-agents" ]; then
           echo "Fetching current package versions..."
@@ -116,20 +121,24 @@ runs:
           echo "Current package versions: $current_pkg_versions"
         fi
 
+        # Determine target revision for update
         target_rev=""
         if [ "$SKIP_DELAY" = "false" ] && [ -n "$INPUT_OWNER" ] && [ -n "$INPUT_REPO" ]; then
           echo "Fetching commit from at least $MIN_AGE_DAYS days ago via GitHub API..."
 
+          # Calculate the cutoff date
           cutoff_date=$(date -u -d "$MIN_AGE_DAYS days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || \
                         date -u -v-${MIN_AGE_DAYS}d +%Y-%m-%dT%H:%M:%SZ)
           echo "Cutoff date: $cutoff_date"
 
+          # Build the API URL with optional branch filter
           api_url="repos/${INPUT_OWNER}/${INPUT_REPO}/commits?until=${cutoff_date}&per_page=1"
           if [ -n "$INPUT_REF" ]; then
             api_url="${api_url}&sha=${INPUT_REF}"
             echo "Filtering by branch: $INPUT_REF"
           fi
 
+          # Fetch the most recent commit that is at least MIN_AGE_DAYS old
           if commit_data=$(gh api "$api_url" --jq '.[0] | {sha: .sha, date: .commit.committer.date}' 2>/dev/null); then
             target_rev=$(echo "$commit_data" | jq -r '.sha // empty')
             commit_date=$(echo "$commit_data" | jq -r '.date // empty')
@@ -137,12 +146,14 @@ runs:
             if [ -n "$target_rev" ]; then
               echo "Found commit from $commit_date: ${target_rev:0:8}"
 
+              # Check if this is the same as current revision
               if [ "${target_rev:0:40}" = "${current_rev:0:40}" ]; then
                 echo "Target revision is the same as current. No update needed."
                 echo "updated=false" >> "$GITHUB_OUTPUT"
                 exit 0
               fi
 
+              # Check if target is older than current (would be a downgrade)
               if [ -n "$current_rev" ] && [ "$current_rev" != "unknown" ]; then
                 current_commit_date=$(gh api "repos/${INPUT_OWNER}/${INPUT_REPO}/commits/${current_rev}" --jq '.commit.committer.date' 2>/dev/null || echo "")
                 if [ -n "$current_commit_date" ] && [ -n "$commit_date" ]; then
@@ -165,13 +176,16 @@ runs:
           fi
         fi
 
+        # Perform the update
         if [ -n "$target_rev" ]; then
+          # Update to specific revision
           echo "Running: nix flake update $INPUT_NAME --override-input $INPUT_NAME github:${INPUT_OWNER}/${INPUT_REPO}/${target_rev}"
           if ! nix flake update "$INPUT_NAME" --override-input "$INPUT_NAME" "github:${INPUT_OWNER}/${INPUT_REPO}/${target_rev}"; then
             echo "::error::Failed to update $INPUT_NAME to specific revision"
             exit 1
           fi
         else
+          # Standard update (latest)
           echo "Running: nix flake update $INPUT_NAME"
           if ! nix flake update "$INPUT_NAME"; then
             echo "::error::Failed to update $INPUT_NAME"
@@ -179,18 +193,21 @@ runs:
           fi
         fi
 
+        # Check if there were actual changes
         if git diff --quiet flake.lock; then
           echo "No changes detected for $INPUT_NAME"
           echo "updated=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
+        # Get new revision info
         new_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
         new_rev=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.rev // \"unknown\"")
         new_owner=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.owner // \"unknown\"")
         new_repo=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.repo // \"unknown\"")
         echo "New revision: $new_rev"
 
+        # Get new package versions for special inputs
         new_pkg_versions=""
         pkg_version_diff=""
         if [ "$INPUT_NAME" = "llm-agents" ]; then
@@ -198,7 +215,9 @@ runs:
           new_pkg_versions=$(get_package_versions "github:${new_owner}/${new_repo}/${new_rev}")
           echo "New package versions: $new_pkg_versions"
 
+          # Build version diff for changed packages
           if [ -n "$current_pkg_versions" ] && [ -n "$new_pkg_versions" ]; then
+            # Parse and compare versions
             declare -A old_versions new_versions
             IFS=', ' read -ra old_pairs <<< "$current_pkg_versions"
             for pair in "${old_pairs[@]}"; do
@@ -213,6 +232,7 @@ runs:
               new_versions["$key"]="$val"
             done
 
+            # Find changed versions
             changed_pkgs=""
             for key in "${!new_versions[@]}"; do
               old_val="${old_versions[$key]:-}"
@@ -233,6 +253,7 @@ runs:
           fi
         fi
 
+        # Verify release age for standard updates (when target_rev was not pre-determined)
         if [ -z "$target_rev" ] && [ "$SKIP_DELAY" = "false" ]; then
           echo "Verifying release age (minimum: $MIN_AGE_DAYS days)..."
 
@@ -292,18 +313,21 @@ runs:
 
         branch="update-flake-${INPUT_NAME}"
 
+        # Build PR title with package version diff if available
         if [ -n "$PKG_VERSION_DIFF" ]; then
           pr_title="chore(nix): update ${INPUT_NAME} (${PKG_VERSION_DIFF})"
         else
           pr_title="chore(nix): update flake input ${INPUT_NAME} to ${NEW_VERSION}"
         fi
 
+        # Create PR body
         if [ "$SKIP_DELAY" = "true" ]; then
           delay_note=":zap: This input is configured to skip the release age check."
         else
           delay_note=":hourglass: This update passed the ${MIN_AGE_DAYS}-day minimum release age check."
         fi
 
+        # Build package versions section if available
         pkg_versions_section=""
         if [ -n "$NEW_PKG_VERSIONS" ]; then
           pkg_versions_section="
@@ -311,6 +335,7 @@ runs:
         | Package | Old | New |
         |---------|-----|-----|"
 
+          # Parse current and new versions into arrays
           declare -A old_versions new_versions
           if [ -n "$CURRENT_PKG_VERSIONS" ]; then
             IFS=', ' read -ra old_pairs <<< "$CURRENT_PKG_VERSIONS"
@@ -327,6 +352,7 @@ runs:
             new_versions["$key"]="$val"
           done
 
+          # Build table rows
           for key in "${!new_versions[@]}"; do
             old_val="${old_versions[$key]:-N/A}"
             new_val="${new_versions[$key]}"
@@ -352,10 +378,13 @@ runs:
         ---
         This PR was automatically created by the flake update workflow."
 
+        # Stage changes
         git add flake.lock
 
+        # Create branch
         git checkout -b "$branch"
 
+        # Build commit message with package version diff if available
         if [ -n "$PKG_VERSION_DIFF" ]; then
           commit_message="chore(nix): update ${INPUT_NAME} (${PKG_VERSION_DIFF})"
         else
@@ -364,8 +393,10 @@ runs:
 
         git commit -m "$commit_message"
 
+        # Push (force to handle re-runs)
         git push --force origin "$branch"
 
+        # Check if PR exists
         pr_number=$(gh pr list --head "$branch" --json number --jq '.[0].number // empty')
 
         if [ -n "$pr_number" ]; then
@@ -374,6 +405,7 @@ runs:
         else
           echo "Creating new PR"
 
+          # Build label arguments
           label_args=""
           IFS=',' read -ra labels <<< "$PR_LABELS"
           for label in "${labels[@]}"; do
@@ -391,6 +423,7 @@ runs:
           pr_number=$(gh pr list --head "$branch" --json number --jq '.[0].number')
         fi
 
+        # Enable auto-merge if requested
         if [ "$AUTO_MERGE" = "true" ] && [ -n "$pr_number" ]; then
           echo "Enabling auto-merge for PR #$pr_number"
           gh pr merge "$pr_number" --auto --squash || echo "Note: Auto-merge may require branch protection rules"

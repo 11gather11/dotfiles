@@ -22,7 +22,7 @@ on:
 
 jobs:
   update:
-    uses: ./.github/workflows/_update-flake-reusable.yaml
+    uses: ./.github/workflows/_update-flake-reusable.yml
     with:
       inputs: ${{ github.event.inputs.inputs || '' }}
       exclude-inputs: >-

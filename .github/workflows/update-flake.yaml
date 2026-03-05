@@ -1,0 +1,37 @@
+name: 'Bot: Update flake inputs (stable)'
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      inputs:
+        description: 'Specific flake inputs to update (space-separated, empty for all stable inputs)'
+        required: false
+        default: ''
+      minimum-release-age-days:
+        description: 'Minimum release age in days before updating'
+        required: false
+        type: number
+        default: 3
+      skip-delay:
+        description: 'Skip the minimum release age check for all inputs'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  update:
+    uses: ./.github/workflows/_update-flake-reusable.yaml
+    with:
+      inputs: ${{ github.event.inputs.inputs || '' }}
+      exclude-inputs: >-
+        llm-agents
+        claude-code-overlay
+      minimum-release-age-days: ${{ github.event.inputs.minimum-release-age-days || '3' }}
+      skip-delay: ${{ github.event.inputs.skip-delay == 'true' }}
+      summary-title: 'Stable Update Summary'
+    secrets:
+      app-id: ${{ secrets.NIX_UPDATER_APP_ID }}
+      private-key: ${{ secrets.NIX_UPDATER_APP_PRIVATE_KEY }}
+      cachix-auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}

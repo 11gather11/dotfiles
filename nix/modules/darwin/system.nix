@@ -155,6 +155,7 @@ in
 
     casks = [
       "1password"
+      "autodesk-fusion"
       "bambu-studio"
       "claude"
       "discord"

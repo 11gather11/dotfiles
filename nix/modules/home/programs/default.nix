@@ -59,6 +59,17 @@
         ;
     })
 
+    # Neovim configuration
+    (import ./neovim {
+      inherit
+        pkgs
+        lib
+        config
+        dotfilesDir
+        helpers
+        ;
+    })
+
     # Bat configuration
     ./bat.nix
 

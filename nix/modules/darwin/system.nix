@@ -162,6 +162,7 @@ in
       "google-chrome"
       "hhkb"
       "karabiner-elements"
+      "logi-options+"
       "orbstack"
       "slack"
       "tailscale-app"

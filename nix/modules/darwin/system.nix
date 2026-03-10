@@ -163,6 +163,7 @@ in
       "hhkb"
       "karabiner-elements"
       "logi-options+"
+      "mos"
       "orbstack"
       "slack"
       "tailscale-app"

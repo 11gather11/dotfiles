@@ -9,30 +9,108 @@ let
   claudeConfigDir = "${config.xdg.configHome}/claude";
   claudeDotfilesDir = "${dotfilesDir}/claude";
 
-  # Binary paths from Nix store
   bun = lib.getExe pkgs.bun;
   jq = lib.getExe pkgs.jq;
   statuslineScript = ./statusline.ts;
   terminal-notifier =
     if pkgs.stdenv.isDarwin then lib.getExe' pkgs.terminal-notifier "terminal-notifier" else "";
 
-  # Generate settings JSON using Bun merge script
-  settingsJsonText = builtins.readFile (
-    pkgs.runCommand "claude-settings.json"
-      {
-        buildInputs = [ pkgs.bun ];
-        BASE_SETTINGS = ./settings.json;
-        DARWIN_SETTINGS = if pkgs.stdenv.isDarwin then ./settings-darwin.json else "";
-        BUN_PATH = bun;
-        STATUSLINE_SCRIPT = statuslineScript;
-        TERMINAL_NOTIFIER_PATH = terminal-notifier;
-        JQ_PATH = jq;
-        IS_DARWIN = if pkgs.stdenv.isDarwin then "1" else "0";
-      }
-      ''
-        ${pkgs.bun}/bin/bun run ${./merge-settings.ts} > $out
-      ''
-  );
+  jsonFormat = pkgs.formats.json { };
+
+  baseSettings = {
+    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+    cleanupPeriodDays = 876000;
+    env = {
+      ENABLE_BACKGROUND_TASKS = "1";
+      FORCE_AUTO_BACKGROUND_TASKS = "1";
+      DISABLE_MICROCOMPACT = "1";
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+      DISABLE_INTERLEAVED_THINKING = "1";
+      DISABLE_ERROR_REPORTING = "1";
+    };
+    includeCoAuthoredBy = false;
+    statusLine = {
+      type = "command";
+      command = "${bun} ${statuslineScript}";
+    };
+    alwaysThinkingEnabled = true;
+    skipAutoPermissionPrompt = true;
+    skipDangerousModePermissionPrompt = true;
+    hooks = {
+      PreToolUse = [
+        {
+          matcher = "Bash";
+          hooks = [
+            {
+              type = "command";
+              command = builtins.concatStringsSep " " [
+                "input=$(cat);"
+                "cmd=$(echo \"$input\" | ${jq} -r '.tool_input.command // \"\"');"
+                "if echo \"$cmd\" | grep -q 'gh pr create'; then"
+                "if [ -f /tmp/.claude-codex-review-done ]; then"
+                "rm -f /tmp/.claude-codex-review-done; exit 0;"
+                "else"
+                "echo 'BLOCKED: You must run the codex-review skill first before creating a PR. Use Skill(codex-review) to review changes against the base branch.' >&2;"
+                "exit 2;"
+                "fi; fi; exit 0"
+              ];
+            }
+          ];
+        }
+      ];
+      PostToolUse = [
+        {
+          matcher = "Skill";
+          hooks = [
+            {
+              type = "command";
+              command = builtins.concatStringsSep " " [
+                "input=$(cat);"
+                "skill=$(echo \"$input\" | ${jq} -r '.tool_input.skillName // \"\"');"
+                "if [ \"$skill\" = \"codex-review\" ]; then"
+                "touch /tmp/.claude-codex-review-done;"
+                "fi; exit 0"
+              ];
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  darwinSettings = lib.optionalAttrs pkgs.stdenv.isDarwin {
+    permissions = {
+      allow = [ "Bash(${terminal-notifier}:*)" ];
+      defaultMode = "acceptEdits";
+    };
+    hooks = {
+      Notification = [
+        {
+          matcher = "";
+          hooks = [
+            {
+              type = "command";
+              command = "${jq} -r '.message' | xargs -I {} ${terminal-notifier} -message \"{}\" -title \"Claude Hook\" -group \"$(pwd):hook\" -execute \"$(which wezterm) cli activate-pane --pane-id $WEZTERM_PANE\" -activate com.github.wez.wezterm";
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  mergeSettings =
+    base: override:
+    let
+      baseHooks = base.hooks or { };
+      overrideHooks = override.hooks or { };
+      allHookKeys = lib.unique (lib.attrNames baseHooks ++ lib.attrNames overrideHooks);
+      mergedHooks = lib.genAttrs allHookKeys (
+        key: (baseHooks.${key} or [ ]) ++ (overrideHooks.${key} or [ ])
+      );
+    in
+    base // override // { hooks = mergedHooks; };
+
+  settings = mergeSettings baseSettings darwinSettings;
 in
 {
   home = {
@@ -62,8 +140,7 @@ in
   # Symlink directories and files to ~/.config/claude/
   # Note: All skills (external and local) are managed by agent-skills module
   xdg.configFile = {
-    # Generate settings.json from JSON file with path replacements
-    "claude/settings.json".text = settingsJsonText;
+    "claude/settings.json".source = jsonFormat.generate "claude-settings.json" settings;
     "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/CLAUDE.md";
     "claude/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/commands";
     "claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/agents";

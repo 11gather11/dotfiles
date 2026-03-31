@@ -36,12 +36,7 @@
     bun
     deno
     pnpm
-    yarn
     uv
-    rustc
-    cargo
-    cargo-make
-    lefthook
     #LSP
     nixd
   ];

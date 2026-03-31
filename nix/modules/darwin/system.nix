@@ -151,7 +151,7 @@ in
   # Homebrew configuration
   homebrew = {
     enable = true;
-    # onActivation.cleanup = "uninstall";
+    onActivation.cleanup = "uninstall";
 
     casks = [
       "1password"
@@ -166,6 +166,7 @@ in
       "mos"
       "orbstack"
       "slack"
+      "stats"
       "tailscale-app"
       "visual-studio-code"
     ];

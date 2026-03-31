@@ -21,10 +21,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
 
-    flake-parts = {
-      url = "github:hercules-ci/flake-parts";
-      inputs.nixpkgs-lib.follows = "nixpkgs";
-    };
+    flake-parts.url = "github:hercules-ci/flake-parts";
 
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
@@ -38,8 +35,18 @@
 
     llm-agents.url = "github:numtide/llm-agents.nix";
 
-    claude-code-overlay = {
-      url = "github:ryoppippi/claude-code-overlay";
+    nix-claude-code = {
+      url = "github:ryoppippi/nix-claude-code";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -72,16 +79,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    git-hooks = {
-      url = "github:cachix/git-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # Agent skills framework for managing Claude Code skills
     agent-skills = {
       url = "github:Kyure-A/agent-skills-nix";
@@ -91,6 +88,11 @@
     # Claude Code skills (flake = false for non-flake repos)
     ast-grep-skill = {
       url = "github:ast-grep/claude-skill";
+      flake = false;
+    };
+
+    agent-browser-skill = {
+      url = "github:vercel-labs/agent-browser";
       flake = false;
     };
 
@@ -105,15 +107,16 @@
       nix-darwin,
       home-manager,
       llm-agents,
-      claude-code-overlay,
+      nix-claude-code,
+      treefmt-nix,
+      git-hooks,
       brew-nix,
       fish-na,
       gh-graph,
       nix-index-database,
-      treefmt-nix,
-      git-hooks,
       agent-skills,
       ast-grep-skill,
+      agent-browser-skill,
       nix-filter,
       ...
     }:
@@ -137,9 +140,9 @@
           inherit system;
           config.allowUnfree = true;
           overlays = [
+            llm-agents.overlays.default
             (_final: _prev: {
-              _llm-agents = llm-agents;
-              _claude-code-overlay = claude-code-overlay;
+              _nix-claude-code = nix-claude-code;
             })
             gh-graph.overlays.default
             (import ./nix/overlays)
@@ -182,10 +185,11 @@
                       fish-na
                       helpers
                       ast-grep-skill
+                      agent-browser-skill
                       local-skills
                       ;
-                    dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                    system = "aarch64-darwin";
+                    dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
+                    system = linuxSystem;
                   })
 
                   (import ./nix/modules/linux {
@@ -195,7 +199,7 @@
                       lib
                       helpers
                       ;
-                    dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
+                    dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
                   })
                 ];
               }
@@ -226,6 +230,18 @@
           inherit (localPkgs.stdenv) isDarwin;
           homedir = if isDarwin then darwinHomedir else linuxHomedir;
           hostname = username;
+
+          # Detect AI agent environments to skip nix-output-monitor
+          isAgentCheck = ''
+            IS_AI_AGENT=false
+            for var in CLAUDE_CODE CLAUDECODE CODEX_SANDBOX CODEX_THREAD_ID GEMINI_CLI OPENCODE AUGMENT_AGENT GOOSE_PROVIDER CURSOR_AGENT AI_AGENT; do
+              eval "val=\''${!var:-}"
+              if [ -n "$val" ]; then
+                IS_AI_AGENT=true
+                break
+              fi
+            done
+          '';
         in
         {
           # Treefmt configuration
@@ -325,13 +341,23 @@
               program = toString (
                 localPkgs.writeShellScript (if isDarwin then "darwin-build" else "home-manager-build") ''
                   set -e
+                  ${isAgentCheck}
                   echo "Building ${if isDarwin then "darwin" else "Home Manager"} configuration..."
-                  nix build .#${
-                    if isDarwin then
-                      "darwinConfigurations.${hostname}.system"
-                    else
-                      "homeConfigurations.${username}.activationPackage"
-                  }
+                  if [ "$IS_AI_AGENT" = true ]; then
+                    nix build .#${
+                      if isDarwin then
+                        "darwinConfigurations.${hostname}.system"
+                      else
+                        "homeConfigurations.${username}.activationPackage"
+                    }
+                  else
+                    ${localPkgs.nix-output-monitor}/bin/nom build .#${
+                      if isDarwin then
+                        "darwinConfigurations.${hostname}.system"
+                      else
+                        "homeConfigurations.${username}.activationPackage"
+                    }
+                  fi
                   echo "Build successful! Run 'nix run .#switch' to apply."
                 ''
               );
@@ -341,14 +367,24 @@
               type = "app";
               program = toString (
                 localPkgs.writeShellScript (if isDarwin then "darwin-switch" else "home-manager-switch") ''
-                  set -e
+                  set -eo pipefail
+                  ${isAgentCheck}
                   echo "Building and switching to ${if isDarwin then "darwin" else "Home Manager"} configuration..."
-                  ${
-                    if isDarwin then
-                      "sudo nix run nix-darwin -- switch --flake .#${hostname}"
-                    else
-                      "nix run nixpkgs#home-manager -- switch --flake .#${username}"
-                  }
+                  if [ "$IS_AI_AGENT" = true ]; then
+                    ${
+                      if isDarwin then
+                        "sudo nix run nix-darwin -- switch --flake .#${hostname}"
+                      else
+                        "nix run nixpkgs#home-manager -- switch --flake .#${username}"
+                    }
+                  else
+                    ${
+                      if isDarwin then
+                        "sudo nix run nix-darwin -- switch --flake .#${hostname} |& ${localPkgs.nix-output-monitor}/bin/nom"
+                      else
+                        "nix run nixpkgs#home-manager -- switch --flake .#${username} |& ${localPkgs.nix-output-monitor}/bin/nom"
+                    }
+                  fi
                   echo "Clearing fish cache..."
                   rm -rf "$TMPDIR/fish-cache"
                   echo "Done!"
@@ -442,6 +478,7 @@
                           fish-na
                           helpers
                           ast-grep-skill
+                          agent-browser-skill
                           local-skills
                           ;
                         dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";

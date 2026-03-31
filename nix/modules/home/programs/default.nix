@@ -9,7 +9,8 @@
 }:
 {
   imports = [
-    ./go.nix
+    # AI tools
+    ./ai-tools.nix
 
     # Fish shell plugin configuration
     (import ./fish {

@@ -47,11 +47,6 @@ fish_add_path /opt/homebrew/bin
 fish_add_path $HOME/.bun/bin
 fish_add_path $HOME/.cache/.bun/bin
 
-# anyenv
-if type -q anyenv
-    status --is-interactive; and source (anyenv init - fish | psub)
-end
-
 # go
 set -gx GOPATH $HOME/go
 fish_add_path $GOPATH/bin

@@ -10,28 +10,9 @@ export ARCH=$(uname -m)
 # PATH
 export XDG_CONFIG_HOME="$HOME/.config"
 
-# cargo (only if installed via rustup, not Nix)
-if [ -f "$HOME/.cargo/env" ]; then
-    . "$HOME/.cargo/env"
-fi
-
-# Homebrew
-if [[ $ARCH == arm64 ]]; then
-    eval $(/opt/homebrew/bin/brew shellenv)
-elif [[ $ARCH == x86_64 ]]; then
-    eval $(/usr/local/bin/brew shellenv)
-fi
-
-# anyenv
-if command -v anyenv &> /dev/null; then
-    eval "$(anyenv init -)"
-fi
-
-# golang
-export GOPATH=~/go
-export PATH=$GOPATH/bin:$PATH
-export GOROOT=$(go1.24.6 env GOROOT)
-export PATH=$GOROOT/bin:$PATH
+# brew
+export HOMEBREW_BUNDLE_FILE="$HOME/.Brewfile"
+export HOMEBREW_NO_ANALYTICS=1
 
 # direnv
 eval "$(direnv hook bash)"

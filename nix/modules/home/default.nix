@@ -6,6 +6,7 @@
   helpers,
   dotfilesDir,
   ast-grep-skill,
+  agent-browser-skill,
   local-skills,
   # system,
   ...
@@ -20,6 +21,7 @@
       inherit
         pkgs
         ast-grep-skill
+        agent-browser-skill
         local-skills
         config
         ;

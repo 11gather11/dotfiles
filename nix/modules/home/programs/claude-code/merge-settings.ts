@@ -4,6 +4,7 @@
 const baseSettingsPath = process.env.BASE_SETTINGS!;
 const darwinSettingsPath = process.env.DARWIN_SETTINGS!;
 const bunPath = process.env.BUN_PATH!;
+const statuslineScript = process.env.STATUSLINE_SCRIPT!;
 const terminalNotifierPath = process.env.TERMINAL_NOTIFIER_PATH!;
 const jqPath = process.env.JQ_PATH!;
 const isDarwin = process.env.IS_DARWIN === '1';
@@ -12,7 +13,9 @@ const isDarwin = process.env.IS_DARWIN === '1';
 const baseSettings = await Bun.file(baseSettingsPath).json();
 
 // Replace placeholders in base settings
-const baseWithPaths = JSON.stringify(baseSettings).replace(/__BUN_PATH__/g, bunPath);
+const baseWithPaths = JSON.stringify(baseSettings)
+	.replace(/__BUN_PATH__/g, bunPath)
+	.replace(/__STATUSLINE_SCRIPT__/g, statuslineScript);
 const baseFinal = JSON.parse(baseWithPaths);
 
 let result = baseFinal;

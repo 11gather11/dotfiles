@@ -12,6 +12,7 @@ let
   # Binary paths from Nix store
   bun = lib.getExe pkgs.bun;
   jq = lib.getExe pkgs.jq;
+  statuslineScript = ./statusline.ts;
   terminal-notifier =
     if pkgs.stdenv.isDarwin then lib.getExe' pkgs.terminal-notifier "terminal-notifier" else "";
 
@@ -23,6 +24,7 @@ let
         BASE_SETTINGS = ./settings.json;
         DARWIN_SETTINGS = if pkgs.stdenv.isDarwin then ./settings-darwin.json else "";
         BUN_PATH = bun;
+        STATUSLINE_SCRIPT = statuslineScript;
         TERMINAL_NOTIFIER_PATH = terminal-notifier;
         JQ_PATH = jq;
         IS_DARWIN = if pkgs.stdenv.isDarwin then "1" else "0";

@@ -36,6 +36,7 @@
     bun
     deno
     pnpm
+    yarn
     uv
     #LSP
     nixd

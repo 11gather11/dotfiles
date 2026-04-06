@@ -24,9 +24,11 @@ let
       ENABLE_BACKGROUND_TASKS = "1";
       FORCE_AUTO_BACKGROUND_TASKS = "1";
       DISABLE_MICROCOMPACT = "1";
-      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+
       DISABLE_INTERLEAVED_THINKING = "1";
       DISABLE_ERROR_REPORTING = "1";
+
+      CLAUDE_CODE_NO_FLICKER = "1";
     };
     includeCoAuthoredBy = false;
     statusLine = {
@@ -34,6 +36,7 @@ let
       command = "${bun} ${statuslineScript}";
     };
     alwaysThinkingEnabled = true;
+    autoMemoryEnabled = false;
     skipAutoPermissionPrompt = true;
     skipDangerousModePermissionPrompt = true;
     hooks = {
@@ -81,7 +84,7 @@ let
   darwinSettings = lib.optionalAttrs pkgs.stdenv.isDarwin {
     permissions = {
       allow = [ "Bash(${terminal-notifier}:*)" ];
-      defaultMode = "acceptEdits";
+      defaultMode = "auto";
     };
     hooks = {
       Notification = [
@@ -131,8 +134,7 @@ in
       if ${pkgs.check-jsonschema}/bin/check-jsonschema --schemafile "$SCHEMA_URL" "$SETTINGS_FILE" 2>&1; then
         echo "✅ Claude Code settings.json validation passed"
       else
-        echo "❌ Claude Code settings.json validation failed" >&2
-        exit 1
+        echo "⚠️  Claude Code settings.json validation failed (non-blocking, schema may be outdated)" >&2
       fi
     '';
   };

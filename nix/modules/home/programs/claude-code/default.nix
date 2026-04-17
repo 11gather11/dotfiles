@@ -37,6 +37,7 @@ let
     };
     alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
+    effortLevel = "high";
     skipAutoPermissionPrompt = true;
     skipDangerousModePermissionPrompt = true;
     hooks = {

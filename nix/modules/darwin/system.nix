@@ -158,7 +158,6 @@ in
       "autodesk-fusion"
       "bambu-studio"
       "claude"
-      "discord"
       "google-chrome"
       "hhkb"
       "karabiner-elements"

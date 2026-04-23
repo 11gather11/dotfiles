@@ -14,6 +14,7 @@
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [
+      discord
       shottr
     ]);
   # brew-nix packages requiring hash override

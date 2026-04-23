@@ -12,8 +12,6 @@ let
   bun = lib.getExe pkgs.bun;
   jq = lib.getExe pkgs.jq;
   statuslineScript = ./statusline.ts;
-  terminal-notifier =
-    if pkgs.stdenv.isDarwin then lib.getExe' pkgs.terminal-notifier "terminal-notifier" else "";
 
   jsonFormat = pkgs.formats.json { };
 
@@ -84,21 +82,7 @@ let
 
   darwinSettings = lib.optionalAttrs pkgs.stdenv.isDarwin {
     permissions = {
-      allow = [ "Bash(${terminal-notifier}:*)" ];
       defaultMode = "auto";
-    };
-    hooks = {
-      Notification = [
-        {
-          matcher = "";
-          hooks = [
-            {
-              type = "command";
-              command = "${jq} -r '.message' | xargs -I {} ${terminal-notifier} -message \"{}\" -title \"Claude Hook\" -group \"$(pwd):hook\" -execute \"$(which wezterm) cli activate-pane --pane-id $WEZTERM_PANE\" -activate com.github.wez.wezterm";
-            }
-          ];
-        }
-      ];
     };
   };
 

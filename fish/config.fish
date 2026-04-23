@@ -55,8 +55,8 @@ fish_add_path $GOPATH/bin
 fish_add_path $HOME/.scripts
 fish_add_path $HOME/.scripts/bin
 
-# wezterm
-fish_add_path /Applications/WezTerm.app/Contents/MacOS
+# Add home-manager packages to PATH
+fish_add_path ~/.local/state/home-manager/gcroots/current-home/home-path/bin
 
 # 1Password SSH Agent
 set _1P_SSH_SOCK "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"

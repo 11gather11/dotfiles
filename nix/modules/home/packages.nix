@@ -24,7 +24,6 @@
     zoxide
     bat
     eza
-    wezterm
     jq
     dust
     delta

@@ -5,7 +5,7 @@ on:
     paths:
       - 'nvim/**'
       - 'flake.nix'
-      - '.github/workflows/nix-neovim.yml'
+      - '.github/workflows/nix-neovim.yaml'
   pull_request:
   workflow_dispatch:
 

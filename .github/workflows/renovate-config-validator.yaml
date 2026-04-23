@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/renovate-config-validator.yml
+      - .github/workflows/renovate-config-validator.yaml
       - .github/renovate.json5
   pull_request:
 

@@ -13,7 +13,14 @@ in
 {
   programs.neovim = {
     enable = true;
+    withPython3 = false;
+    withRuby = false;
+    withNodeJs = false;
   };
+
+  # Prevent home-manager from generating ~/.config/nvim/init.lua
+  # since linkNvimConfig below symlinks the entire nvim dir from dotfiles
+  xdg.configFile."nvim/init.lua".enable = lib.mkForce false;
 
   # Create symlink to NeoVim configuration in dotfiles (bypassing Nix store)
   home.activation.linkNvimConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

@@ -11,10 +11,10 @@ jobs:
     with:
       inputs: >-
         llm-agents
-        claude-code-overlay
+        nix-claude-code
       skip-delay-inputs: >-
         llm-agents
-        claude-code-overlay
+        nix-claude-code
       minimum-release-age-days: '0'
       skip-delay: true
       summary-title: 'Frequent Update Summary'

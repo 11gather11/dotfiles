@@ -144,6 +144,8 @@ in
   # Note: All skills (external and local) are managed by agent-skills module
   xdg.configFile = {
     "claude/settings.json".source = jsonFormat.generate "claude-settings.json" settings;
+    "claude/keybindings.json".source =
+      config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/keybindings.json";
     "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/CLAUDE.md";
     "claude/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/commands";
     "claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/agents";

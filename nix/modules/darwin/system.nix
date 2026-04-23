@@ -164,7 +164,6 @@ in
       "logi-options+"
       "mos"
       "orbstack"
-      "slack"
       "stats"
       "tailscale-app"
       "visual-studio-code"

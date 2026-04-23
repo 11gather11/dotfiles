@@ -16,6 +16,7 @@
     ++ (with pkgs.brewCasks; [
       discord
       shottr
+      slack
     ]);
   # brew-nix packages requiring hash override
 }

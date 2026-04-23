@@ -25,13 +25,13 @@ codex exec review --uncommitted
 ### Review changes against a base branch
 
 ```bash
-codex exec review --base main
+codex exec review --base main --model <model-slug>
 ```
 
 ### Review a specific commit
 
 ```bash
-codex exec review --commit <SHA>
+codex exec review --commit <SHA> --model <model-slug>
 ```
 
 ### Review with custom instructions
@@ -59,3 +59,9 @@ codex exec review "Focus on error handling and edge cases"
 ## Help
 
 !`codex exec review --help`
+
+## Available Models
+
+!`jq -r '.models[] | "- \(.slug): \(.description)"' "$CODEX_HOME/models_cache.json"`
+
+Pick a `--model` slug from the list above. Prefer Spark models for speed. Use the latest non-Spark model for deeper analysis.

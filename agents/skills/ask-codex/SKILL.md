@@ -19,6 +19,16 @@ Run Codex in non-interactive mode using the bundled binary:
 codex exec "YOUR_PROMPT_HERE"
 ```
 
+### Model Selection
+
+**By default, do NOT specify `-m` / `--model`.** Let Codex use the model configured in its config file (`codex/config.toml`). This keeps the consultation consistent with the user's preferred model settings.
+
+Only specify `-m MODEL_ID` when the user explicitly requests a specific model:
+
+```bash
+codex exec -m MODEL_ID "YOUR_PROMPT_HERE"
+```
+
 ## Consultation Workflow
 
 1. **Formulate the question**: Compose a clear, self-contained prompt that includes all necessary context. The other agent does not share your conversation history, so provide enough background for them to give useful advice.

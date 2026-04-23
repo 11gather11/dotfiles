@@ -162,9 +162,7 @@ in
       "hhkb"
       "karabiner-elements"
       "logi-options+"
-      "mos"
       "orbstack"
-      "stats"
       "tailscale-app"
       "visual-studio-code"
     ];

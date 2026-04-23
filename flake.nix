@@ -101,6 +101,11 @@
       flake = false;
     };
 
+    tgrab-skill = {
+      url = "github:ryoppippi/tgrab";
+      flake = false;
+    };
+
     nix-filter.url = "github:numtide/nix-filter";
   };
 
@@ -123,6 +128,7 @@
       agent-skills,
       ast-grep-skill,
       agent-browser-skill,
+      tgrab-skill,
       nix-filter,
       ...
     }:
@@ -193,6 +199,7 @@
                       helpers
                       ast-grep-skill
                       agent-browser-skill
+                      tgrab-skill
                       local-skills
                       ;
                     dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
@@ -486,6 +493,7 @@
                           helpers
                           ast-grep-skill
                           agent-browser-skill
+                          tgrab-skill
                           local-skills
                           ;
                         dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";

@@ -7,6 +7,7 @@
   dotfilesDir,
   ast-grep-skill,
   agent-browser-skill,
+  tgrab-skill,
   local-skills,
   # system,
   ...
@@ -22,6 +23,7 @@
         pkgs
         ast-grep-skill
         agent-browser-skill
+        tgrab-skill
         local-skills
         config
         ;

@@ -7,6 +7,7 @@
   pkgs,
   ast-grep-skill,
   agent-browser-skill,
+  tgrab-skill,
   local-skills,
   ...
 }:
@@ -24,6 +25,11 @@
       # External: agent-browser skill
       agent-browser = {
         path = agent-browser-skill;
+        subdir = "skills";
+      };
+      # External: tgrab skill (X/Twitter, Bluesky, YouTube transcript)
+      tgrab = {
+        path = tgrab-skill;
         subdir = "skills";
       };
       # Local: skills from this dotfiles repo
@@ -54,6 +60,11 @@
 
           ${dependencies}
         '';
+    };
+
+    skills.explicit.tgrab = {
+      from = "tgrab";
+      path = "tgrab";
     };
 
     skills.explicit.agent-browser = {

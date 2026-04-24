@@ -12,6 +12,7 @@
 
       # GUI apps available natively in nixpkgs
       alt-tab-macos
+      appcleaner
       discord
       mos
       raycast

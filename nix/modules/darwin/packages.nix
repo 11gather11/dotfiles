@@ -10,15 +10,16 @@
       terminal-notifier
       mas
 
-      # macOS GUI applications (not available on Linux in nixpkgs)
+      # GUI apps available natively in nixpkgs
+      discord
+      mos
+      raycast
+      shottr
+      stats
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [
-      discord
-      mos
-      shottr
       slack
-      stats
     ]);
   # brew-nix packages requiring hash override
 }

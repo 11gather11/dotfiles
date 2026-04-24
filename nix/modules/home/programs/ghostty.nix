@@ -8,7 +8,7 @@
 let
   ghosttySettings = {
     font-family = "PlemolJP Console NF";
-    font-size = 14;
+    font-size = 13;
     font-feature = [ "-dlig" ];
 
     background-opacity = 0.70;

@@ -16,6 +16,7 @@
       raycast
       shottr
       stats
+      vscode
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [

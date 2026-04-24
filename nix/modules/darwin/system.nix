@@ -164,7 +164,6 @@ in
       "logi-options+"
       "orbstack"
       "tailscale-app"
-      "visual-studio-code"
     ];
 
     masApps = {

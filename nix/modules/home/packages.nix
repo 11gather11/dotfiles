@@ -35,8 +35,9 @@
     bun
     deno
     pnpm
-    yarn
     uv
+    # Misc utilities
+    fixjson
     #LSP
     nixd
   ];

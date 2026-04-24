@@ -20,6 +20,7 @@
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [
+      cmux
       slack
     ]);
   # brew-nix packages requiring hash override

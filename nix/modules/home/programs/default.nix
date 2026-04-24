@@ -74,6 +74,9 @@
     # Bat configuration
     ./bat.nix
 
+    # cmux terminal app for Claude Code
+    ./cmux.nix
+
     # Direnv configuration with nix-direnv
     ./direnv.nix
 

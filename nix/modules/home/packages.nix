@@ -12,7 +12,7 @@
     # VCS
     bit
     git
-    # git-now
+    git-now
     git-wt
     git-lfs
     ghq

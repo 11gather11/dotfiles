@@ -3,6 +3,7 @@ let
   # Import all overlay files in this directory
   overlayFiles = [
     ./claude-code.nix
+    ./git-now.nix
   ];
 
   # Apply each overlay and merge results

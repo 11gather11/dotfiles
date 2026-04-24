@@ -16,9 +16,11 @@ let
 
   # Codex configuration settings
   settings = {
-    model = "gpt-5.3-codex";
+    model = "gpt-5.5";
     approval_policy = "on-request";
-    model_reasoning_effort = "high";
+    model_reasoning_effort = "xhigh";
+    service_tier = "fast";
+    personality = "pragmatic";
     web_search_request = true;
     project_doc_fallback_filenames = [ "CLAUDE.md" ];
 
@@ -26,10 +28,12 @@ let
       chrome-devtools = {
         command = bunx;
         enabled = false;
-        args = [
-          "chrome-devtools-mcp@latest"
-        ];
+        args = [ "chrome-devtools-mcp@latest" ];
       };
+    };
+
+    plugins."github@openai-curated" = {
+      enabled = true;
     };
   };
 in

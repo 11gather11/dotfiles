@@ -74,16 +74,8 @@ let
   };
 in
 {
-  xdg.configFile = {
-    "cmux/settings.json" = {
-      source = jsonFormat.generate "cmux-settings.json" cmuxSettings;
-      force = true;
-    };
-
-    # cmux reads terminal font from Ghostty config
-    "ghostty/config".text = ''
-      font-family = PlemolJP Console NF
-      font-size = 14
-    '';
+  xdg.configFile."cmux/settings.json" = {
+    source = jsonFormat.generate "cmux-settings.json" cmuxSettings;
+    force = true;
   };
 }

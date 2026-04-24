@@ -77,6 +77,16 @@
     # cmux terminal app for Claude Code
     ./cmux.nix
 
+    # Ghostty terminal configuration (used by cmux)
+    (import ./ghostty.nix {
+      inherit
+        pkgs
+        lib
+        config
+        helpers
+        ;
+    })
+
     # Direnv configuration with nix-direnv
     ./direnv.nix
 

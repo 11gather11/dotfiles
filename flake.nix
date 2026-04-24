@@ -203,7 +203,6 @@
                       local-skills
                       ;
                     dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
-                    system = linuxSystem;
                   })
 
                   (import ./nix/modules/linux {
@@ -451,9 +450,9 @@
       flake = {
         # macOS configuration with nix-darwin
         darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
-          system = "aarch64-darwin";
-
           modules = [
+            { nixpkgs.hostPlatform = "aarch64-darwin"; }
+
             (import ./nix/modules/darwin/system.nix {
               pkgs = mkPkgs "aarch64-darwin";
               inherit username;
@@ -497,7 +496,6 @@
                           local-skills
                           ;
                         dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                        system = "aarch64-darwin";
                       })
 
                       (import ./nix/modules/darwin {

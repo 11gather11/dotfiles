@@ -157,6 +157,7 @@ in
       "1password"
       "autodesk-fusion"
       "bambu-studio"
+      "chatgpt"
       "claude"
       "google-chrome"
       "hhkb"

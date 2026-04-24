@@ -6,7 +6,6 @@ Personal preferences that apply to all projects.
 
 - My name is 11gather11
 - Always communicate in Japanese
-- All code-related output (commits, comments, docs, PRs) must be in English
 
 ## Code Comments Policy
 

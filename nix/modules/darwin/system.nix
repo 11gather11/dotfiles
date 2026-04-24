@@ -118,6 +118,19 @@ in
           ActuateDetents = 1;
           ForceSuppressed = 0;
         };
+        # Disable macOS default hotkeys so launchers (Raycast, Alfred) can claim them.
+        # Key 64 = Show Spotlight search (Cmd+Space)
+        # Key 65 = Show Finder search window (Cmd+Option+Space)
+        "com.apple.symbolichotkeys" = {
+          AppleSymbolicHotKeys = {
+            "64" = {
+              enabled = false;
+            };
+            "65" = {
+              enabled = false;
+            };
+          };
+        };
       };
     };
   };

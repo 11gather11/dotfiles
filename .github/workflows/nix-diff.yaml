@@ -28,6 +28,6 @@ jobs:
           skip-no-change: true
           attributes: |
             - displayName: home-manager (x86_64-linux)
-              attribute: homeConfigurations.11gather11.activationPackage
+              attribute: diffTargets.home-x86_64-linux
             - displayName: home-manager (aarch64-linux)
-              attribute: homeConfigurations.11gather11-aarch64.activationPackage
+              attribute: diffTargets.home-aarch64-linux

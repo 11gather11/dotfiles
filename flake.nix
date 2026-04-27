@@ -447,78 +447,89 @@
           };
         };
 
-      flake = {
-        # macOS configuration with nix-darwin
-        darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
-          modules = [
-            { nixpkgs.hostPlatform = "aarch64-darwin"; }
+      flake =
+        let
+          linuxHomeConfigurations = {
+            ${username} = mkLinuxHomeConfig "x86_64-linux";
+            "${username}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
+          };
+        in
+        {
+          # macOS configuration with nix-darwin
+          darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
+            modules = [
+              { nixpkgs.hostPlatform = "aarch64-darwin"; }
 
-            (import ./nix/modules/darwin/system.nix {
-              pkgs = mkPkgs "aarch64-darwin";
-              inherit username;
-              homedir = darwinHomedir;
-            })
+              (import ./nix/modules/darwin/system.nix {
+                pkgs = mkPkgs "aarch64-darwin";
+                inherit username;
+                homedir = darwinHomedir;
+              })
 
-            nix-index-database.darwinModules.nix-index
+              nix-index-database.darwinModules.nix-index
 
-            home-manager.darwinModules.home-manager
-            {
-              home-manager = {
-                useGlobalPkgs = false;
-                useUserPackages = true;
-                extraSpecialArgs = {
-                  pkgs = mkPkgs "aarch64-darwin";
-                };
-                users.${username} =
-                  {
-                    pkgs,
-                    config,
-                    lib,
-                    ...
-                  }:
-                  let
-                    helpers = import ./nix/modules/lib/helpers { inherit lib; };
-                  in
-                  {
-                    imports = [
-                      agent-skills.homeManagerModules.default
-
-                      (import ./nix/modules/home {
-                        inherit
-                          pkgs
-                          config
-                          lib
-                          fish-na
-                          helpers
-                          ast-grep-skill
-                          agent-browser-skill
-                          tgrab-skill
-                          local-skills
-                          ;
-                        dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                      })
-
-                      (import ./nix/modules/darwin {
-                        inherit
-                          pkgs
-                          config
-                          lib
-                          helpers
-                          ;
-                        dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                      })
-                    ];
+              home-manager.darwinModules.home-manager
+              {
+                home-manager = {
+                  useGlobalPkgs = false;
+                  useUserPackages = true;
+                  extraSpecialArgs = {
+                    pkgs = mkPkgs "aarch64-darwin";
                   };
-              };
-            }
-          ];
-        };
+                  users.${username} =
+                    {
+                      pkgs,
+                      config,
+                      lib,
+                      ...
+                    }:
+                    let
+                      helpers = import ./nix/modules/lib/helpers { inherit lib; };
+                    in
+                    {
+                      imports = [
+                        agent-skills.homeManagerModules.default
 
-        # Linux configurations with standalone Home Manager
-        homeConfigurations = {
-          ${username} = mkLinuxHomeConfig "x86_64-linux";
-          "${username}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
+                        (import ./nix/modules/home {
+                          inherit
+                            pkgs
+                            config
+                            lib
+                            fish-na
+                            helpers
+                            ast-grep-skill
+                            agent-browser-skill
+                            tgrab-skill
+                            local-skills
+                            ;
+                          dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
+                        })
+
+                        (import ./nix/modules/darwin {
+                          inherit
+                            pkgs
+                            config
+                            lib
+                            helpers
+                            ;
+                          dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
+                        })
+                      ];
+                    };
+                };
+              }
+            ];
+          };
+
+          # Linux configurations with standalone Home Manager
+          homeConfigurations = linuxHomeConfigurations;
+
+          # Aliases for tools that can't parse digit-starting attribute segments
+          # (e.g. natsukium/nix-diff-action's attribute path validator).
+          diffTargets = {
+            home-x86_64-linux = linuxHomeConfigurations.${username}.activationPackage;
+            home-aarch64-linux = linuxHomeConfigurations."${username}-aarch64".activationPackage;
+          };
         };
-      };
     };
 }

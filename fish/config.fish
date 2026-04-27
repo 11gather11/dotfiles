@@ -111,5 +111,5 @@ if status is-interactive
     stty start undef &
 end
 
-set -g NA_PACKAGE_MANAGER_LIST bun deno pnpm npm yarn
+set -g NA_PACKAGE_MANAGER_LIST bun pnpm npm yarn
 set -g NA_FUZZYFINDER_OPTIONS --bind 'one:accept' --query '^'

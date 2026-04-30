@@ -86,6 +86,7 @@ let
       allow = [
         "Bash(jq -r:*)"
         "Bash(codex exec:*)"
+        "Bash(codex debug:*)"
       ];
     };
   };

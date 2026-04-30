@@ -85,6 +85,7 @@ let
       defaultMode = "auto";
       allow = [
         "Bash(jq -r:*)"
+        "Bash(codex exec:*)"
       ];
     };
   };

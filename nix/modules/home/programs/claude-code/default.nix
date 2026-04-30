@@ -84,7 +84,6 @@ let
     permissions = {
       defaultMode = "auto";
       allow = [
-        "Bash(codex:*)"
         "Bash(jq -r:*)"
       ];
     };

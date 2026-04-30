@@ -62,6 +62,6 @@ codex exec review "Focus on error handling and edge cases"
 
 ## Available Models
 
-!`codex debug models 2>/dev/null | jq -r '.models[] | "- \(.slug): \(.description)"'`
+!`jq -r '.models[] | "- \(.slug): \(.description)"' "$CODEX_HOME/models_cache.json"`
 
 Pick a `--model` slug from the list above. Prefer Spark models for speed. Use the latest non-Spark model for deeper analysis.

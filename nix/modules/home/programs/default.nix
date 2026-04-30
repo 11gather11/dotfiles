@@ -36,6 +36,7 @@
     (import ./codex.nix {
       inherit
         pkgs
+        lib
         config
         dotfilesDir
         ;

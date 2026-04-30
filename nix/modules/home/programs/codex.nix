@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   config,
   dotfilesDir,
   ...
@@ -8,13 +9,9 @@ let
   codexConfigDir = "${config.xdg.configHome}/codex";
   codexDotfilesDir = "${dotfilesDir}/codex";
 
-  # TOML format generator
   tomlFormat = pkgs.formats.toml { };
-
-  # Bun executable path from Nix
   bunx = "${pkgs.bun}/bin/bunx";
 
-  # Codex configuration settings
   settings = {
     model = "gpt-5.5";
     approval_policy = "on-request";
@@ -39,24 +36,19 @@ let
 in
 {
   home = {
-    # Codex package
     packages = [ pkgs.llm-agents.codex ];
 
-    # Set CODEX_HOME environment variable (sourced via hm-session-vars.sh)
     sessionVariables = {
       CODEX_HOME = codexConfigDir;
     };
 
-    # Codex configuration files
-    file = {
-      # Generated config.toml from Nix settings
-      "${codexConfigDir}/config.toml" = {
-        source = tomlFormat.generate "codex-config" settings;
-        force = true;
-      };
-      # Symlink AGENTS.md from dotfiles
-      "${codexConfigDir}/AGENTS.md".source =
-        config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
-    };
+    activation.writeCodexConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      mkdir -p "${codexConfigDir}"
+      cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexConfigDir}/config.toml"
+      chmod 644 "${codexConfigDir}/config.toml"
+    '';
+
+    file."${codexConfigDir}/AGENTS.md".source =
+      config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
   };
 }

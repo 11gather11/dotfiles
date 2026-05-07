@@ -3,14 +3,10 @@ import * as utils from './utils.ts';
 
 const IDENTIFIERS = {
 	discord: await utils.extractIdentifierOptional('Discord'),
-	chatgpt: await utils.extractIdentifierOptional('ChatGPT'),
-	claude: await utils.extractIdentifierOptional('Claude'),
 } as const;
 
 // アプリが見つかった場合のみbundle_identifiersに追加
-const chatAppBundleIds = [IDENTIFIERS.discord, IDENTIFIERS.chatgpt, IDENTIFIERS.claude].filter(
-	(id): id is string => id != null,
-);
+const chatAppBundleIds = [IDENTIFIERS.discord].filter((id): id is string => id != null);
 
 k.writeToProfile(
 	'Default profile',
@@ -43,12 +39,12 @@ k.writeToProfile(
 				}),
 		]),
 
-		// Discord/ChatGPT/Claudeがインストールされている場合のみルールを追加
+		// Discordがインストールされている場合のみルールを追加
 		...(chatAppBundleIds.length > 0
 			? [
 					k
 						.rule(
-							'Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord/ChatGPT/Claude',
+							'Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord',
 							k.ifApp(chatAppBundleIds),
 						)
 						.manipulators([

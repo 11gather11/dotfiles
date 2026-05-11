@@ -9,13 +9,6 @@
       # macOS-specific packages
       terminal-notifier
       mas
-
-      # GUI apps available natively in nixpkgs
-      alt-tab-macos
-      appcleaner
-      mos
-      shottr
-      stats
     ]
     # brew-nix packages (Homebrew casks managed via Nix)
     ++ (with pkgs.brewCasks; [

@@ -155,6 +155,8 @@ in
 
     casks = [
       "1password"
+      "alt-tab"
+      "appcleaner"
       "autodesk-fusion"
       "bambu-studio"
       "chatgpt"
@@ -164,9 +166,12 @@ in
       "hhkb"
       "karabiner-elements"
       "logi-options+"
+      "mos"
       "orbstack"
       "raycast"
+      "shottr"
       "slack"
+      "stats"
       "tailscale-app"
       "visual-studio-code"
     ];

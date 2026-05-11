@@ -167,6 +167,7 @@ in
       "hhkb"
       "karabiner-elements"
       "logi-options+"
+      "microsoft-teams"
       "mos"
       "orbstack"
       "raycast"

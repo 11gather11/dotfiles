@@ -55,20 +55,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    brew-nix = {
-      url = "github:BatteredBunny/brew-nix";
-      inputs = {
-        brew-api.follows = "brew-api";
-        nix-darwin.follows = "nix-darwin";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-
-    brew-api = {
-      url = "github:BatteredBunny/brew-api";
-      flake = false;
-    };
-
     fish-na = {
       url = "github:ryoppippi/fish-na";
       flake = false;
@@ -121,7 +107,6 @@
       nix-bun,
       treefmt-nix,
       git-hooks,
-      brew-nix,
       fish-na,
       gh-graph,
       nix-index-database,
@@ -145,9 +130,6 @@
       # Create pkgs with overlays
       mkPkgs =
         system:
-        let
-          isDarwin = builtins.match ".*-darwin" system != null;
-        in
         import nixpkgs {
           inherit system;
           config.allowUnfree = true;
@@ -159,9 +141,6 @@
             nix-bun.overlays.default
             gh-graph.overlays.default
             (import ./nix/overlays)
-          ]
-          ++ nixpkgs.lib.optionals isDarwin [
-            brew-nix.overlays.default
           ];
         };
 

@@ -161,6 +161,7 @@ in
       "bambu-studio"
       "chatgpt"
       "claude"
+      "cmux"
       "discord"
       "google-chrome"
       "hhkb"

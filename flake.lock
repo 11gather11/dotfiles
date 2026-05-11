@@ -78,48 +78,6 @@
         "type": "github"
       }
     },
-    "brew-api": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1779081791,
-        "narHash": "sha256-iBcEzOP1Jq92ziEZYjqEF5FncIyB1g/vtt7P0zWP2Zo=",
-        "owner": "BatteredBunny",
-        "repo": "brew-api",
-        "rev": "d02be82743056ce1eb9022b6af231dd73816e5b7",
-        "type": "github"
-      },
-      "original": {
-        "owner": "BatteredBunny",
-        "repo": "brew-api",
-        "type": "github"
-      }
-    },
-    "brew-nix": {
-      "inputs": {
-        "brew-api": [
-          "brew-api"
-        ],
-        "nix-darwin": [
-          "nix-darwin"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1778864554,
-        "narHash": "sha256-+M0daK83pZ2j+uDDOgcpqn2yNABvXX+5LIBbYivWkuw=",
-        "owner": "BatteredBunny",
-        "repo": "brew-nix",
-        "rev": "3018198a797eafa188d81aef2ddc0b2e17b8c3f8",
-        "type": "github"
-      },
-      "original": {
-        "owner": "BatteredBunny",
-        "repo": "brew-nix",
-        "type": "github"
-      }
-    },
     "bun2nix": {
       "inputs": {
         "flake-parts": [
@@ -532,8 +490,6 @@
         "agent-browser-skill": "agent-browser-skill",
         "agent-skills": "agent-skills",
         "ast-grep-skill": "ast-grep-skill",
-        "brew-api": "brew-api",
-        "brew-nix": "brew-nix",
         "fish-na": "fish-na",
         "flake-parts": "flake-parts",
         "gh-graph": "gh-graph",

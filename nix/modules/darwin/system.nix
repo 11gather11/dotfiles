@@ -159,12 +159,16 @@ in
       "bambu-studio"
       "chatgpt"
       "claude"
+      "discord"
       "google-chrome"
       "hhkb"
       "karabiner-elements"
       "logi-options+"
       "orbstack"
+      "raycast"
+      "slack"
       "tailscale-app"
+      "visual-studio-code"
     ];
 
     masApps = {

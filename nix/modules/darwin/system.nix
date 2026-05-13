@@ -176,6 +176,7 @@ in
       "stats"
       "tailscale-app"
       "visual-studio-code"
+      "vlc"
     ];
 
     masApps = {

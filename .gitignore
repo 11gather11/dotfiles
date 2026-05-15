@@ -9,3 +9,6 @@ result
 
 # git-hooks.nix
 .pre-commit-config.yaml
+
+# Claude Code runtime state
+.claude/scheduled_tasks.lock

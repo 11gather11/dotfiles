@@ -174,6 +174,7 @@ in
       "shottr"
       "slack"
       "stats"
+      "steam"
       "tailscale-app"
       "visual-studio-code"
       "vlc"

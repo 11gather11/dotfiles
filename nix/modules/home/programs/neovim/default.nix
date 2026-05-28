@@ -16,6 +16,19 @@ in
     withPython3 = false;
     withRuby = false;
     withNodeJs = false;
+
+    # Tools available on PATH only while Neovim is running
+    extraPackages = with pkgs; [
+      # Language servers (nixd is already on system PATH via packages.nix)
+      lua-language-server
+      typescript-go # TypeScript LSP (`tsgo` binary, Go-rewritten tsserver)
+
+      # Formatters
+      stylua
+
+      # tree-sitter CLI: required by :TSInstall / :TSUpdate to build parsers
+      tree-sitter
+    ];
   };
 
   # Prevent home-manager from generating ~/.config/nvim/init.lua

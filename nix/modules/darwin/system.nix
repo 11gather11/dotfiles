@@ -159,6 +159,7 @@ in
       "appcleaner"
       "autodesk-fusion"
       "bambu-studio"
+      "browserstacklocal"
       "chatgpt"
       "claude"
       "cmux"

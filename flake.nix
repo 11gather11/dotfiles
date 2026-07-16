@@ -234,6 +234,24 @@
               fi
             done
           '';
+
+          # Keep sudo credentials warm during long Darwin switches so the
+          # activation does not stall waiting for a password prompt. Runs only
+          # on an interactive terminal ([ -t 0 ]); refreshes the timestamp every
+          # 60s in the background and cleans the helper up on exit.
+          sudoKeepAlive = localPkgs.lib.optionalString isDarwin ''
+            if [ -t 0 ]; then
+              sudo -v
+              (
+                while kill -0 "$$" 2>/dev/null; do
+                  sudo -n -v || exit 0
+                  sleep 60
+                done
+              ) &
+              SUDO_KEEPALIVE_PID=$!
+              trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
+            fi
+          '';
         in
         {
           # Treefmt configuration
@@ -361,6 +379,7 @@
                 localPkgs.writeShellScript (if isDarwin then "darwin-switch" else "home-manager-switch") ''
                   set -eo pipefail
                   ${isAgentCheck}
+                  ${sudoKeepAlive}
                   echo "Building and switching to ${if isDarwin then "darwin" else "Home Manager"} configuration..."
                   if [ "$IS_AI_AGENT" = true ]; then
                     ${

@@ -96,6 +96,7 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     # tools
     ensure_installed direnv hook fish >>$CONFIG_CACHE
     ensure_installed zoxide init fish >>$CONFIG_CACHE
+    ensure_installed tirith init --shell fish >>$CONFIG_CACHE
     # starship init fish >>$CONFIG_CACHE
 
     # set vivid colors

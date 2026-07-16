@@ -17,6 +17,8 @@
     git-lfs
     ghq
     lazygit
+    # Security
+    tirith
     # Search & file utilities
     ripgrep
     fd

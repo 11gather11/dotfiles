@@ -142,6 +142,8 @@ in
   # Note: All skills (external and local) are managed by agent-skills module
   xdg.configFile = {
     "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/CLAUDE.md";
+    # Shared instruction fragments imported by CLAUDE.md via @~/.config/claude/shared/*.md
+    "claude/shared".source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agents/shared";
     "claude/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/commands";
     "claude/agents".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/agents";
     "claude/output-styles".source =

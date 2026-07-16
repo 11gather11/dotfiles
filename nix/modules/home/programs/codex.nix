@@ -2,12 +2,21 @@
   pkgs,
   lib,
   config,
-  dotfilesDir,
   ...
 }:
 let
   codexConfigDir = "${config.xdg.configHome}/codex";
-  codexDotfilesDir = "${dotfilesDir}/codex";
+
+  # Global instructions are assembled from the Codex-specific file plus the
+  # shared fragments in agents/shared/, which are the single source of truth
+  # also imported by claude/CLAUDE.md. Codex has no import mechanism, so the
+  # final AGENTS.md is generated at switch time instead of symlinked (edits
+  # therefore apply only after nix run .#switch).
+  agentsMdText = lib.concatMapStringsSep "\n" builtins.readFile [
+    ../../../../codex/AGENTS.md
+    ../../../../agents/shared/code-comments.md
+    ../../../../agents/shared/git-worktrees.md
+  ];
 
   tomlFormat = pkgs.formats.toml { };
   bunx = "${pkgs.bun}/bin/bunx";
@@ -48,7 +57,6 @@ in
       chmod 644 "${codexConfigDir}/config.toml"
     '';
 
-    file."${codexConfigDir}/AGENTS.md".source =
-      config.lib.file.mkOutOfStoreSymlink "${codexDotfilesDir}/AGENTS.md";
+    file."${codexConfigDir}/AGENTS.md".text = agentsMdText;
   };
 }

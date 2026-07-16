@@ -2,14 +2,6 @@
 
 - Always communicate in Japanese
 
-## Code Comments Policy
-
-- Do NOT add comments explaining what was changed or why a change was made
-- Comments like `// changed from X to Y` or `// updated for feature Z` are forbidden
-- Only add comments when the logic itself is genuinely complex and non-obvious
-- If a change needs explanation, write it in the git commit message instead
-- Git commits should contain detailed explanations of what changed and why
-
 ## Python Execution
 
 When executing Python scripts, always use `uv` instead of `python` directly:
@@ -52,11 +44,6 @@ Comma automatically finds and runs the package containing the command.
 2. `, <command>` (comma) - preferred, simplest
 3. `nix run nixpkgs#<package>` - when you need a specific package name
 4. `nix shell nixpkgs#<package> --command <command>` - last resort
-
-## Git Worktrees
-
-- Use the `git-wt` skill for all worktree lifecycle operations
-- Prefer `git wt` over raw `git worktree add`, `remove`, `move`, or `prune`
 
 ## Social Media Posts & YouTube Transcripts
 

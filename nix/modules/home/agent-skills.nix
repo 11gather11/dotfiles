@@ -9,6 +9,7 @@
   ast-grep-skill,
   agent-browser-skill,
   tgrab-skill,
+  cmux-skill,
   local-skills,
   ...
 }:
@@ -31,6 +32,11 @@
       # External: tgrab skill (X/Twitter, Bluesky, YouTube transcript)
       tgrab = {
         path = tgrab-skill;
+        subdir = "skills";
+      };
+      # External: cmux skills (terminal multiplexer / workspace agent)
+      cmux = {
+        path = cmux-skill;
         subdir = "skills";
       };
       # Local: skills from this dotfiles repo
@@ -66,6 +72,42 @@
     skills.explicit.tgrab = {
       from = "tgrab";
       path = "tgrab";
+    };
+
+    # cmux: enable all seven public end-user skills (dev-only skills stay off)
+    skills.explicit.cmux = {
+      from = "cmux";
+      path = "cmux";
+    };
+
+    skills.explicit.cmux-workspace = {
+      from = "cmux";
+      path = "cmux-workspace";
+    };
+
+    skills.explicit.cmux-settings = {
+      from = "cmux";
+      path = "cmux-settings";
+    };
+
+    skills.explicit.cmux-customization = {
+      from = "cmux";
+      path = "cmux-customization";
+    };
+
+    skills.explicit.cmux-diagnostics = {
+      from = "cmux";
+      path = "cmux-diagnostics";
+    };
+
+    skills.explicit.cmux-browser = {
+      from = "cmux";
+      path = "cmux-browser";
+    };
+
+    skills.explicit.cmux-markdown = {
+      from = "cmux";
+      path = "cmux-markdown";
     };
 
     skills.explicit.agent-browser =

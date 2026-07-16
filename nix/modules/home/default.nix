@@ -8,6 +8,7 @@
   ast-grep-skill,
   agent-browser-skill,
   tgrab-skill,
+  cmux-skill,
   local-skills,
   # system,
   ...
@@ -25,6 +26,7 @@
         ast-grep-skill
         agent-browser-skill
         tgrab-skill
+        cmux-skill
         local-skills
         config
         ;

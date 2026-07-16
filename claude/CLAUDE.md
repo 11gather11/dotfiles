@@ -22,3 +22,8 @@ Personal preferences that apply to all projects.
 - **JSDoc**: Always write JSDoc comments for exported functions, classes, types, and interfaces. Include `@param`, `@returns`, and `@example` where appropriate.
 - **Complex logic**: When a function or block contains non-trivial logic (algorithms, bitwise operations, state machines, multi-step transformations, etc.), add line-by-line comments explaining what each step does and why. The reader should be able to follow the logic without having to reverse-engineer it.
 - Only skip comments for code that is truly self-explanatory (simple getters, one-liner utilities, etc.).
+
+## Git Worktrees
+
+- Use the `git-wt` skill for all worktree lifecycle operations
+- Prefer `git wt` over raw `git worktree add`, `remove`, `move`, or `prune`

@@ -53,6 +53,11 @@ Comma automatically finds and runs the package containing the command.
 3. `nix run nixpkgs#<package>` - when you need a specific package name
 4. `nix shell nixpkgs#<package> --command <command>` - last resort
 
+## Git Worktrees
+
+- Use the `git-wt` skill for all worktree lifecycle operations
+- Prefer `git wt` over raw `git worktree add`, `remove`, `move`, or `prune`
+
 ## Social Media Posts & YouTube Transcripts
 
 For X/Twitter, Bluesky, and YouTube, use [tgrab](https://github.com/ryoppippi/tgrab):

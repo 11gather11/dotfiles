@@ -3,11 +3,11 @@
     "agent-browser-skill": {
       "flake": false,
       "locked": {
-        "lastModified": 1784219271,
-        "narHash": "sha256-xXJSLEs+h6YcKBazMRGGdSrfSl+lx7tskwVw7NqYd1M=",
+        "lastModified": 1784325030,
+        "narHash": "sha256-d4eocgiBoNe7iCBl5cBHwglbyPAqLo11V3T5yZd9EUI=",
         "owner": "vercel-labs",
         "repo": "agent-browser",
-        "rev": "2b202640ee89dc7aadb5e8c9d600e089e9056985",
+        "rev": "6ede7a9470ac4b681cabf838af8668b9aa99e957",
         "type": "github"
       },
       "original": {

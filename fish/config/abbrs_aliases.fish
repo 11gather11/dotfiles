@@ -57,6 +57,7 @@ abbr -a dcr "docker compose restart"
 abbr -a ns nix-shell
 abbr -a ngc nix-collect-garbage
 abbr -a nrn --set-cursor nix run nixpkgs#\%
+abbr -a gnix gh-nix
 abbr -a dv devenv
 
 # git

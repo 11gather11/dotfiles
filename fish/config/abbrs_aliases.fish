@@ -85,6 +85,7 @@ abbr -a gsm "command git switch main 2>/dev/null || command git switch master"
 abbr -a gpt 'git push --tags'
 abbr -a gr 'git rebase'
 abbr -a gwt 'git wt'
+abbr -a gwtpr 'git wtpr'
 
 # git abbreviations using --command option (fish 4.0+)
 abbr -a -c git a add

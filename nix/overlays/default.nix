@@ -4,6 +4,7 @@ let
   overlayFiles = [
     ./claude-code.nix
     ./git-now.nix
+    ./git-wtpr.nix
   ];
 
   # Apply each overlay and merge results

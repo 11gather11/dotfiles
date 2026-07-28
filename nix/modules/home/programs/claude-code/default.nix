@@ -130,7 +130,7 @@ in
       SCHEMA_URL=$(${jq} -r '.["$schema"]' "$SETTINGS_FILE")
 
       echo "🔍 Validating Claude Code settings.json..."
-      if ${pkgs.check-jsonschema}/bin/check-jsonschema --schemafile "$SCHEMA_URL" "$SETTINGS_FILE" 2>&1; then
+      if ${lib.getExe pkgs.check-jsonschema} --schemafile "$SCHEMA_URL" "$SETTINGS_FILE" 2>&1; then
         echo "✅ Claude Code settings.json validation passed"
       else
         echo "⚠️  Claude Code settings.json validation failed (non-blocking, schema may be outdated)" >&2

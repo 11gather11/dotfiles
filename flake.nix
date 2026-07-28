@@ -226,9 +226,21 @@
         }:
         let
           localPkgs = mkPkgs system;
+          inherit (localPkgs) lib;
           inherit (localPkgs.stdenv) isDarwin;
           homedir = if isDarwin then darwinHomedir else linuxHomedir;
           hostname = username;
+
+          # Package executables, resolved via lib.getExe so the binary name comes
+          # from each package's meta.mainProgram instead of being hand-written
+          # (e.g. neovim ships nvim, nix-output-monitor ships nom).
+          bash = lib.getExe localPkgs.bash;
+          fishIndent = lib.getExe' localPkgs.fish "fish_indent";
+          gitleaks = lib.getExe localPkgs.gitleaks;
+          neovim = lib.getExe localPkgs.neovim;
+          nom = lib.getExe localPkgs.nix-output-monitor;
+          oxfmt = lib.getExe localPkgs.oxfmt;
+          treefmt = lib.getExe config.treefmt.build.wrapper;
 
           # Detect AI agent environments to skip nix-output-monitor
           isAgentCheck = ''
@@ -279,7 +291,7 @@
               ];
               formatter = {
                 oxfmt = {
-                  command = "${localPkgs.oxfmt}/bin/oxfmt";
+                  command = oxfmt;
                   options = [ "--no-error-on-unmatched-pattern" ];
                   includes = [ "*" ];
                   excludes = [
@@ -288,7 +300,7 @@
                   ];
                 };
                 gitleaks = {
-                  command = "${localPkgs.gitleaks}/bin/gitleaks";
+                  command = gitleaks;
                   options = [
                     "detect"
                     "--no-git"
@@ -313,7 +325,7 @@
                   ];
                 };
                 fish-indent = {
-                  command = "${localPkgs.fish}/bin/fish_indent";
+                  command = fishIndent;
                   options = [ "--write" ];
                   includes = [ "*.fish" ];
                 };
@@ -344,11 +356,11 @@
                   if [ ! -d "$DOTFILES_DIR" ]; then
                     DOTFILES_DIR="$(pwd)"
                   fi
-                  exec ${localPkgs.bash}/bin/bash \
+                  exec ${bash} \
                     ${./nix/modules/home/programs/neovim/check.sh} \
                     "$DOTFILES_DIR/nvim" \
                     "$HOME/.local/share/nvim/lazy" \
-                    ${localPkgs.neovim}/bin/nvim
+                    ${neovim}
                 ''
               );
             };
@@ -368,7 +380,7 @@
                         "homeConfigurations.${username}.activationPackage"
                     }
                   else
-                    ${localPkgs.nix-output-monitor}/bin/nom build .#${
+                    ${nom} build .#${
                       if isDarwin then
                         "darwinConfigurations.${hostname}.system"
                       else
@@ -398,9 +410,9 @@
                   else
                     ${
                       if isDarwin then
-                        "sudo nix run nix-darwin -- switch --flake .#${hostname} |& ${localPkgs.nix-output-monitor}/bin/nom"
+                        "sudo nix run nix-darwin -- switch --flake .#${hostname} |& ${nom}"
                       else
-                        "nix run nixpkgs#home-manager -- switch --flake .#${username} |& ${localPkgs.nix-output-monitor}/bin/nom"
+                        "nix run nixpkgs#home-manager -- switch --flake .#${username} |& ${nom}"
                     }
                   fi
                   echo "Clearing fish cache..."
@@ -438,7 +450,7 @@
               type = "app";
               program = toString (
                 localPkgs.writeShellScript "treefmt-wrapper" ''
-                  exec ${config.treefmt.build.wrapper}/bin/treefmt "$@"
+                  exec ${treefmt} "$@"
                 ''
               );
             };

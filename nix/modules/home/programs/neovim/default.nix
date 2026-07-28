@@ -50,11 +50,11 @@ in
 
     # Only restore if lock file has been updated
     if [[ ! -f "$LAZY_LOCK_TIMESTAMP" ]] || [[ "$LAZY_LOCK" -nt "$LAZY_LOCK_TIMESTAMP" ]]; then
-      ${pkgs.bash}/bin/bash \
+      ${lib.getExe pkgs.bash} \
         ${./check.sh} \
         "${nvimDotfilesDir}" \
         "$LAZY_DIR" \
-        ${pkgs.neovim}/bin/nvim
+        ${lib.getExe pkgs.neovim}
     fi
   '';
 }

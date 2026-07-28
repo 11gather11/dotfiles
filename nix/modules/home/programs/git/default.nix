@@ -137,7 +137,7 @@ in
       };
 
       wt = {
-        remover = "${pkgs.trash-cli}/bin/trash";
+        remover = pkgs.lib.getExe pkgs.trash-cli;
       };
     };
 

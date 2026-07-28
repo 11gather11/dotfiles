@@ -84,9 +84,18 @@ if [ -e "/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" ]; then
   . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 fi
 
-# home-manager session variables
+# home-manager session variables.
+# Prefer the standalone home-manager gcroots (Linux / `home-manager switch`),
+# falling back to the nix-darwin module profile (`/etc/profiles/per-user`).
 HM_SESSION_VARS="$HOME/.local/state/home-manager/gcroots/current-home/home-path/etc/profile.d/hm-session-vars.sh"
+if [ ! -f "$HM_SESSION_VARS" ]; then
+  HM_SESSION_VARS="/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
+fi
 if [ -f "$HM_SESSION_VARS" ]; then
+  # An ancestor process may already have marked these as sourced, which would
+  # make the script a no-op in agent-spawned shells. Clear the guard so the
+  # variables are applied here regardless.
+  unset __HM_SESS_VARS_SOURCED
   . "$HM_SESSION_VARS"
 fi
 

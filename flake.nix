@@ -444,6 +444,15 @@
             };
           };
 
+          # Expose custom overlay packages as flake outputs so nix-update --flake
+          # can target them (e.g. `nix-update --flake git-now`).
+          packages = {
+            inherit (localPkgs)
+              git-now
+              git-wtpr
+              ;
+          };
+
           # DevShell with pre-commit hooks
           devShells.default = localPkgs.mkShell {
             shellHook = ''

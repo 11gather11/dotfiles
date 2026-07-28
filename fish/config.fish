@@ -6,8 +6,14 @@ set -q XDG_CONFIG_HOME || set -gx XDG_CONFIG_HOME $HOME/.config
 set -q XDG_DATA_HOME || set -gx XDG_DATA_HOME $HOME/.local/share
 set -q XDG_CACHE_HOME || set -gx XDG_CACHE_HOME $HOME/.cache
 
-# Source home-manager session variables
+# Source home-manager session variables.
+# Prefer the standalone home-manager gcroots (Linux / `home-manager switch`),
+# falling back to the nix-darwin module profile (`/etc/profiles/per-user`), so
+# non-interactive login shells spawned by agents still pick up the environment.
 set -l HM_SESSION_VARS "$HOME/.local/state/home-manager/gcroots/current-home/home-path/etc/profile.d/hm-session-vars.sh"
+if not test -f $HM_SESSION_VARS
+    set HM_SESSION_VARS "/etc/profiles/per-user/$USER/etc/profile.d/hm-session-vars.sh"
+end
 if test -f $HM_SESSION_VARS
     for line in (grep '^export ' $HM_SESSION_VARS)
         set -l kv (string replace 'export ' '' $line)
@@ -65,8 +71,14 @@ fish_add_path $GOPATH/bin
 fish_add_path $HOME/.scripts
 fish_add_path $HOME/.scripts/bin
 
-# Add home-manager packages to PATH
-fish_add_path ~/.local/state/home-manager/gcroots/current-home/home-path/bin
+# Add home-manager packages to PATH.
+# Prefer the standalone home-manager gcroots (Linux / `home-manager switch`),
+# falling back to the nix-darwin module profile (`/etc/profiles/per-user`).
+set -l HM_PATH_BIN "$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin"
+if not test -d $HM_PATH_BIN
+    set HM_PATH_BIN "/etc/profiles/per-user/$USER/bin"
+end
+fish_add_path $HM_PATH_BIN
 
 # 1Password SSH Agent
 set _1P_SSH_SOCK "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
@@ -122,6 +134,13 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     set_color normal
 end
 source $CONFIG_CACHE
+
+# The cached direnv hook only fires on interactive prompts, so agent-spawned
+# non-interactive login shells would never enter the project dev environment.
+# Export it directly there, leaving the interactive hook untouched.
+if not status is-interactive; and command -q direnv
+    direnv export fish | source
+end
 
 # neovim
 set -gx EDITOR nvim

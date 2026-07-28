@@ -18,7 +18,7 @@ in
     link_force "${dotfilesDir}/fish" "${configHome}/fish"
 
     # Zsh environment
-    link_force "${dotfilesDir}/zshenv" "${homeDirectory}/.zshenv"
+    link_force "${dotfilesDir}/zsh/zshenv" "${homeDirectory}/.zshenv"
 
     # Zsh configuration
     link_force "${dotfilesDir}/zsh/zshrc" "${homeDirectory}/.zshrc"

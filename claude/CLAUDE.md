@@ -9,4 +9,6 @@ Personal preferences that apply to all projects.
 
 @~/.config/claude/shared/code-comments.md
 
+@~/.config/claude/shared/command-privacy.md
+
 @~/.config/claude/shared/git-worktrees.md

@@ -18,6 +18,7 @@ let
   agentsMdText = lib.concatMapStringsSep "\n" builtins.readFile [
     ../../../../codex/AGENTS.md
     ../../../../agents/shared/code-comments.md
+    ../../../../agents/shared/command-privacy.md
     ../../../../agents/shared/git-worktrees.md
   ];
 

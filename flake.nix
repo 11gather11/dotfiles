@@ -230,6 +230,7 @@
           gitleaks = lib.getExe localPkgs.gitleaks;
           neovim = lib.getExe localPkgs.neovim;
           nom = lib.getExe localPkgs.nix-output-monitor;
+          nufmt = lib.getExe localPkgs.nufmt;
           oxfmt = lib.getExe localPkgs.oxfmt;
           treefmt = lib.getExe config.treefmt.build.wrapper;
 
@@ -319,6 +320,10 @@
                   command = fishIndent;
                   options = [ "--write" ];
                   includes = [ "*.fish" ];
+                };
+                nufmt = {
+                  command = nufmt;
+                  includes = [ "*.nu" ];
                 };
               };
             };

@@ -43,6 +43,13 @@ nix run .#fmt     # Format the tree with treefmt
 └── .claude/         # Path-specific rules & local skills
 ```
 
+## Scripting Language Choice
+
+- **Nushell** — the default for any new script. Use the `nushell` skill.
+- **Bun Shell or Python** — needs libraries.
+- **Bash** — the environment is not ours: Nix build phases, `writeShellApplication`, bootstrap, git hooks.
+- **Fish** — interactive config only (`fish/functions/`, abbreviations, completions), never a new script.
+
 ## Git Workflow
 
 - **Main branch**: `main`

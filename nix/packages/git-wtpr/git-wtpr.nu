@@ -76,9 +76,15 @@ def resolve-remote [] {
 
 def print-init [shell: string] {
     match $shell {
-        'fish' => { print (init-fish) }
-        'bash' => { print (init-bash) }
-        'zsh' => { print ((init-bash) | str replace 'shell hook for bash' 'shell hook for zsh') }
+        'fish' => {
+            print (init-fish)
+        }
+        'bash' => {
+            print (init-bash)
+        }
+        'zsh' => {
+            print init-bash | str replace 'shell hook for bash' 'shell hook for zsh'
+        }
         _ => {
             print --stderr 'git-wtpr: --init requires bash, zsh, or fish'
             exit 2
@@ -105,7 +111,7 @@ def --wrapped main [...args: string] {
         return
     }
 
-    # Empty string, not null, as the "not found yet" sentinel: a `mut` bound to
+    # Empty string, not null, as the "not found yet",  sentinel: a `mut` bound to
     # null is typed `nothing`, so assigning the string arg is a type error.
     mut pr = ''
     mut wt_args = []

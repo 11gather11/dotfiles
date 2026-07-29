@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: execute-inspect-adjust development and t-wada style Red-Green-Refactor TDD. Use for exploratory implementation, or when stable behaviour needs an executable test-first contract — implementing features, fixing bugs, or refactoring logic (e.g., "implement with TDD", "fix this bug TDD style", "/tdd").
+description: Guides execute-inspect-adjust development and t-wada Red-Green-Refactor TDD. Use for exploratory implementation or when stable behaviour needs an executable test-first contract.
 ---
 
 <!--
@@ -13,16 +13,6 @@ Example prompts:
 Use execution as the primary design feedback. A literal language REPL is optional: a shell command, focused script, scratch file, watch mode, or interactive debugger works when it provides a short feedback loop.
 
 TDD is a disciplined form of the same execute-inspect-adjust loop: the test automates the stimulus and observation so the feedback is repeatable. Introduce a Red-Green-Refactor cycle when a behaviour is worth preserving as an automated contract. One-off scripts, data inspection and transformation, unfamiliar APIs, operational tooling, and prototypes do not require a test for every iteration.
-
-**Project test environment:**
-
-```
-!`cat package.json 2>/dev/null | jq -r '.scripts | to_entries[] | select(.key | test("test")) | "\(.key): \(.value)"' 2>/dev/null || echo "No package.json test scripts found"`
-```
-
-```
-!`if [ -f vitest.config.ts ] || [ -f vitest.config.js ] || [ -f vitest.config.mts ]; then echo "Test runner: Vitest"; elif [ -f jest.config.ts ] || [ -f jest.config.js ] || [ -f jest.config.cjs ]; then echo "Test runner: Jest"; elif [ -f pytest.ini ] || [ -f pyproject.toml ] && grep -q pytest pyproject.toml 2>/dev/null; then echo "Test runner: pytest"; elif [ -f Cargo.toml ]; then echo "Test runner: cargo test"; elif [ -f go.mod ]; then echo "Test runner: go test"; else echo "Test runner: unknown — ask the user"; fi`
-```
 
 ## Exploration Loop
 
@@ -40,6 +30,16 @@ Keep each execution cheap and focused. Prefer observing real values over reasoni
 
 Treat one-off code as production code when failure can lose data, change external state, or turn into a repeated workflow. Harden validation, error handling, idempotency, and observability in proportion to that risk.
 
+**Project test environment:**
+
+```
+!`cat package.json 2>/dev/null | jq -r '.scripts | to_entries[] | select(.key | test("test")) | "\(.key): \(.value)"' 2>/dev/null || echo "No package.json test scripts found"`
+```
+
+```
+!`if [ -f vitest.config.ts ] || [ -f vitest.config.js ] || [ -f vitest.config.mts ]; then echo "Test runner: Vitest"; elif [ -f jest.config.ts ] || [ -f jest.config.js ] || [ -f jest.config.cjs ]; then echo "Test runner: Jest"; elif [ -f pytest.ini ] || [ -f pyproject.toml ] && grep -q pytest pyproject.toml 2>/dev/null; then echo "Test runner: pytest"; elif [ -f Cargo.toml ]; then echo "Test runner: cargo test"; elif [ -f go.mod ]; then echo "Test runner: go test"; else echo "Test runner: unknown — ask the user"; fi`
+```
+
 ## The Cycle
 
 1. **Red** — Write a failing test first. Run it and confirm it fails for the expected reason. Do **not** write any production code yet.
@@ -56,6 +56,7 @@ Repeat until the feature or fix is complete.
 - **Run the affected test suite after every green and every refactor step.** Prefer running only changed/affected tests during the cycle for speed. Never skip this.
 - **Refactor only on green.** If a test is red, fix the production code first — do not restructure anything while tests are failing.
 - **Tests are first-class code.** Apply the same quality standards (naming, readability, no duplication) to test code as to production code.
+- **Do not satisfy TDD with content-existence tests.** A test like `expect(skillMd).toContain("some guidance")` is an anti-pattern unless it proves an executable contract rather than freezing wording.
 - **Do not delete or weaken a test to make the build pass.** If a test is wrong, fix the test with a clear reason — do not silently remove it.
 - **Bug fixes start with a regression test.** Before touching the bug, write a test that reproduces it and fails. Then fix the bug and confirm the test goes green.
 
@@ -91,5 +92,5 @@ For other runners, adapt the general patterns:
 - The test name is documentation — make it descriptive
 - If you cannot name a test clearly, the behaviour is not well understood yet
 - Prefer testing public interfaces over internal implementation details
-- DO NOT DRY tests. Duplication is usually the right trade-off when it keeps each test readable on its own. Refactor test duplication only when the duplication is noisy and removing it makes the behaviour clearer.
+- KISS > DRY. Do not DRY tests. Duplication is usually the right trade-off when it keeps each test readable on its own. Refactor test duplication only when the duplication is noisy and removing it makes the behaviour clearer.
 - Do not hoist test values into shared variables just to reuse them. Write concrete values directly inside each test so the behaviour is readable in place.

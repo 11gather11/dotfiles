@@ -33,6 +33,7 @@ let
       type = "command";
       command = "${bun} ${statuslineScript}";
     };
+    model = "opus";
     alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
     useAutoModeDuringPlan = true;

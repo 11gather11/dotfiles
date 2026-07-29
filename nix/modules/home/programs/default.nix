@@ -78,6 +78,9 @@
     # Bat configuration
     ./bat.nix
 
+    # nh: Nix helper CLI with automatic periodic cleanup
+    ./nh.nix
+
     # cmux terminal app for Claude Code
     ./cmux.nix
 

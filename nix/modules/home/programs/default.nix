@@ -82,7 +82,7 @@
     ./nh.nix
 
     # cmux terminal app for Claude Code
-    ./cmux.nix
+    ./cmux
 
     # Ghostty terminal configuration (used by cmux)
     (import ./ghostty.nix {

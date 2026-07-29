@@ -209,6 +209,7 @@ in
       "claude"
       "cmux"
       "discord"
+      "ghostty"
       "google-chrome"
       "hhkb"
       "karabiner-elements"

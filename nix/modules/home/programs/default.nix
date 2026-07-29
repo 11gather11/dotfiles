@@ -84,7 +84,7 @@
     # cmux terminal app for Claude Code
     ./cmux
 
-    # Ghostty terminal configuration (used by cmux)
+    # Ghostty terminal configuration (shared with cmux)
     (import ./ghostty.nix {
       inherit
         pkgs

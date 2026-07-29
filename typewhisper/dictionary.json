@@ -1,0 +1,31 @@
+{
+	"terms": [
+		"11gather11",
+		"nix",
+		"nixpkgs",
+		"home-manager",
+		"nix-darwin",
+		"dotfiles",
+		"direnv",
+		"neovim",
+		"LazyVim",
+		"fish",
+		"tmux",
+		"ghq",
+		"ghostty",
+		"cmux",
+		"karabiner",
+		"lazygit",
+		"treefmt",
+		"bruno",
+		"codex",
+		"TypeWhisper",
+		"worktree"
+	],
+	"corrections": [
+		{ "original": "プルリクエスト", "replacement": "PR", "caseSensitive": false },
+		{ "original": "プルリク", "replacement": "PR", "caseSensitive": false },
+		{ "original": "クロード", "replacement": "Claude", "caseSensitive": false },
+		{ "original": "アンソロピック", "replacement": "Anthropic", "caseSensitive": false }
+	]
+}

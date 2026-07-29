@@ -29,7 +29,7 @@ let
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
-    model_reasoning_effort = "high";
+    model_reasoning_effort = "medium";
     service_tier = "fast";
     personality = "pragmatic";
     web_search_request = true;

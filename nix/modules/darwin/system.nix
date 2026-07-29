@@ -193,6 +193,11 @@ in
     enable = true;
     onActivation.cleanup = "uninstall";
 
+    # TypeWhisper ships through the vendor's own tap, not homebrew-core
+    taps = [
+      "typewhisper/tap"
+    ];
+
     casks = [
       "1password"
       "alt-tab"
@@ -215,6 +220,7 @@ in
       "stats"
       "steam"
       "tailscale-app"
+      "typewhisper/tap/typewhisper"
       "visual-studio-code"
       "vlc"
     ];

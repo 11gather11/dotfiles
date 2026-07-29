@@ -60,11 +60,6 @@
       flake = false;
     };
 
-    gh-graph = {
-      url = "github:kawarimidoll/gh-graph";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nix-index-database = {
       url = "github:nix-community/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -97,7 +92,6 @@
       flake = false;
     };
 
-    nix-filter.url = "github:numtide/nix-filter";
   };
 
   outputs =
@@ -113,14 +107,12 @@
       treefmt-nix,
       git-hooks,
       fish-na,
-      gh-graph,
       nix-index-database,
       agent-skills,
       ast-grep-skill,
       agent-browser-skill,
       tgrab-skill,
       cmux-skill,
-      nix-filter,
       ...
     }:
     let
@@ -128,9 +120,9 @@
       darwinHomedir = "/Users/${username}";
       linuxHomedir = "/home/${username}";
 
-      local-skills = nix-filter {
-        root = self;
-        include = [ "agents/skills" ];
+      local-skills = nixpkgs.lib.fileset.toSource {
+        root = ./.;
+        fileset = ./agents/skills;
       };
 
       # Create pkgs with overlays
@@ -145,7 +137,6 @@
               _nix-claude-code = nix-claude-code;
             })
             nix-bun.overlays.default
-            gh-graph.overlays.default
             (import ./nix/overlays)
           ];
         };

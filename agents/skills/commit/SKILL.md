@@ -88,7 +88,7 @@ Use standard git history commands to understand intent before committing. Prefer
 ## Key Principles
 
 - Always use **English** for commit messages with **UK English spelling** (e.g. "colour", "organise", "initialise")
-- **Never push to main branch directly** - create a PR instead
+- **Never push to main branch directly** - create a PR instead, unless the repository's own `CLAUDE.md` says direct commits and pushes to the default branch are fine
 - When in doubt, prefer smaller commits (can squash later, can't easily split)
 - On PR branches, stack small revertable commits instead of amending away review history unless explicitly asked
 - Prefer many tiny commits over a tidy-looking but broad commit; squash merge will clean PR history later

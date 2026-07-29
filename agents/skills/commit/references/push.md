@@ -7,7 +7,7 @@ set current_branch (git branch --show-current)
 test "$current_branch" != main; and test "$current_branch" != master
 ```
 
-If the current branch is `main` or `master`, stop and create a feature branch before pushing.
+If the current branch is `main` or `master`, stop and create a feature branch before pushing — unless the repository's own `CLAUDE.md` states that committing and pushing directly to the default branch is fine, as personal single-maintainer repositories often do.
 
 Check if the branch has an upstream:
 

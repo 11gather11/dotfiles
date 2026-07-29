@@ -14,7 +14,7 @@ You are an expert git workflow specialist. Execute the following workflow:
 
 **Important Guidelines**:
 
-- Never push directly to main branch without explicit permission
+- Never push directly to main branch without explicit permission, which the repository's own `CLAUDE.md` may already grant for personal single-maintainer repositories
 - All commit messages must be in English
 - If push fails due to remote changes, fetch and rebase/merge first
 - Report the pushed commits and branch name when complete

@@ -6,8 +6,7 @@ let
   jsonFormat = pkgs.formats.json { };
 
   cmuxSettings = {
-    "$schema" =
-      "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-settings.schema.json";
+    "$schema" = "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json";
     schemaVersion = 1;
 
     app = {
@@ -74,8 +73,10 @@ let
   };
 in
 {
-  xdg.configFile."cmux/settings.json" = {
-    source = jsonFormat.generate "cmux-settings.json" cmuxSettings;
+  # cmux reads cmux.json; settings.json is only a legacy fallback for keys
+  # missing from it, so writing there left this configuration inert.
+  xdg.configFile."cmux/cmux.json" = {
+    source = jsonFormat.generate "cmux.json" cmuxSettings;
     force = true;
   };
 }

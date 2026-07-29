@@ -21,6 +21,10 @@ let
       inherit (pkgs.fishPlugins.fzf) src;
     }
     {
+      name = "forgit";
+      inherit (pkgs.fishPlugins.forgit) src;
+    }
+    {
       name = "fish-bd";
       inherit (pkgs.fishPlugins.fish-bd) src;
     }

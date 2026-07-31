@@ -13,12 +13,9 @@ runs:
         github_access_token: ${{ github.token }}
         extra_nix_config: |
           max-jobs = auto
-
-    - name: Setup Cachix (numtide)
-      uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17
-      with:
-        name: numtide
-        authToken: ''
+          # Without this the nixConfig in flake.nix is dropped as untrusted, so
+          # cache.numtide.com never applies and llm-agents builds from source.
+          accept-flake-config = true
 
     - name: Setup Cachix (11gather11)
       uses: cachix/cachix-action@5f2d7c5294214f71b873db4b969586b980625e71 # v17

@@ -132,7 +132,12 @@
           inherit system;
           config.allowUnfree = true;
           overlays = [
-            llm-agents.overlays.default
+            # 上流が overlays.default を削除したため、その実装を再現する。
+            # shared-nixpkgs は消費側の nixpkgs でビルドし直すのでバイナリキャッシュが
+            # 効かず、agent-browser のフルソースビルドが走る。
+            (final: _prev: {
+              llm-agents = llm-agents.packages.${final.stdenv.hostPlatform.system} or { };
+            })
             (_final: _prev: {
               _nix-claude-code = nix-claude-code;
             })

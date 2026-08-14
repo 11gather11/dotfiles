@@ -1,0 +1,50 @@
+[
+	{
+		"repo": "ryoppippi/dotfiles",
+		"note": "AI ツール実践。cmux / TypeWhisper / tirith / git-wt を先行採用してきた実績あり"
+	},
+	{
+		"repo": "Mic92/dotfiles",
+		"note": "nix-community メンテナ。herdr を実運用に組み込んでいる唯一の例。llm-agents.nix 最大の貢献者"
+	},
+	{
+		"repo": "sei40kr/dotfiles",
+		"note": "Claude / Codex を実践。llm-agents.nix 貢献者。日本語圏"
+	},
+	{
+		"repo": "kclejeune/system",
+		"note": "nix-darwin + home-manager を macOS/Linux 両対応。構成がこのリポジトリに最も近い"
+	},
+	{
+		"repo": "mitchellh/nixos-config",
+		"note": "Ghostty 作者。設計とドキュメントの参考"
+	},
+	{
+		"repo": "malob/nix-config",
+		"note": "nix-darwin の定番。Homebrew 連携の書き方"
+	},
+	{
+		"repo": "dustinlyons/nixos-config",
+		"note": "macOS/NixOS のテンプレ的存在。新機能の取り込みが早い"
+	},
+	{
+		"repo": "typecraft-dev/dotfiles",
+		"note": "Nix 非依存。新しめの CLI / TUI 志向"
+	},
+	{
+		"repo": "colonelpanic8/dotfiles",
+		"note": "更新が活発"
+	},
+	{
+		"repo": "gibfahn/dot",
+		"note": "更新が活発。ghostty など新しめのツール"
+	},
+	{
+		"repo": "lambdalisue/dotfiles",
+		"note": "日本語圏。Vim / CLI 周りの知見"
+	},
+	{
+		"repo": "folke/dot",
+		"note": "LazyVim 作者。Neovim 方面"
+	}
+]

@@ -84,6 +84,15 @@
     # cmux terminal app for Claude Code
     ./cmux
 
+    # herdr: agent multiplexer that runs inside the existing terminal
+    (import ./herdr {
+      inherit
+        pkgs
+        lib
+        config
+        ;
+    })
+
     # Ghostty terminal configuration (shared with cmux)
     (import ./ghostty.nix {
       inherit

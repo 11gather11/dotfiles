@@ -19,7 +19,13 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 2. 各リポジトリのローカル clone を用意する。パスは `$(ghq root)/github.com/<repo>`。
 
-   無ければ blobless clone で取得する（履歴だけ要るのでファイル実体は不要、その分軽い）:
+   **GitHub API では代替しない。** commit 一覧だけなら API でも取れるが、手順6の「このツールを
+   何人が使っているか」は全ファイルを横断 grep しないと数えられず、コード検索 API は結果が
+   不安定でレート制限にもかかる（実際に誤検出とレート制限の両方を踏んでいる）。ローカルに
+   置けば `rg` で確実に数えられる。12 リポジトリで 190MB 前後、全件 fetch で 10 秒程度。
+
+   無ければ blobless clone で取得する（履歴のメタデータは全部持ちつつ、過去版のファイル実体は
+   取らないので軽い。現在のファイルは checkout されるので grep できる）:
 
    ```bash
    git clone --filter=blob:none "https://github.com/<repo>" "$(ghq root)/github.com/<repo>"
@@ -56,7 +62,33 @@ description: Show new commits on the watched dotfiles repositories since each on
    全リポジトリを見たあと、**横断的に「新しく登場したツール」を拾って報告する**。
    複数人が同じツールを入れ始めていれば、それが動向のシグナルになる。
 
-6. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
+6. **ツールを提案する。** ここが監視の主目的なので、遠慮せず踏み込む。
+
+   乗り換えの commit は最も強いシグナルなので、明示的に拾う:
+
+   ```bash
+   git -C <path> log <default-branch> --since="<SINCE>" --no-merges \
+     --pretty=format:'%h%x09%s' \
+     --grep='replace' --grep='instead of' --grep='in favou\?r of' \
+     --grep='migrate' --grep='switch to' --grep='drop' -i
+   ```
+
+   採用の広がりは、こちらに無いツールを watchlist 全体で数えて測る:
+
+   ```bash
+   for p in <各 clone>; do rg -l --no-messages '<tool>' "$p" -g '!.git' >/dev/null && echo "$p"; done
+   ```
+
+   提案は次の3種類。いずれも**このリポジトリの現状と突き合わせてから**出す:
+   - **未導入の新ツール** — 複数人が採用していて、こちらに無いもの
+   - **乗り換え候補** — こちらが使っているツールから、他の人が乗り換えた先があるもの
+     （例: 「A を使っているが、N 人が B へ移行している」）
+   - **重複・陳腐化** — 同じ役割のツールを二重に持っている、あるいは採用者が減っているもの
+
+   各提案には「**誰が使っているか（何/12）**」「**何を解決するか**」「**乗り換えコスト**」を添える。
+   根拠なく流行りを勧めない。採用者が 1 人だけなら、そう明示する。
+
+7. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
    再 fetch して、レビュー中に upstream が進んでいないか確かめる:
 
@@ -77,13 +109,16 @@ description: Show new commits on the watched dotfiles repositories since each on
 ## 注意
 
 - 相手は相手の都合で構成を変えている。ファイル内容の差分比較はせず、「何を変えたか」だけを見せる
-- 取り込みの提案は積極的にはしない。ユーザーが指定した commit を `git -C <path> show <SHA>` で深掘りする
+- ツールの提案は積極的にする（手順6）。ただし提案するのは**ツール選定**であって、相手の設定を
+  そのまま持ち込むことではない。ユーザーが指定した commit は `git -C <path> show <SHA>` で深掘りする
 - 取り込み候補として提示する前に、**その変更がこのリポジトリに該当するか**を確認する。
   相手側の「使わなくなったツールの削除」や「自分が使っているアプリの追加」は、こちらに同じものが
   無ければ無意味（削除対象が存在しない）か、有害（未使用アプリを新規インストールする）になる。
   `rg` で該当箇所を探し、必要ならインストール状況も見る
 - 取り込む際は commit をそのまま適用せず、こちらの構成に合わせて読み替える。相手固有の設定
   （好みのモデル、英語表記の癖、本人の語彙、持っていないツールへの参照）は落とし、仕組みだけを移す
-- 監視対象の追加・削除は `watchlist.json` を編集する。`note` には「なぜ見るのか」を書く
-- GitHub のコード検索（`gh search code`）は結果が不安定で、レート制限にもかかりやすい。
-  「このリポジトリは X を使っているか」を確かめるなら、clone して `rg` する方が確実
+- 監視対象の追加・削除は `watchlist.json` を編集する。`note` には「なぜ見るのか」を書く。
+  外したリポジトリの clone は消してよい（`$(ghq root)/github.com/<repo>`）
+- 一般語と重なるツール名（`delta`, `mise`, `borders` など）を素朴に grep すると誤検出する。
+  数える前に `programs.<tool>`、設定ファイル名、upstream の owner 名など具体的な手掛かりに絞り、
+  出た数字が妥当か 1 件は中身を見て確かめる

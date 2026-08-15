@@ -39,6 +39,11 @@
         path = cmux-skill;
         subdir = "skills";
       };
+      # External: herdr's own agent skill, shipped inside the package source
+      herdr = {
+        path = pkgs.llm-agents.herdr.src;
+        subdir = "skills";
+      };
       # Local: skills from this dotfiles repo
       local = {
         path = local-skills;
@@ -72,6 +77,11 @@
     skills.explicit.tgrab = {
       from = "tgrab";
       path = "tgrab";
+    };
+
+    skills.explicit.herdr = {
+      from = "herdr";
+      path = "herdr";
     };
 
     # cmux: enable all seven public end-user skills (dev-only skills stay off)

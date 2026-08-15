@@ -81,9 +81,6 @@
     # nh: Nix helper CLI with automatic periodic cleanup
     ./nh.nix
 
-    # cmux terminal app for Claude Code
-    ./cmux
-
     # herdr: agent multiplexer that runs inside the existing terminal
     (import ./herdr {
       inherit
@@ -93,7 +90,7 @@
         ;
     })
 
-    # Ghostty terminal configuration (shared with cmux)
+    # Ghostty terminal configuration
     (import ./ghostty.nix {
       inherit
         pkgs

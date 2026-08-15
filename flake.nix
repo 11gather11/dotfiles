@@ -87,11 +87,6 @@
       flake = false;
     };
 
-    cmux-skill = {
-      url = "github:manaflow-ai/cmux";
-      flake = false;
-    };
-
   };
 
   outputs =
@@ -112,7 +107,6 @@
       ast-grep-skill,
       agent-browser-skill,
       tgrab-skill,
-      cmux-skill,
       ...
     }:
     let
@@ -181,7 +175,6 @@
                       ast-grep-skill
                       agent-browser-skill
                       tgrab-skill
-                      cmux-skill
                       local-skills
                       ;
                     dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
@@ -527,7 +520,6 @@
                             ast-grep-skill
                             agent-browser-skill
                             tgrab-skill
-                            cmux-skill
                             local-skills
                             ;
                           dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";

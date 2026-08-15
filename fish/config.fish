@@ -28,11 +28,7 @@ end
 # hm-session-vars.sh contains `export TERM="$TERM"` which the naive parser
 # above reassigns as the literal `$TERM`. Fix it up here.
 if test "$TERM" = '$TERM'
-    if set -q CMUX_BUNDLE_ID
-        set -gx TERM xterm-256color
-    else
-        set -gx TERM xterm-ghostty
-    end
+    set -gx TERM xterm-ghostty
 end
 
 # define fish config paths

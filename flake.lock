@@ -109,22 +109,6 @@
         "type": "github"
       }
     },
-    "cmux-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1786515783,
-        "narHash": "sha256-NdcW5JvgZF0M8XmgiQ09YraPLcJp6xwB5xruo7SQ/Lc=",
-        "owner": "manaflow-ai",
-        "repo": "cmux",
-        "rev": "9465641e0418e62b9f5f9d8b3ea794aa55b43831",
-        "type": "github"
-      },
-      "original": {
-        "owner": "manaflow-ai",
-        "repo": "cmux",
-        "type": "github"
-      }
-    },
     "fish-na": {
       "flake": false,
       "locked": {
@@ -412,7 +396,6 @@
         "agent-browser-skill": "agent-browser-skill",
         "agent-skills": "agent-skills",
         "ast-grep-skill": "ast-grep-skill",
-        "cmux-skill": "cmux-skill",
         "fish-na": "fish-na",
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",

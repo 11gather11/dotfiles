@@ -13,19 +13,35 @@
 		"tmux",
 		"ghq",
 		"ghostty",
-		"cmux",
 		"karabiner",
 		"lazygit",
 		"treefmt",
 		"bruno",
 		"codex",
+		"herdr",
 		"TypeWhisper",
 		"worktree"
 	],
 	"corrections": [
-		{ "original": "プルリクエスト", "replacement": "PR", "caseSensitive": false },
-		{ "original": "プルリク", "replacement": "PR", "caseSensitive": false },
-		{ "original": "クロード", "replacement": "Claude", "caseSensitive": false },
-		{ "original": "アンソロピック", "replacement": "Anthropic", "caseSensitive": false }
+		{
+			"original": "プルリクエスト",
+			"replacement": "PR",
+			"caseSensitive": false
+		},
+		{
+			"original": "プルリク",
+			"replacement": "PR",
+			"caseSensitive": false
+		},
+		{
+			"original": "クロード",
+			"replacement": "Claude",
+			"caseSensitive": false
+		},
+		{
+			"original": "アンソロピック",
+			"replacement": "Anthropic",
+			"caseSensitive": false
+		}
 	]
 }

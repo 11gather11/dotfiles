@@ -207,7 +207,6 @@ in
       "bruno"
       "chatgpt"
       "claude"
-      "cmux"
       "discord"
       "ghostty"
       "google-chrome"

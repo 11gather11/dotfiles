@@ -45,13 +45,15 @@ description: Rebuild and republish the dotfiles reference page — what is insta
    - `tag.kind` は `t-new`（新規・自前）／`t-warn` `t-un`（未活用・要設定）／`t-cfg` `t-gui`（補足）
    - 消えたツールは該当 item を削除する
 
-3. HTML を生成する:
+3. **先にコミットしてから** HTML を生成する:
 
    ```bash
    nix shell nixpkgs#nushell --command nu generate.nu
    ```
 
-   `toolbelt.html` が同じディレクトリに出る。
+   `toolbelt.html` が同じディレクトリに出る。フッターに生成日時と、その内容が
+   どのコミット時点かが入る。未コミットの変更が残っていると「＋未コミットの変更」と
+   出る — 正確ではあるが、公開するページにはコミット済みの状態を載せたい。
 
 4. **同じ URL に再公開する。** Artifact ツールに `url` を渡すこと。渡さないと別ページが増える:
 

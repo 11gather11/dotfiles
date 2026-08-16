@@ -194,6 +194,25 @@ def drift [root: string, content: record] {
     }
 }
 
+# When the page was built, and which commit it describes. The commit matters as
+# much as the clock: a rebuild of unchanged content moves the clock but not the
+# revision, so the pair distinguishes "regenerated" from "actually changed".
+def stamp [root: string] {
+    let now = date now | format date "%Y-%m-%d %H:%M"
+    let head = (^git -C $root rev-parse --short HEAD | complete)
+    let status = (^git -C $root status --porcelain | complete)
+    let dirty = ($status.exit_code == 0) and (($status.stdout | str trim) | is-not-empty)
+
+    if $head.exit_code != 0 {
+        return $"($now) 生成"
+    }
+    let rev = $head.stdout | str trim
+    let mark = if $dirty {
+        ' <span class="dirty">＋未コミットの変更</span>'
+    } else { "" }
+    $"($now) 生成 · リポジトリの ($rev) 時点($mark)"
+}
+
 def esc [s: string] {
     $s | str replace --all '&' '&amp;' | str replace --all '<' '&lt;' | str replace --all '>' '&gt;'
 }
@@ -309,6 +328,7 @@ def main [--check, --root: string = ""] {
 		| str replace '<!--NAMES-->' $names
 		| str replace '<!--LEDES-->' $ledes
 		| str replace '<!--FIRST_LEDE-->' ($content.tabs | first | get lede)
+		| str replace '<!--STAMP-->' (stamp $root)
 	)
     let dest = $env.CURRENT_FILE | path dirname | path join toolbelt.html
     $out | save -f $dest

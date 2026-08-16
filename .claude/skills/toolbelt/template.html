@@ -311,6 +311,16 @@
 		color: var(--muted);
 		font-size: 13px;
 	}
+	.stamp {
+		margin: 0 0 10px;
+		color: var(--faint);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+	}
+	.stamp .dirty {
+		color: var(--autumn);
+	}
 
 	@media (max-width: 620px) {
 		.row {
@@ -352,6 +362,7 @@
 	<!--PANES-->
 
 	<footer>
+		<p class="stamp"><!--STAMP--></p>
 		出典はこのリポジトリの
 		<code>nix/modules/home/packages.nix</code>、<code>fish/config/abbrs_aliases.fish</code>、<code
 			>nix/modules/darwin/system.nix</code

@@ -122,9 +122,6 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     # set vivid colors
     echo "set -gx LS_COLORS '$(ensure_installed vivid generate gruvbox-dark)'" >>$CONFIG_CACHE_TMP
 
-    # jj
-    ensure_installed jj util completion fish >>$CONFIG_CACHE_TMP
-
     mv $CONFIG_CACHE_TMP $CONFIG_CACHE
 
     set_color brmagenta --bold --underline

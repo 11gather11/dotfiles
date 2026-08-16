@@ -103,16 +103,6 @@
     # Direnv configuration with nix-direnv
     ./direnv.nix
 
-    # jj configuration
-    (import ./jj.nix {
-      inherit
-        pkgs
-        lib
-        config
-        helpers
-        ;
-    })
-
     # Lazygit configuration
     (import ./lazygit {
       inherit

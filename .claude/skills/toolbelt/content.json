@@ -143,14 +143,6 @@
 						{
 							"name": "gh pcr / pco",
 							"desc": "PR を作る / PR をチェックアウト"
-						},
-						{
-							"name": "jj",
-							"desc": "Jujutsu。git 互換の別ワークフロー（入っているが未活用）",
-							"tag": {
-								"kind": "t-warn",
-								"text": "未活用"
-							}
 						}
 					]
 				},
@@ -894,14 +886,6 @@
 						{
 							"name": "lazygit",
 							"desc": "グラフ表示のコマンドを設定済み"
-						},
-						{
-							"name": "jj",
-							"desc": "Jujutsu",
-							"tag": {
-								"kind": "t-un",
-								"text": "未活用"
-							}
 						},
 						{
 							"name": "gh",

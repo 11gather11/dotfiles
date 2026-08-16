@@ -5,7 +5,7 @@
   ...
 }:
 let
-  # User configuration (shared with jj)
+  # User configuration
   user = helpers.mkUser config;
 
   # Delta settings (shared with lazygit pager configuration)

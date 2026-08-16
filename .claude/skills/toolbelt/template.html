@@ -70,12 +70,31 @@
 	header {
 		margin-bottom: 18px;
 	}
+	/* Title and build stamp share a baseline; the stamp drops below on narrow
+	   screens, where space-between leaves it at the start of its own line. */
+	.titleline {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: 0 20px;
+	}
 	h1 {
 		margin: 0 0 6px;
 		font-size: 25px;
 		font-weight: 650;
 		letter-spacing: -0.01em;
 		text-wrap: balance;
+	}
+	.stamp {
+		margin: 0 0 6px;
+		color: var(--faint);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+	}
+	.stamp .dirty {
+		color: var(--autumn);
 	}
 	.sub {
 		margin: 0;
@@ -311,16 +330,6 @@
 		color: var(--muted);
 		font-size: 13px;
 	}
-	.stamp {
-		margin: 0 0 10px;
-		color: var(--faint);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12px;
-		font-variant-numeric: tabular-nums;
-	}
-	.stamp .dirty {
-		color: var(--autumn);
-	}
 
 	@media (max-width: 620px) {
 		.row {
@@ -334,7 +343,10 @@
 
 <div class="wrap">
 	<header>
-		<h1>11gather11 dotfiles</h1>
+		<div class="titleline">
+			<h1>11gather11 dotfiles</h1>
+			<p class="stamp"><!--STAMP--></p>
+		</div>
 		<p class="sub">
 			この Mac に入っているものと、実際の打ち方。<code>nix run .#switch</code>
 			で管理されている範囲。
@@ -362,7 +374,6 @@
 	<!--PANES-->
 
 	<footer>
-		<p class="stamp"><!--STAMP--></p>
 		出典はこのリポジトリの
 		<code>nix/modules/home/packages.nix</code>、<code>fish/config/abbrs_aliases.fish</code>、<code
 			>nix/modules/darwin/system.nix</code

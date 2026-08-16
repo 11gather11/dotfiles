@@ -525,11 +525,6 @@
 								"kind": "t-warn",
 								"text": "最優先"
 							}
-						},
-						{
-							"name": "jj (Jujutsu)",
-							"desc": "21 行の最小設定のみ。git と併用する前提の別ワークフローで、使うなら学習が要る",
-							"expand": "nix/modules/home/programs/jj.nix"
 						}
 					]
 				},

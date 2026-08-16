@@ -150,6 +150,20 @@ def usage [names: list<string>, aliases: record = {}] {
     }
 }
 
+# Entries that point at a file which no longer exists. Removing a tool from the
+# Nix side leaves its row on the page, and the undocumented-name check above
+# cannot see it: that one only looks for installed names with no row. A row
+# whose `expand` names a repository path is checkable in the other direction.
+def stale [root: string, content: record] {
+    $content.tabs
+    | each {|t| $t.sections | each {|s| $s.items } }
+    | flatten
+    | flatten
+    | where {|i| ($i | get -o expand | default "") =~ '^[a-zA-Z0-9._/-]+/[a-zA-Z0-9._-]+$' }
+    | where {|i| not ([$root, $i.expand] | path join | path exists) }
+    | each {|i| {name: $i.name, path: $i.expand} }
+}
+
 def drift [root: string, content: record] {
     let have = (installed $root)
     let hay = (
@@ -225,6 +239,12 @@ def main [--check, --root: string = ""] {
     } else {
         print $"drift: ($report.missing | length) undocumented"
         $report.missing | each {|m| print $"  ($m.kind)  ($m.name)" }
+    }
+
+    let gone = (stale $root $content)
+    if ($gone | is-not-empty) {
+        print $"stale: ($gone | length) row\(s\) point at a file that no longer exists"
+        $gone | each {|g| print $"  ($g.name)  →  ($g.path)" }
     }
 
     # Which installed commands were never typed. This is a starting point for

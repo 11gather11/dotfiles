@@ -163,23 +163,11 @@
 							"desc": "Codex。別視点のレビューや調査に使う（今日この画面の右で動いていたもの）"
 						},
 						{
-							"name": "oc / ca",
-							"desc": "opencode / cursor-agent"
-						},
-						{
 							"name": "herdr",
 							"desc": "エージェント多重化。ペインを分けて複数のエージェントを走らせ、detach しても動き続ける",
 							"tag": {
 								"kind": "t-new",
 								"text": "今日導入"
-							}
-						},
-						{
-							"name": "grok / copilot / rtk",
-							"desc": "その他のエージェント CLI（入っているが未活用）",
-							"tag": {
-								"kind": "t-warn",
-								"text": "未活用"
 							}
 						},
 						{
@@ -189,6 +177,10 @@
 								"kind": "t-warn",
 								"text": "未活用"
 							}
+						},
+						{
+							"name": "grok",
+							"desc": "xAI のエージェント CLI"
 						}
 					]
 				},
@@ -533,24 +525,8 @@
 					"note": "fish の履歴（2026-02-01 以降・495 件）で <b>一度も打たれていない</b>もの。使うか消すかを決める対象。",
 					"items": [
 						{
-							"name": "opencode",
-							"desc": "OSS のコーディングエージェント。<code>oc</code> の略語まで用意してあるが実行 0 回"
-						},
-						{
-							"name": "copilot-cli",
-							"desc": "GitHub Copilot の CLI"
-						},
-						{
 							"name": "coderabbit-cli",
 							"desc": "コードレビュー特化。codex-review スキルと役割が重なる"
-						},
-						{
-							"name": "rtk",
-							"desc": "エージェント補助ツール"
-						},
-						{
-							"name": "cursor-agent",
-							"desc": "Cursor の CLI。VS Code 系から離れるなら不要かもしれない"
 						}
 					]
 				},
@@ -958,44 +934,12 @@
 							}
 						},
 						{
-							"name": "cursor-agent",
-							"desc": "Cursor の CLI",
-							"tag": {
-								"kind": "t-un",
-								"text": "未使用"
-							}
-						},
-						{
-							"name": "opencode",
-							"desc": "OSS のコーディングエージェント",
-							"tag": {
-								"kind": "t-un",
-								"text": "未使用"
-							}
-						},
-						{
 							"name": "grok",
 							"desc": "xAI の CLI"
 						},
 						{
-							"name": "copilot-cli",
-							"desc": "GitHub Copilot CLI",
-							"tag": {
-								"kind": "t-un",
-								"text": "未使用"
-							}
-						},
-						{
 							"name": "coderabbit-cli",
 							"desc": "コードレビュー特化",
-							"tag": {
-								"kind": "t-un",
-								"text": "未使用"
-							}
-						},
-						{
-							"name": "rtk",
-							"desc": "エージェント補助ツール",
 							"tag": {
 								"kind": "t-un",
 								"text": "未使用"
@@ -1533,8 +1477,8 @@
 							"desc": "opus / sonnet / haiku / sonnet[1m]"
 						},
 						{
-							"name": "cx / oc / ca",
-							"desc": "codex / opencode / cursor-agent"
+							"name": "cx",
+							"desc": "codex"
 						},
 						{
 							"name": "do / dop / dor / dox",

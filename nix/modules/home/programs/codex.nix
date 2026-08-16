@@ -43,6 +43,13 @@ let
     plugins."github@openai-curated" = {
       enabled = true;
     };
+
+    tui.status_line = [
+      "model-with-reasoning"
+      "context-used"
+      "five-hour-limit"
+      "weekly-limit"
+    ];
   };
 in
 {

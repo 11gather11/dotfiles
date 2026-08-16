@@ -110,7 +110,7 @@ All dotfiles are managed via Home Manager's `home.file` with symlinks to the rep
 ### Managed by Nix
 
 - **AI Development Tools**: claude-code, codex, cursor-agent, opencode, copilot-cli, coderabbit-cli
-- **Core Tools**: git, neovim, fish, tmux, ripgrep, fd, fzf, bat, eza, and more
+- **Core Tools**: git, neovim, fish, ripgrep, fd, fzf, bat, eza, and more
 - **Development**: Go, Node.js, Bun, Deno, language servers
 - **System Configuration** (macOS): Touch ID for sudo, Homebrew integration
 

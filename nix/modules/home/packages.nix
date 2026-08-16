@@ -8,7 +8,6 @@
     curl
     htop
     fish
-    tmux
     # VCS
     git
     git-now

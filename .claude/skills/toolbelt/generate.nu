@@ -72,6 +72,84 @@ def is-documented [name: string, haystack: string] {
     $haystack | str contains ($name | str lowercase)
 }
 
+# Aliases resolve to a different binary than the name typed, so history records
+# the alias. Reading them back means `ls` counts as a use of eza and `cat` as a
+# use of bat, instead of both tools looking untouched.
+def alias-map [root: string] {
+    open $"($root)/fish/config/abbrs_aliases.fish"
+    | lines
+    | where {|l| $l =~ '^alias [a-z-]+ [a-z0-9_-]+$' }
+    | reduce --fold {} {|l, acc|
+        let parts = $l | split row ' '
+        $acc | insert ($parts | get 1) ($parts | get 2)
+    }
+}
+
+# How often each command was actually run, read from fish's history. Fish expands
+# abbreviations before recording, so `cl` is already stored as `claude`; aliases
+# are not expanded, so they are resolved through alias-map. Commands are counted
+# wherever they start a pipeline segment, and `sudo` is stepped over.
+def usage [names: list<string>, aliases: record = {}] {
+    let file = [$env.HOME .local share fish fish_history] | path join
+    if not ($file | path exists) {
+        return {
+            available: false
+            counts: {}
+            span: ""
+        }
+    }
+
+    let raw = open --raw $file | lines
+    let cmds = (
+        $raw
+        | where {|l| $l starts-with "- cmd: " }
+        | each {|l| $l | str substring 7.. }
+    )
+    let heads = (
+        $cmds
+        | each {|c| $c | split row -r '\||;|&&' }
+        | flatten
+        | each {|seg|
+            let words = $seg | str trim | split row ' ' | where {|w| $w != "" }
+            if ($words | is-empty) { "" } else if ($words | first) == "sudo" {
+                ($words | get -o 1 | default "")
+            } else {
+                ($words | first)
+            }
+        }
+        | each {|w| $w | path basename }
+        | each {|w| $aliases | get -o $w | default $w }
+    )
+    let stamps = (
+        $raw
+        | where {|l| ($l | str trim) starts-with "when: " }
+        | each {|l| $l | str trim | str substring 6.. | into int }
+        | sort
+    )
+    let span = if ($stamps | is-empty) { "" } else {
+        let a = (
+            $stamps
+            | first
+            | $in * 1_000_000_000 | into datetime
+            | format date "%Y-%m-%d"
+        )
+        let b = (
+            $stamps
+            | last
+            | $in * 1_000_000_000 | into datetime
+            | format date "%Y-%m-%d"
+        )
+        $"($a) 〜 ($b), ($cmds | length) commands"
+    }
+    {
+        available: true
+        span: $span
+        counts: ($names | reduce --fold {} {|n, acc|
+            $acc | insert $n ($heads | where {|h| $h == $n } | length)
+        })
+    }
+}
+
 def drift [root: string, content: record] {
     let have = (installed $root)
     let hay = (
@@ -147,6 +225,27 @@ def main [--check, --root: string = ""] {
     } else {
         print $"drift: ($report.missing | length) undocumented"
         $report.missing | each {|m| print $"  ($m.kind)  ($m.name)" }
+    }
+
+    # Which installed commands were never typed. This is a starting point for
+    # deciding what to drop, not a verdict: a tool can be in daily use without
+    # ever being typed — invoked by another program (delta by git, tirith by a
+    # shell hook), used as a library (nodejs, uv), or reached through a wrapper
+    # or editor rather than the prompt. Only the prompt is visible here.
+    let have = (installed $root)
+    let candidates = $have.packages ++ $have.ai | uniq
+    let used = (usage $candidates (alias-map $root))
+    if $used.available {
+        let unused = $candidates | where {|n| ($used.counts | get $n) == 0 } | sort
+        print $"history: ($used.span)"
+        if ($unused | is-empty) {
+            print "never typed: none — every installed command appears in the history"
+        } else {
+            print $"never typed: ($unused | length) — ($unused | str join ', ')"
+            print "  (check each before removing: some are invoked by other tools, not by hand)"
+        }
+    } else {
+        print "history: fish history not found; usage cannot be measured"
     }
 
     if $check { return }

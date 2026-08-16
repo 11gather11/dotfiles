@@ -2,6 +2,5 @@
 {
   home.packages = with pkgs.llm-agents; [
     grok
-    coderabbit-cli
   ];
 }

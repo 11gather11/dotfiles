@@ -90,7 +90,7 @@ runs:
           # Define packages to check for each input
           case "$INPUT_NAME" in
             llm-agents)
-              packages="codex grok herdr agent-browser coderabbit-cli"
+              packages="codex grok herdr agent-browser"
               ;;
             nix-bun)
               packages="bun"

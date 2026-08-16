@@ -171,14 +171,6 @@
 							}
 						},
 						{
-							"name": "coderabbit-cli",
-							"desc": "コードレビュー特化 CLI",
-							"tag": {
-								"kind": "t-warn",
-								"text": "未活用"
-							}
-						},
-						{
 							"name": "grok",
 							"desc": "xAI のエージェント CLI"
 						}
@@ -503,7 +495,7 @@
 		{
 			"id": "todo",
 			"label": "未活用・要設定",
-			"lede": "入っているのに使えていないもの、設定が空のもの。ここが次にやることの候補。",
+			"lede": "設定が空のもの、入っているのに存在を忘れやすいもの。ここが次にやることの候補。",
 			"sections": [
 				{
 					"title": "設定が要る",
@@ -517,16 +509,6 @@
 								"kind": "t-warn",
 								"text": "最優先"
 							}
-						}
-					]
-				},
-				{
-					"title": "入れたが使っていない",
-					"note": "fish の履歴（2026-02-01 以降・495 件）で <b>一度も打たれていない</b>もの。使うか消すかを決める対象。",
-					"items": [
-						{
-							"name": "coderabbit-cli",
-							"desc": "コードレビュー特化。codex-review スキルと役割が重なる"
 						}
 					]
 				},
@@ -936,14 +918,6 @@
 						{
 							"name": "grok",
 							"desc": "xAI の CLI"
-						},
-						{
-							"name": "coderabbit-cli",
-							"desc": "コードレビュー特化",
-							"tag": {
-								"kind": "t-un",
-								"text": "未使用"
-							}
 						},
 						{
 							"name": "agent-browser",

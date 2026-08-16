@@ -1,0 +1,406 @@
+<title>11gather11 dotfiles</title>
+<style>
+	:root {
+		--paper: #f2f1ef;
+		--paper-2: #e8e6e1;
+		--rule: #d6d2c8;
+		--text: #2a2a35;
+		--muted: #6b6a78;
+		--faint: #8f8d9c;
+		--crystal: #4d6ba8;
+		--autumn: #a06b1f;
+		--spring: #55793a;
+		--sakura: #a8547a;
+		--surface: #ffffff;
+		--shadow: 0 1px 2px rgba(31, 31, 40, 0.06);
+	}
+	@media (prefers-color-scheme: dark) {
+		:root:not([data-theme='light']) {
+			--paper: #1f1f28;
+			--paper-2: #16161d;
+			--rule: #363646;
+			--text: #dcd7ba;
+			--muted: #8a879c;
+			--faint: #6a6880;
+			--crystal: #7e9cd8;
+			--autumn: #dca561;
+			--spring: #98bb6c;
+			--sakura: #d27e99;
+			--surface: #2a2a37;
+			--shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+		}
+	}
+	:root[data-theme='dark'] {
+		--paper: #1f1f28;
+		--paper-2: #16161d;
+		--rule: #363646;
+		--text: #dcd7ba;
+		--muted: #8a879c;
+		--faint: #6a6880;
+		--crystal: #7e9cd8;
+		--autumn: #dca561;
+		--spring: #98bb6c;
+		--sakura: #d27e99;
+		--surface: #2a2a37;
+		--shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+	body {
+		margin: 0;
+		background: var(--paper-2);
+		color: var(--text);
+		font-family:
+			ui-sans-serif,
+			-apple-system,
+			'Hiragino Sans',
+			'Noto Sans JP',
+			sans-serif;
+		font-size: 14.5px;
+		line-height: 1.55;
+	}
+	.wrap {
+		max-width: 1120px;
+		margin: 0 auto;
+		padding: 40px 24px 80px;
+	}
+
+	header {
+		margin-bottom: 18px;
+	}
+	h1 {
+		margin: 0 0 6px;
+		font-size: 25px;
+		font-weight: 650;
+		letter-spacing: -0.01em;
+		text-wrap: balance;
+	}
+	.sub {
+		margin: 0;
+		color: var(--muted);
+		font-size: 14px;
+	}
+	.sub code,
+	footer code {
+		color: var(--crystal);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.92em;
+	}
+
+	.bar {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		flex-wrap: wrap;
+		margin: 18px 0 4px;
+		padding: 12px 0;
+		background: var(--paper-2);
+		border-bottom: 1px solid var(--rule);
+	}
+	.tabs {
+		display: flex;
+		gap: 4px;
+	}
+	.tab {
+		padding: 7px 14px;
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		background: transparent;
+		color: var(--muted);
+		font: inherit;
+		font-size: 13.5px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.tab:hover {
+		color: var(--text);
+	}
+	.tab[aria-selected='true'] {
+		background: var(--surface);
+		color: var(--crystal);
+		border-color: var(--crystal);
+	}
+	.tab:focus-visible {
+		outline: 2px solid var(--crystal);
+		outline-offset: 1px;
+	}
+
+	input[type='search'] {
+		flex: 1 1 220px;
+		min-width: 170px;
+		padding: 8px 12px;
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		background: var(--surface);
+		color: var(--text);
+		font: inherit;
+		font-size: 14px;
+	}
+	input[type='search']:focus-visible {
+		outline: 2px solid var(--crystal);
+		outline-offset: 1px;
+	}
+	.count {
+		color: var(--muted);
+		font-size: 13px;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	.lede {
+		margin: 14px 0 0;
+		color: var(--muted);
+		font-size: 13.5px;
+	}
+
+	section {
+		margin: 28px 0;
+	}
+	section[hidden],
+	.pane[hidden] {
+		display: none;
+	}
+
+	.head {
+		display: flex;
+		align-items: baseline;
+		gap: 10px;
+		flex-wrap: wrap;
+		margin-bottom: 3px;
+	}
+	h2 {
+		margin: 0 0 4px;
+		font-size: 12px;
+		font-weight: 650;
+		letter-spacing: 0.09em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+	.src {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11.5px;
+		color: var(--faint);
+	}
+	.note {
+		margin: 0 0 12px;
+		font-size: 13px;
+		color: var(--muted);
+	}
+
+	/* Task-first rows: fixed key column so the command reads first */
+	.grid {
+		display: grid;
+		gap: 8px;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: 132px 1fr;
+		gap: 4px 16px;
+		align-items: baseline;
+		padding: 10px 14px;
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-radius: 7px;
+		box-shadow: var(--shadow);
+	}
+	.row[hidden] {
+		display: none;
+	}
+	.key {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13.5px;
+		font-weight: 600;
+		color: var(--crystal);
+		word-break: break-word;
+	}
+	.desc {
+		font-size: 14px;
+	}
+	.expand {
+		grid-column: 2;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 12.5px;
+		color: var(--muted);
+	}
+
+	/* Inventory items: dense, many per row */
+	#pane-all .grid {
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 7px;
+	}
+	#pane-all .grid.wide {
+		grid-template-columns: repeat(auto-fill, minmax(430px, 1fr));
+	}
+	.item {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 3px 10px;
+		align-items: baseline;
+		padding: 8px 12px;
+		background: var(--surface);
+		border: 1px solid var(--rule);
+		border-radius: 6px;
+		box-shadow: var(--shadow);
+	}
+	.item[hidden] {
+		display: none;
+	}
+	.n {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--crystal);
+		white-space: nowrap;
+	}
+	.d {
+		font-size: 13.5px;
+	}
+	.x {
+		grid-column: 1 / -1;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11.5px;
+		color: var(--faint);
+		word-break: break-all;
+	}
+
+	.tag {
+		display: inline-block;
+		margin-left: 6px;
+		padding: 0 5px;
+		border-radius: 3px;
+		font-size: 10.5px;
+		font-weight: 650;
+		vertical-align: 1px;
+	}
+	.t-new {
+		background: color-mix(in srgb, var(--spring) 18%, transparent);
+		color: var(--spring);
+	}
+	.t-gui {
+		background: color-mix(in srgb, var(--sakura) 16%, transparent);
+		color: var(--sakura);
+	}
+	.t-cfg {
+		background: color-mix(in srgb, var(--sakura) 16%, transparent);
+		color: var(--sakura);
+	}
+	.t-warn,
+	.t-un {
+		background: color-mix(in srgb, var(--autumn) 18%, transparent);
+		color: var(--autumn);
+	}
+
+	.empty {
+		color: var(--muted);
+		font-size: 14px;
+		padding: 24px 0;
+	}
+	.empty[hidden] {
+		display: none;
+	}
+
+	footer {
+		margin-top: 40px;
+		padding-top: 16px;
+		border-top: 1px solid var(--rule);
+		color: var(--muted);
+		font-size: 13px;
+	}
+
+	@media (max-width: 620px) {
+		.row {
+			grid-template-columns: 1fr;
+		}
+		.expand {
+			grid-column: 1;
+		}
+	}
+</style>
+
+<div class="wrap">
+	<header>
+		<h1>11gather11 dotfiles</h1>
+		<p class="sub">
+			この Mac に入っているものと、実際の打ち方。<code>nix run .#switch</code>
+			で管理されている範囲。
+		</p>
+	</header>
+
+	<div class="bar">
+		<div class="tabs" role="tablist">
+			<!--TABS-->
+		</div>
+		<input
+			type="search"
+			id="q"
+			placeholder="検索  例: git / 検索 / AI / nix"
+			autocomplete="off"
+			aria-label="検索"
+		/>
+		<span class="count" id="count"></span>
+	</div>
+
+	<p class="lede" id="lede"><!--FIRST_LEDE--></p>
+
+	<p class="empty" id="empty" hidden>該当なし</p>
+
+	<!--PANES-->
+
+	<footer>
+		出典はこのリポジトリの
+		<code>nix/modules/home/packages.nix</code>、<code>fish/config/abbrs_aliases.fish</code>、<code
+			>nix/modules/darwin/system.nix</code
+		>
+		ほか。 端末からは <code>abbr</code> で略語の全量、<code>functions</code> で関数の全量が出せる。
+	</footer>
+</div>
+
+<script>
+	  const q = document.getElementById('q');
+	  const count = document.getElementById('count');
+	  const empty = document.getElementById('empty');
+	  const lede = document.getElementById('lede');
+	  const NAMES = [<!--NAMES-->];
+	  const panes = {}, tabs = {};
+	  NAMES.forEach(n => { panes[n] = document.getElementById('pane-' + n); tabs[n] = document.getElementById('tab-' + n); });
+	  const LEDE = {
+	<!--LEDES-->
+	  };
+	  let current = 'use';
+
+	  const render = () => {
+	    const term = q.value.trim().toLowerCase();
+	    const pane = panes[current];
+	    const cells = [...pane.querySelectorAll('.row, .item')];
+	    let shown = 0;
+	    cells.forEach(el => {
+	      const hit = !term || el.textContent.toLowerCase().includes(term);
+	      el.hidden = !hit;
+	      if (hit) shown++;
+	    });
+	    pane.querySelectorAll('section').forEach(sec => {
+	      sec.hidden = ![...sec.querySelectorAll('.row, .item')].some(el => !el.hidden);
+	    });
+	    count.textContent = term ? shown + ' 件' : cells.length + ' 項目';
+	    empty.hidden = shown > 0;
+	  };
+
+	  const select = name => {
+	    current = name;
+	    NAMES.forEach(n => {
+	      panes[n].hidden = n !== name;
+	      tabs[n].setAttribute('aria-selected', String(n === name));
+	    });
+	    lede.textContent = LEDE[name];
+	    render();
+	  };
+
+	  NAMES.forEach(n => tabs[n].addEventListener('click', () => select(n)));
+	  q.addEventListener('input', render);
+	  render();
+</script>

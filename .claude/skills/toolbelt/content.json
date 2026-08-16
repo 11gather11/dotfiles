@@ -72,7 +72,7 @@
 						},
 						{
 							"name": "ast-grep",
-							"desc": "構文木ベースの検索・一括置換。文字列置換で壊れるコード改変に使う<span class=\"tag t-new\">skill あり",
+							"desc": "構文木ベースの検索・一括置換。文字列置換で壊れるコード改変に使う",
 							"tag": {
 								"kind": "t-new",
 								"text": "skill あり"
@@ -122,7 +122,7 @@
 						},
 						{
 							"name": "gwt / gwtpr",
-							"desc": "worktree を作って移動 / <b>PR の worktree を開く</b>（git-wt, git-wtpr）<span class=\"tag t-new\">skill あり",
+							"desc": "worktree を作って移動 / <b>PR の worktree を開く</b>（git-wt, git-wtpr）",
 							"tag": {
 								"kind": "t-new",
 								"text": "skill あり"
@@ -146,7 +146,7 @@
 						},
 						{
 							"name": "jj",
-							"desc": "Jujutsu。git 互換の別ワークフロー（入っているが未活用）<span class=\"tag t-warn\">未活用",
+							"desc": "Jujutsu。git 互換の別ワークフロー（入っているが未活用）",
 							"tag": {
 								"kind": "t-warn",
 								"text": "未活用"
@@ -176,7 +176,7 @@
 						},
 						{
 							"name": "herdr",
-							"desc": "エージェント多重化。ペインを分けて複数のエージェントを走らせ、detach しても動き続ける<span class=\"tag t-new\">今日導入",
+							"desc": "エージェント多重化。ペインを分けて複数のエージェントを走らせ、detach しても動き続ける",
 							"tag": {
 								"kind": "t-new",
 								"text": "今日導入"
@@ -184,7 +184,7 @@
 						},
 						{
 							"name": "grok / copilot / rtk",
-							"desc": "その他のエージェント CLI（入っているが未活用）<span class=\"tag t-warn\">未活用",
+							"desc": "その他のエージェント CLI（入っているが未活用）",
 							"tag": {
 								"kind": "t-warn",
 								"text": "未活用"
@@ -192,7 +192,7 @@
 						},
 						{
 							"name": "coderabbit-cli",
-							"desc": "コードレビュー特化 CLI<span class=\"tag t-warn\">未活用",
+							"desc": "コードレビュー特化 CLI",
 							"tag": {
 								"kind": "t-warn",
 								"text": "未活用"
@@ -213,7 +213,7 @@
 						},
 						{
 							"name": "nvim の LSP",
-							"desc": "現在は lua と TypeScript(tsgo) のみ手動設定。<b>LazyVim extras が空</b>なので言語サポートは最小限<span class=\"tag t-warn\">要設定",
+							"desc": "現在は lua と TypeScript(tsgo) のみ手動設定。<b>LazyVim extras が空</b>なので言語サポートは最小限",
 							"tag": {
 								"kind": "t-warn",
 								"text": "要設定"
@@ -239,7 +239,7 @@
 						},
 						{
 							"name": "gnix <cmd>",
-							"desc": "GitHub のレート制限を避けて nix を実行（gh のトークンを渡す）<span class=\"tag t-new\">今日導入",
+							"desc": "GitHub のレート制限を避けて nix を実行（gh のトークンを渡す）",
 							"tag": {
 								"kind": "t-new",
 								"text": "今日導入"
@@ -251,7 +251,7 @@
 						},
 						{
 							"name": ", <cmd>",
-							"desc": "未インストールのコマンドをその場で実行（comma）<span class=\"tag t-new\">skill あり",
+							"desc": "未インストールのコマンドをその場で実行（comma）",
 							"tag": {
 								"kind": "t-new",
 								"text": "skill あり"
@@ -259,7 +259,7 @@
 						},
 						{
 							"name": "nh clean",
-							"desc": "古い世代を掃除。週次で自動実行される<span class=\"tag t-new\">今日導入",
+							"desc": "古い世代を掃除。週次で自動実行される",
 							"tag": {
 								"kind": "t-new",
 								"text": "今日導入"
@@ -280,7 +280,7 @@
 					"items": [
 						{
 							"name": "TypeWhisper",
-							"desc": "端末内で完結する音声入力。ホットキーで話すと文字が入る<span class=\"tag t-gui\">GUI",
+							"desc": "端末内で完結する音声入力。ホットキーで話すと文字が入る",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -293,7 +293,7 @@
 						},
 						{
 							"name": "Karabiner",
-							"desc": "キー配列の改変。設定は TypeScript で書かれている<span class=\"tag t-gui\">GUI",
+							"desc": "キー配列の改変。設定は TypeScript で書かれている",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -334,7 +334,7 @@
 						},
 						{
 							"name": "tirith",
-							"desc": "危険なコマンドを実行前に検査するフック。裏で常時動いている<span class=\"tag t-new\">今日導入",
+							"desc": "危険なコマンドを実行前に検査するフック。裏で常時動いている",
 							"tag": {
 								"kind": "t-new",
 								"text": "今日導入"
@@ -352,7 +352,7 @@
 					"items": [
 						{
 							"name": "Ghostty",
-							"desc": "端末。watchlist の 12 人中 7 人が使う最多派<span class=\"tag t-gui\">GUI",
+							"desc": "端末。watchlist の 12 人中 7 人が使う最多派",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -360,7 +360,7 @@
 						},
 						{
 							"name": "Raycast / AltTab",
-							"desc": "ランチャー / ウィンドウ切替<span class=\"tag t-gui\">GUI",
+							"desc": "ランチャー / ウィンドウ切替",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -368,7 +368,7 @@
 						},
 						{
 							"name": "Bruno",
-							"desc": "API クライアント（Postman 代替）<span class=\"tag t-gui\">GUI",
+							"desc": "API クライアント（Postman 代替）",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -376,7 +376,7 @@
 						},
 						{
 							"name": "OrbStack",
-							"desc": "Docker / Linux VM。do・dc 系の略語がこれに繋がる<span class=\"tag t-gui\">GUI",
+							"desc": "Docker / Linux VM。do・dc 系の略語がこれに繋がる",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -384,7 +384,7 @@
 						},
 						{
 							"name": "Shottr / Stats",
-							"desc": "スクリーンショット / メニューバーの状態表示<span class=\"tag t-gui\">GUI",
+							"desc": "スクリーンショット / メニューバーの状態表示",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -392,7 +392,7 @@
 						},
 						{
 							"name": "1Password",
-							"desc": "パスワード管理。<b>git の署名鍵もここ</b>（ロックすると commit が失敗する）<span class=\"tag t-gui\">GUI",
+							"desc": "パスワード管理。<b>git の署名鍵もここ</b>（ロックすると commit が失敗する）",
 							"tag": {
 								"kind": "t-gui",
 								"text": "GUI"
@@ -425,7 +425,7 @@
 						},
 						{
 							"name": "Git Graph",
-							"desc": "<b>lazygit の a キー</b>で全ブランチのグラフ。設定済み<span class=\"tag t-warn\">ASCII 表示",
+							"desc": "<b>lazygit の a キー</b>で全ブランチのグラフ。設定済み",
 							"tag": {
 								"kind": "t-warn",
 								"text": "ASCII 表示"
@@ -459,7 +459,7 @@
 					"items": [
 						{
 							"name": "言語サポート",
-							"desc": "<b>LazyVim extras が空</b>。今は lua と TypeScript だけ。<code>:LazyExtras</code> で言語ごとの LSP・整形・リンタを入れる<span class=\"tag t-warn\">最優先",
+							"desc": "<b>LazyVim extras が空</b>。今は lua と TypeScript だけ。<code>:LazyExtras</code> で言語ごとの LSP・整形・リンタを入れる",
 							"expand": "nvim/lazyvim.json → \"extras\": []",
 							"tag": {
 								"kind": "t-warn",
@@ -527,17 +527,12 @@
 					"items": [
 						{
 							"name": "LazyVim extras",
-							"desc": "<b>空</b>。言語ごとの LSP・フォーマッタ・リンタが一つも有効になっていない。<code>v</code> → <code>:LazyExtras</code> で選ぶだけ<span class=\"tag t-warn\">最優先",
+							"desc": "<b>空</b>。言語ごとの LSP・フォーマッタ・リンタが一つも有効になっていない。<code>v</code> → <code>:LazyExtras</code> で選ぶだけ",
 							"expand": "nvim/lazyvim.json",
 							"tag": {
 								"kind": "t-warn",
 								"text": "最優先"
 							}
-						},
-						{
-							"name": "tmux",
-							"desc": "パッケージは入っているが<b>設定ファイルが無い</b>。herdr と役割が重複するので、<b>消す判断もある</b>",
-							"expand": "nix/modules/home/packages.nix"
 						},
 						{
 							"name": "jj (Jujutsu)",
@@ -753,14 +748,6 @@
 							"desc": "既定シェル"
 						},
 						{
-							"name": "tmux",
-							"desc": "端末多重化<span class=\"tag t-un\">未活用",
-							"tag": {
-								"kind": "t-un",
-								"text": "未活用"
-							}
-						},
-						{
 							"name": "git",
 							"desc": "バージョン管理"
 						},
@@ -774,7 +761,7 @@
 						},
 						{
 							"name": "git-wtpr",
-							"desc": "PR の worktree を開く／消す<span class=\"tag t-new\">自前",
+							"desc": "PR の worktree を開く／消す",
 							"tag": {
 								"kind": "t-new",
 								"text": "自前"
@@ -794,7 +781,7 @@
 						},
 						{
 							"name": "tirith",
-							"desc": "危険コマンドを実行前に検査<span class=\"tag t-new\">新",
+							"desc": "危険コマンドを実行前に検査",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -874,7 +861,7 @@
 						},
 						{
 							"name": "nh",
-							"desc": "Nix ヘルパー。週次で自動クリーン<span class=\"tag t-new\">新",
+							"desc": "Nix ヘルパー。週次で自動クリーン",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -910,7 +897,7 @@
 						},
 						{
 							"name": "jj",
-							"desc": "Jujutsu<span class=\"tag t-un\">未活用",
+							"desc": "Jujutsu",
 							"tag": {
 								"kind": "t-un",
 								"text": "未活用"
@@ -923,7 +910,7 @@
 						},
 						{
 							"name": "gh-nix",
-							"desc": "gh のトークンを nix に渡してレート制限を回避<span class=\"tag t-new\">自前",
+							"desc": "gh のトークンを nix に渡してレート制限を回避",
 							"tag": {
 								"kind": "t-new",
 								"text": "自前"
@@ -939,7 +926,7 @@
 						},
 						{
 							"name": "herdr",
-							"desc": "エージェント多重化<span class=\"tag t-new\">新",
+							"desc": "エージェント多重化",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -969,7 +956,7 @@
 					"items": [
 						{
 							"name": "claude",
-							"desc": "Claude Code<span class=\"tag t-cfg\">既定 opus",
+							"desc": "Claude Code",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "既定 opus"
@@ -977,7 +964,7 @@
 						},
 						{
 							"name": "codex",
-							"desc": "Codex<span class=\"tag t-cfg\">gpt-5.6-sol / effort medium",
+							"desc": "Codex",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "gpt-5.6-sol / effort medium"
@@ -985,7 +972,7 @@
 						},
 						{
 							"name": "herdr",
-							"desc": "エージェント多重化ランタイム<span class=\"tag t-new\">新",
+							"desc": "エージェント多重化ランタイム",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -1001,7 +988,7 @@
 						},
 						{
 							"name": "grok",
-							"desc": "xAI の CLI<span class=\"tag t-un\">未活用",
+							"desc": "xAI の CLI",
 							"tag": {
 								"kind": "t-un",
 								"text": "未活用"
@@ -1009,7 +996,7 @@
 						},
 						{
 							"name": "copilot-cli",
-							"desc": "GitHub Copilot CLI<span class=\"tag t-un\">未活用",
+							"desc": "GitHub Copilot CLI",
 							"tag": {
 								"kind": "t-un",
 								"text": "未活用"
@@ -1017,7 +1004,7 @@
 						},
 						{
 							"name": "coderabbit-cli",
-							"desc": "コードレビュー特化<span class=\"tag t-un\">未活用",
+							"desc": "コードレビュー特化",
 							"tag": {
 								"kind": "t-un",
 								"text": "未活用"
@@ -1025,7 +1012,7 @@
 						},
 						{
 							"name": "rtk",
-							"desc": "エージェント補助ツール<span class=\"tag t-un\">未活用",
+							"desc": "エージェント補助ツール",
 							"tag": {
 								"kind": "t-un",
 								"text": "未活用"
@@ -1108,7 +1095,7 @@
 						},
 						{
 							"name": "check-dotfiles-updates",
-							"desc": "他人の dotfiles 12 件を監視<span class=\"tag t-new\">新",
+							"desc": "他人の dotfiles 12 件を監視",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -1136,7 +1123,7 @@
 						},
 						{
 							"name": "ast-grep",
-							"desc": "構文検索<span class=\"tag t-cfg\">外部",
+							"desc": "構文検索",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
@@ -1144,7 +1131,7 @@
 						},
 						{
 							"name": "tgrab",
-							"desc": "X / Bluesky / YouTube の本文取得<span class=\"tag t-cfg\">外部",
+							"desc": "X / Bluesky / YouTube の本文取得",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
@@ -1152,7 +1139,7 @@
 						},
 						{
 							"name": "herdr",
-							"desc": "ペイン・エージェント制御<span class=\"tag t-cfg\">外部",
+							"desc": "ペイン・エージェント制御",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
@@ -1160,7 +1147,7 @@
 						},
 						{
 							"name": "agent-browser",
-							"desc": "ブラウザ自動操作<span class=\"tag t-cfg\">外部",
+							"desc": "ブラウザ自動操作",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
@@ -1182,7 +1169,7 @@
 						},
 						{
 							"name": "forgit",
-							"desc": "git 操作を fzf で<span class=\"tag t-new\">新",
+							"desc": "git 操作を fzf で",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -1339,7 +1326,7 @@
 						},
 						{
 							"name": "TypeWhisper",
-							"desc": "オンデバイス音声入力<span class=\"tag t-new\">新",
+							"desc": "オンデバイス音声入力",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -1359,7 +1346,7 @@
 						},
 						{
 							"name": "Bruno",
-							"desc": "API クライアント<span class=\"tag t-new\">新",
+							"desc": "API クライアント",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"

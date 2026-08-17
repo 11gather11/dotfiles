@@ -11,10 +11,13 @@ let
     builtins.readFile "${pkgs.starship}/share/starship/presets/${presetName}.toml"
   );
 
-  # The preset has no nix_shell segment, so splice it into the preset's own
-  # format string rather than retyping the bar — beside $os, the other thing
-  # describing this machine rather than the work in front of it.
-  format = builtins.replaceStrings [ "$username" ] [ "$username$nix_shell" ] preset.format;
+  # The preset has no nix_shell segment, and its $conda slot is dead weight here
+  # — conda, mamba and micromamba are all absent, so that block never fills.
+  # Take the slot: it sits directly after the language versions, and a devshell
+  # is what decides which versions those are. Replacing rather than adding also
+  # avoids crowding the leading block, where the OS mark and the snowflake ended
+  # up welded together.
+  format = builtins.replaceStrings [ "$conda" ] [ "$nix_shell" ] preset.format;
 
   # By codepoint, not as a literal character: Nerd Font glyphs sit in the
   # Unicode private use area, where they are invisible in diffs and were already
@@ -37,28 +40,33 @@ in
       inherit format;
 
       # Whether this shell sits inside a devshell is invisible otherwise, and it
-      # decides what every tool on PATH resolves to. Styled to match the segment
-      # it now shares with $os. $name is omitted: for `nix develop` it resolves
-      # to the placeholder `nix-shell-env`, which names no particular shell.
+      # decides what every tool on PATH resolves to. It inherits the sapphire
+      # block conda vacated, padded the way conda was. $name is omitted: for
+      # `nix develop` it resolves to the placeholder `nix-shell-env`, which names
+      # no particular shell.
       nix_shell = {
         disabled = false;
         # starship's default is the emoji ❄️, which renders wide and in its own
         # colours beside a bar that is otherwise all Nerd Font.
         symbol = nixGlyph;
-        style = "bg:red fg:crust";
-        # Two trailing spaces, against the single space every other segment ends
-        # on. The glyph fills far more of its cell than a letter does, so one
-        # space reads as none beside it — measured advance widths are identical,
-        # so this is about ink, not metrics.
-        format = "[$symbol  ]($style)";
+        style = "fg:crust bg:sapphire";
+        # Two spaces after the symbol, one before, where every other segment uses
+        # one on each side. The glyph's ink sits to the left of its cell — the
+        # separator ahead of it crowds, the one behind it does not — and advance
+        # widths across the font are identical, so padding is the only lever.
+        format = "[ $symbol  ]($style)";
         heuristic = false;
       };
+
+      # Nothing on this machine provides conda, so its block could only ever be
+      # empty; nix_shell now stands where it did.
+      conda.disabled = true;
 
       # The preset gives [os] no format, so starship's default applies and the
       # symbol renders with no padding at all. That went unnoticed while
       # $username sat next to it supplying a leading space of its own — turning
       # show_always off below removed the padding as a side effect, leaving the
-      # OS mark welded to whatever follows it.
+      # OS mark welded to the separator.
       os.format = "[$symbol ]($style)";
 
       # The preset sets show_always, which pins the local username to every

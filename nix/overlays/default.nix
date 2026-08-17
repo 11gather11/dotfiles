@@ -5,6 +5,7 @@ let
     ./claude-code.nix
     ./git-now.nix
     ./git-wtpr.nix
+    ./herdr-file-viewer.nix
   ];
 
   # Apply each overlay and merge results

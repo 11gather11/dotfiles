@@ -623,7 +623,7 @@
 						},
 						{
 							"name": "端末の見た目",
-							"desc": "nix/modules/home/programs/ghostty.nix ／ fish/themes/kanagawa.fish"
+							"desc": "nix/modules/home/programs/ghostty.nix ／ fish/themes/catppuccin-mocha.fish"
 						},
 						{
 							"name": "キー配列",

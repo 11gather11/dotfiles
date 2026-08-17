@@ -671,6 +671,375 @@
 			]
 		},
 		{
+			"id": "keys",
+			"label": "ショートカット",
+			"lede": "キーを忘れたとき用。すべて実機から取得したもので、推測は含まない。",
+			"sections": [
+				{
+					"title": "キーボードの土台",
+					"src": "karabiner/karabiner.ts",
+					"note": "Karabiner による物理キーの入れ替え。<b>他のすべてのショートカットはこの上に乗る</b>ので、まずここ。",
+					"items": [
+						{
+							"name": "Caps Lock",
+							"desc": "<b>Control</b> になる"
+						},
+						{
+							"name": "Ctrl 単押し",
+							"desc": "英数 ＋ Esc（IME を確実に抜ける）"
+						},
+						{
+							"name": "Esc 単押し",
+							"desc": "英数 ＋ Esc"
+						},
+						{
+							"name": "Cmd 単押し",
+							"desc": "かな / 英数 を切り替え（左右で別々）"
+						},
+						{
+							"name": "Tab 長押し",
+							"desc": "<b>Cmd</b> として働く。単押しは Tab のまま"
+						},
+						{
+							"name": "右 Option",
+							"desc": "<b>Cmd</b> として働く"
+						},
+						{
+							"name": "fn + h j k l",
+							"desc": "← ↓ ↑ →"
+						},
+						{
+							"name": "Cmd+Q 長押し",
+							"desc": "長押しでのみアプリ終了（誤爆防止）"
+						}
+					]
+				},
+				{
+					"title": "Ghostty — ウィンドウとタブ",
+					"src": "ghostty +list-keybinds",
+					"note": "<code>Cmd</code> は Karabiner により <b>Tab 長押し</b>・<b>右 Option</b> でも代用できる。",
+					"items": [
+						{
+							"name": "Cmd+T",
+							"desc": "新しいタブ"
+						},
+						{
+							"name": "Cmd+1〜8",
+							"desc": "タブを番号で選ぶ"
+						},
+						{
+							"name": "Cmd+9",
+							"desc": "最後のタブ"
+						},
+						{
+							"name": "Cmd+D",
+							"desc": "右に分割"
+						},
+						{
+							"name": "Cmd+Shift+D",
+							"desc": "下に分割"
+						},
+						{
+							"name": "Cmd+[ / ]",
+							"desc": "前 / 次のペインへ"
+						},
+						{
+							"name": "Cmd+Option+↑↓←→",
+							"desc": "方向でペインを選ぶ"
+						},
+						{
+							"name": "Cmd+Shift+Enter",
+							"desc": "ペインをズーム"
+						},
+						{
+							"name": "Cmd+Enter",
+							"desc": "フルスクリーン"
+						},
+						{
+							"name": "Cmd+W",
+							"desc": "ペインを閉じる"
+						},
+						{
+							"name": "Cmd+Option+W",
+							"desc": "タブを閉じる"
+						},
+						{
+							"name": "Cmd+Shift+P",
+							"desc": "コマンドパレット"
+						},
+						{
+							"name": "Cmd+K",
+							"desc": "画面を消す"
+						},
+						{
+							"name": "Cmd+= / -",
+							"desc": "文字サイズ"
+						},
+						{
+							"name": "Cmd+0",
+							"desc": "文字サイズを戻す"
+						},
+						{
+							"name": "Cmd+Shift+,",
+							"desc": "設定を再読み込み"
+						}
+					]
+				},
+				{
+					"title": "herdr — prefix モード",
+					"src": "herdr 既定 ＋ nix/modules/home/programs/herdr/",
+					"note": "まず <code>Ctrl+B</code>（prefix）を押してから、下のキー。tmux と同じ作法。",
+					"items": [
+						{
+							"name": "Ctrl+B",
+							"desc": "prefix。ここから下のキーが効く"
+						},
+						{
+							"name": "prefix → n",
+							"desc": "ワークスペース作成"
+						},
+						{
+							"name": "prefix → Shift+N",
+							"desc": "名前変更"
+						},
+						{
+							"name": "prefix → Shift+D",
+							"desc": "閉じる"
+						},
+						{
+							"name": "prefix → c",
+							"desc": "タブ作成"
+						},
+						{
+							"name": "prefix → v",
+							"desc": "左右に分割"
+						},
+						{
+							"name": "prefix → -",
+							"desc": "上下に分割"
+						},
+						{
+							"name": "prefix → x",
+							"desc": "ペインを閉じる"
+						},
+						{
+							"name": "prefix → f",
+							"desc": "ペインをズーム"
+						},
+						{
+							"name": "prefix → r",
+							"desc": "リサイズモード"
+						},
+						{
+							"name": "prefix → b",
+							"desc": "サイドバー開閉"
+						},
+						{
+							"name": "prefix → e",
+							"desc": "<b>ファイルビューア</b>を分割で開く（自分で設定）"
+						},
+						{
+							"name": "prefix → Shift+E",
+							"desc": "ファイルビューアをタブで開く（自分で設定）"
+						}
+					]
+				},
+				{
+					"title": "ファイルビューア（prefix → e）",
+					"src": "herdr-file-viewer docs/keys.md",
+					"note": "同じキーをもう一度押すと閉じる。ファイルは一切書き換えない。",
+					"items": [
+						{
+							"name": "j / k",
+							"desc": "移動"
+						},
+						{
+							"name": "Space",
+							"desc": "1画面送り"
+						},
+						{
+							"name": "l / h",
+							"desc": "ディレクトリを開く / 閉じる"
+						},
+						{
+							"name": "Enter",
+							"desc": "ファイルを全画面で開く"
+						},
+						{
+							"name": "Tab",
+							"desc": "ツリーと内容ペインを行き来"
+						},
+						{
+							"name": "c",
+							"desc": "変更のあるファイルだけに絞る"
+						},
+						{
+							"name": "d",
+							"desc": "git status モード"
+						},
+						{
+							"name": "] / [",
+							"desc": "次 / 前の変更ファイルへ"
+						},
+						{
+							"name": "b",
+							"desc": "差分の基準を切り替え（ブランチ ⇄ HEAD）"
+						},
+						{
+							"name": "Shift+D",
+							"desc": "差分の見せ方を切替（delta → 横並び → 素の diff）"
+						},
+						{
+							"name": "v",
+							"desc": "表示形式を切り替え"
+						},
+						{
+							"name": "f",
+							"desc": "ファイル名で絞り込み"
+						},
+						{
+							"name": "/",
+							"desc": "ファイル内を検索"
+						},
+						{
+							"name": "n / Shift+N",
+							"desc": "次 / 前の一致"
+						},
+						{
+							"name": ":",
+							"desc": "行番号へジャンプ"
+						},
+						{
+							"name": "y / Shift+Y",
+							"desc": "相対パス / 絶対パスをコピー"
+						},
+						{
+							"name": "Shift+L",
+							"desc": "行を選んで <code>path:行</code> をコピー"
+						},
+						{
+							"name": "a",
+							"desc": "注釈を付ける"
+						},
+						{
+							"name": "Shift+A",
+							"desc": "注釈の一覧"
+						},
+						{
+							"name": "i / .",
+							"desc": "gitignore / 隠しファイルの表示切替"
+						},
+						{
+							"name": "e",
+							"desc": "$EDITOR で開く"
+						},
+						{
+							"name": "Shift+O",
+							"desc": "OS の既定アプリで開く"
+						},
+						{
+							"name": "Shift+R",
+							"desc": "Finder で表示"
+						}
+					]
+				},
+				{
+					"title": "fish — 行編集",
+					"src": "fish -c bind",
+					"note": "プラグインが足したものだけ。標準の Emacs 系キー（Ctrl+A/E/U など）は省略。",
+					"items": [
+						{
+							"name": "Ctrl+R",
+							"desc": "履歴を fzf で検索"
+						},
+						{
+							"name": "Ctrl+O",
+							"desc": "ファイルを fzf で探して挿入"
+						},
+						{
+							"name": "Alt+C",
+							"desc": "ディレクトリを fzf で選んで cd"
+						},
+						{
+							"name": "Alt+Shift+C",
+							"desc": "隠しディレクトリも含める"
+						},
+						{
+							"name": "Alt+O",
+							"desc": "ファイルを開く"
+						},
+						{
+							"name": "Alt+Shift+O",
+							"desc": "エディタで開く"
+						},
+						{
+							"name": "Alt+Y",
+							"desc": "今いるパスをコピー"
+						},
+						{
+							"name": "Space",
+							"desc": "略語を展開（打った略語がその場で開く）"
+						},
+						{
+							"name": "Enter",
+							"desc": "tirith が危険なコマンドを事前チェック"
+						}
+					]
+				},
+				{
+					"title": "lazygit",
+					"src": "lazygit --config",
+					"note": "<code>lzg</code> で起動。迷ったら <code>?</code>。",
+					"items": [
+						{
+							"name": "?",
+							"desc": "キー一覧を出す"
+						},
+						{
+							"name": "q",
+							"desc": "終了"
+						},
+						{
+							"name": "Tab",
+							"desc": "パネル移動"
+						},
+						{
+							"name": "← / →",
+							"desc": "前 / 次のパネル"
+						},
+						{
+							"name": "↑ / ↓",
+							"desc": "項目移動"
+						},
+						{
+							"name": "&lt; / &gt;",
+							"desc": "先頭 / 末尾へ"
+						},
+						{
+							"name": "Space",
+							"desc": "選択（ステージ / アンステージ）"
+						},
+						{
+							"name": "v",
+							"desc": "範囲選択モード"
+						},
+						{
+							"name": "/",
+							"desc": "検索"
+						},
+						{
+							"name": "n / Shift+N",
+							"desc": "次 / 前の一致"
+						},
+						{
+							"name": "Esc",
+							"desc": "戻る"
+						}
+					]
+				}
+			]
+		},
+		{
 			"id": "all",
 			"label": "全量を見る",
 			"lede": "nix が管理している全量。定義元のファイルつきで、どこに書かれているかまで辿れる。",

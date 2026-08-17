@@ -82,7 +82,7 @@
 
     # Starship prompt
     (import ./starship.nix {
-      inherit helpers;
+      inherit pkgs;
     })
 
     # nh: Nix helper CLI with automatic periodic cleanup

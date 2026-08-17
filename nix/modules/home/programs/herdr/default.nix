@@ -23,15 +23,21 @@ let
 
     # The plugin ships its actions and registers them on link; only the key is
     # left to the user, so it belongs here rather than in the package.
+    #
+    # Its README suggests prefix+f, but f is herdr's own default for zoom and
+    # the documentation states no precedence between the two, so the suggestion
+    # would quietly cost a core binding. e is unclaimed — herdr's defaults are
+    # n, shift+n, shift+d, c, v, -, x, f, r and b — and reads as "explorer".
+    # The prefix+ form is required: a bare "e" fails `herdr config check`.
     keys.command = [
       {
-        key = "prefix+f";
+        key = "prefix+e";
         type = "plugin_action";
         command = "herdr-file-viewer.open-file-viewer";
         description = "open file viewer in split";
       }
       {
-        key = "prefix+shift+f";
+        key = "prefix+shift+e";
         type = "plugin_action";
         command = "herdr-file-viewer.open-file-viewer-tab";
         description = "open file viewer in tab";

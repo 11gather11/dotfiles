@@ -11,10 +11,15 @@ let
     builtins.readFile "${pkgs.starship}/share/starship/presets/${presetName}.toml"
   );
 
-  # The preset has no nix_shell segment. Rather than retype the whole bar to add
-  # one, splice it into the preset's own format string, immediately before the
-  # directory it qualifies.
-  format = builtins.replaceStrings [ "$directory" ] [ "$nix_shell$directory" ] preset.format;
+  # The preset has no nix_shell segment, so splice it into the preset's own
+  # format string rather than retyping the bar — beside $os, the other thing
+  # describing this machine rather than the work in front of it.
+  format = builtins.replaceStrings [ "$username" ] [ "$username$nix_shell" ] preset.format;
+
+  # By codepoint, not as a literal character: Nerd Font glyphs sit in the
+  # Unicode private use area, where they are invisible in diffs and were already
+  # lost once in transit here. `\uXXXX` is not a Nix escape, so JSON decodes it.
+  nixGlyph = builtins.fromJSON ''"\uf313"''; # nf-linux-nixos
 in
 {
   programs.starship = {
@@ -37,10 +42,24 @@ in
       # to the placeholder `nix-shell-env`, which names no particular shell.
       nix_shell = {
         disabled = false;
+        # starship's default is the emoji ❄️, which renders wide and in its own
+        # colours beside a bar that is otherwise all Nerd Font.
+        symbol = nixGlyph;
         style = "bg:red fg:crust";
-        format = "[$symbol ]($style)";
+        # Two trailing spaces, against the single space every other segment ends
+        # on. The glyph fills far more of its cell than a letter does, so one
+        # space reads as none beside it — measured advance widths are identical,
+        # so this is about ink, not metrics.
+        format = "[$symbol  ]($style)";
         heuristic = false;
       };
+
+      # The preset gives [os] no format, so starship's default applies and the
+      # symbol renders with no padding at all. That went unnoticed while
+      # $username sat next to it supplying a leading space of its own — turning
+      # show_always off below removed the padding as a side effect, leaving the
+      # OS mark welded to whatever follows it.
+      os.format = "[$symbol ]($style)";
 
       # The preset sets show_always, which pins the local username to every
       # prompt. On this machine it never varies, so it reports nothing. Leaving

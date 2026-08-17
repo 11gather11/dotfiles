@@ -17,12 +17,42 @@ let
   # is what decides which versions those are. Replacing rather than adding also
   # avoids crowding the leading block, where the OS mark and the snowflake ended
   # up welded together.
-  format = builtins.replaceStrings [ "$conda" ] [ "$nix_shell" ] preset.format;
+  format =
+    builtins.replaceStrings
+      [ "$conda" "$bun" ]
+      [
+        "$nix_shell"
+        "$bun\${custom.pnpm}\${custom.yarn}\${custom.npm}"
+      ]
+      preset.format;
 
   # By codepoint, not as a literal character: Nerd Font glyphs sit in the
   # Unicode private use area, where they are invisible in diffs and were already
   # lost once in transit here. `\uXXXX` is not a Nix escape, so JSON decodes it.
-  nixGlyph = builtins.fromJSON ''"\uf313"''; # nf-linux-nixos
+  glyph = code: builtins.fromJSON ''"\u${code}"'';
+  nixGlyph = glyph "f313"; # nf-linux-nixos
+
+  # Which package manager a directory belongs to, decided the way the tools
+  # themselves decide it: by lockfile. starship has no module for this — $nodejs
+  # reports the runtime, not the manager — so each is a custom module keyed on
+  # the file that would make the command correct.
+  #
+  # It earns its place: pnpm, npm and yarn each appear thirteen times in this
+  # shell's history and bun six, and the history also holds `npm i --frozen`,
+  # which is a yarn flag typed into npm. The lockfile is on screen either way;
+  # this puts it where the mistake happens.
+  pm = symbol: lockfiles: {
+    inherit symbol;
+    detect_files = lockfiles;
+    style = "bg:green";
+    format = "[[ $symbol ](fg:crust bg:green)]($style)";
+    # No `when`: as a boolean it means "always", which overrides detect_files
+    # and puts all three managers on every prompt. Leaving it unset lets the
+    # lockfile alone decide. No `command` either — the file's presence is the
+    # whole answer, and spawning a process each prompt to restate it would not
+    # be worth the latency.
+    description = "package manager in use";
+  };
 in
 {
   programs.starship = {
@@ -56,6 +86,21 @@ in
         # widths across the font are identical, so padding is the only lever.
         format = "[ $symbol  ]($style)";
         heuristic = false;
+      };
+
+      # bun is absent here on purpose: starship's own $bun module already fires
+      # on the same lockfiles and reports a version besides, so adding it would
+      # print the mark twice. The cost is that bun alone shows a version where
+      # the other three show an icon — worth it for the version, and for not
+      # duplicating the glyph.
+      #
+      # All three marks come from devicons, so they share a hand. The Seti set
+      # carries yarn and npm too, but its npm glyph is the .npmignore mark
+      # rather than the manager's, and mixing the two sets shows.
+      custom = {
+        pnpm = pm (glyph "e865") [ "pnpm-lock.yaml" ]; # dev-pnpm
+        yarn = pm (glyph "e8ec") [ "yarn.lock" ]; # dev-yarn
+        npm = pm (glyph "e71e") [ "package-lock.json" ]; # dev-npm
       };
 
       # Nothing on this machine provides conda, so its block could only ever be

@@ -45,11 +45,13 @@ let
     inherit symbol;
     detect_files = lockfiles;
     style = "bg:green";
-    # Two trailing spaces, where the language modules beside these use one. Those
-    # end in a version string; these end in the glyph itself, and the separator
-    # that follows is drawn with a negative left bearing — it reaches back into
-    # the cell before it, eating a single space almost entirely.
-    format = "[[ $symbol  ](fg:crust bg:green)]($style)";
+    # No leading space, two trailing. A language module always renders first in
+    # this segment and already ends in one, so a leading space here would double
+    # it. The trailing pair is needed because these end in the glyph itself: the
+    # separator that follows is drawn with a negative left bearing and reaches
+    # back into the cell before it, eating a single space almost entirely, while
+    # the version strings beside them carry a letter's own bearing.
+    format = "[[$symbol  ](fg:crust bg:green)]($style)";
     # No `when`: as a boolean it means "always", which overrides detect_files
     # and puts all three managers on every prompt. Leaving it unset lets the
     # lockfile alone decide. No `command` either — the file's presence is the

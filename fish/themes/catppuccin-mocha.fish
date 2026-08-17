@@ -1,16 +1,17 @@
-# Kanagawa Fish shell theme
-# A template was taken and modified from Tokyonight:
-# https://github.com/folke/tokyonight.nvim/blob/main/extras/fish_tokyonight_night.fish
-set -l foreground DCD7BA
-set -l selection 2D4F67
-set -l comment 727169
-set -l red C34043
-set -l orange FF9E64
-set -l yellow C0A36E
-set -l green 76946A
-set -l purple 957FB8
-set -l cyan 7AA89F
-set -l pink D27E99
+# Catppuccin Mocha Fish shell theme
+# Palette: https://github.com/catppuccin/catppuccin#-palettes
+# Same structure as the Kanagawa theme this replaced, so only the hex values
+# below need changing to move to another Catppuccin flavour.
+set -l foreground CDD6F4 # text
+set -l selection 45475A # surface1
+set -l comment 6C7086 # overlay0
+set -l red F38BA8
+set -l orange FAB387 # peach
+set -l yellow F9E2AF
+set -l green A6E3A1
+set -l purple CBA6F7 # mauve
+set -l cyan 94E2D5 # teal
+set -l pink F5C2E7
 
 # Syntax Highlighting Colors
 set -g fish_color_normal $foreground

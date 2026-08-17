@@ -11,7 +11,7 @@ let
   # Delta settings (shared with lazygit pager configuration)
   deltaSettings = {
     dark = true;
-    syntax-theme = "GitHub";
+    syntax-theme = helpers.theme.bat;
     diff-so-fancy = true;
     keep-plus-minus-markers = true;
     side-by-side = true;

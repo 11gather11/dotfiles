@@ -44,7 +44,7 @@ end
 # theme
 set -gx theme_nerd_fonts yes
 set -gx BIT_THEME monochrome
-source $FISH_CONFIG_DIR/themes/kanagawa.fish
+source $FISH_CONFIG_DIR/themes/catppuccin-mocha.fish
 
 # general bin paths
 fish_add_path $HOME/.local/bin
@@ -120,7 +120,7 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     # starship init fish >>$CONFIG_CACHE_TMP
 
     # set vivid colors
-    echo "set -gx LS_COLORS '$(ensure_installed vivid generate gruvbox-dark)'" >>$CONFIG_CACHE_TMP
+    echo "set -gx LS_COLORS '$(ensure_installed vivid generate catppuccin-mocha)'" >>$CONFIG_CACHE_TMP
 
     mv $CONFIG_CACHE_TMP $CONFIG_CACHE
 

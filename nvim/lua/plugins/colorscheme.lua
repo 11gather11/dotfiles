@@ -1,20 +1,19 @@
 return {
   {
-    "rebelot/kanagawa.nvim",
+    "catppuccin/nvim",
+    name = "catppuccin",
     lazy = false,
     priority = 1000,
-    build = ":KanagawaCompile",
     opts = {
-      transparent = true,
-      globalStatus = true,
-      compile = true,
+      flavour = "mocha",
+      transparent_background = true,
     },
   },
 
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "kanagawa-dragon",
+      colorscheme = "catppuccin-mocha",
     },
   },
 }

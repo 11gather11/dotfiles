@@ -76,7 +76,9 @@
     })
 
     # Bat configuration
-    ./bat.nix
+    (import ./bat.nix {
+      inherit helpers;
+    })
 
     # nh: Nix helper CLI with automatic periodic cleanup
     ./nh.nix

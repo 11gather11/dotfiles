@@ -14,7 +14,7 @@ let
     background-opacity = 0.70;
     background-blur-radius = 20;
 
-    theme = "Kanagawa Dragon";
+    theme = helpers.theme.ghostty;
 
     shell-integration = "fish";
     shell-integration-features = "no-cursor";

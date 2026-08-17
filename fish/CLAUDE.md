@@ -7,7 +7,7 @@
 - `conf.d/*.fish` - Auto-loaded snippets (nix paths, plugins)
 - `functions/*.fish` - Custom Fish functions (auto-loaded)
 - `completions/*.fish` - Tab completions
-- `themes/kanagawa.fish` - Colour theme
+- `themes/catppuccin-mocha.fish` - Colour theme
 
 ## Key Environment Variables
 

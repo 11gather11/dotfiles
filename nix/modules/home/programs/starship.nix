@@ -45,7 +45,11 @@ let
     inherit symbol;
     detect_files = lockfiles;
     style = "bg:green";
-    format = "[[ $symbol ](fg:crust bg:green)]($style)";
+    # Two trailing spaces, where the language modules beside these use one. Those
+    # end in a version string; these end in the glyph itself, and the separator
+    # that follows is drawn with a negative left bearing — it reaches back into
+    # the cell before it, eating a single space almost entirely.
+    format = "[[ $symbol  ](fg:crust bg:green)]($style)";
     # No `when`: as a boolean it means "always", which overrides detect_files
     # and puts all three managers on every prompt. Leaving it unset lets the
     # lockfile alone decide. No `command` either — the file's presence is the

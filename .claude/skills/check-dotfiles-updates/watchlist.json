@@ -46,5 +46,33 @@
 	{
 		"repo": "folke/dot",
 		"note": "LazyVim 作者。Neovim 方面"
+	},
+	{
+		"repo": "paulirish/dotfiles",
+		"note": "Chrome DevTools リード。agents/skills/ を運用しており、こちらの agents/skills/ と直接比較できる"
+	},
+	{
+		"repo": "k0kubun/dotfiles",
+		"note": "Ruby コミッタ。claude-code-status / tmux-agent-status を自作。日本語圏で更新が速い"
+	},
+	{
+		"repo": "BurntSushi/dotfiles",
+		"note": "ripgrep 作者。.codex/config.toml を公開しており Codex 設定の実例になる"
+	},
+	{
+		"repo": "sxyazi/dotfiles",
+		"note": "yazi 作者かつ nix-darwin ユーザー。新しい TUI の震源に近い"
+	},
+	{
+		"repo": "craftzdog/dotfiles",
+		"note": "devaslife。日本語圏の YouTuber で最大手。更新が非常に速い。動画向けの構成に寄る点は割り引く"
+	},
+	{
+		"repo": "josean-dev/dev-environment-files",
+		"note": "YouTuber。macOS のセットアップ手順が丁寧。同上、動画映え寄りの可能性あり"
+	},
+	{
+		"repo": "nikolovlazar/dotfiles",
+		"note": "YouTuber。規模は小さいが更新は継続。同上、動画映え寄りの可能性あり"
 	}
 ]

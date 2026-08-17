@@ -29,10 +29,6 @@ let
       inherit (pkgs.fishPlugins.fish-bd) src;
     }
     {
-      name = "hydro";
-      inherit (pkgs.fishPlugins.hydro) src;
-    }
-    {
       name = "spark";
       inherit (pkgs.fishPlugins.spark) src;
     }

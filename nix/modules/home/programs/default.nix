@@ -80,6 +80,11 @@
       inherit helpers;
     })
 
+    # Starship prompt
+    (import ./starship.nix {
+      inherit helpers;
+    })
+
     # nh: Nix helper CLI with automatic periodic cleanup
     ./nh.nix
 

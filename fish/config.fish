@@ -117,7 +117,7 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     ensure_installed tirith init --shell fish >>$CONFIG_CACHE_TMP
     ensure_installed git-wt --init fish >>$CONFIG_CACHE_TMP
     ensure_installed git-wtpr --init fish >>$CONFIG_CACHE_TMP
-    # starship init fish >>$CONFIG_CACHE_TMP
+    ensure_installed starship init fish >>$CONFIG_CACHE_TMP
 
     # set vivid colors
     echo "set -gx LS_COLORS '$(ensure_installed vivid generate catppuccin-mocha)'" >>$CONFIG_CACHE_TMP

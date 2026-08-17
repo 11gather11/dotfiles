@@ -39,7 +39,9 @@ in
 
       git_branch = {
         style = "mauve";
-        format = "[$branch]($style)";
+        # Trailing space: without it the status symbols butt against the branch
+        # name and read as part of it — `front-e2e-bs-desktop$»+`.
+        format = "[$branch]($style) ";
       };
 
       # Symbols rather than counts: the question at the prompt is "is there
@@ -71,8 +73,11 @@ in
       # tool on PATH resolves to.
       nix_shell = {
         style = "teal";
-        format = "[$symbol$name]($style) ";
-        symbol = "❄ ";
+        format = "[$symbol]($style) ";
+        # Symbol only. $name is the derivation's name, which for `nix develop`
+        # is the placeholder `nix-shell-env` — it takes width without saying
+        # which shell this is. Being inside one at all is the whole signal.
+        symbol = "❄";
         # Off: the heuristic infers "in a Nix shell" from the environment, and
         # on a nix-darwin machine every binary already lives in /nix/store, so
         # it fires in every shell. IN_NIX_SHELL is the honest signal.

@@ -207,6 +207,7 @@ in
       "bruno"
       "chatgpt"
       "claude"
+      "codexbar"
       "discord"
       "ghostty"
       "google-chrome"

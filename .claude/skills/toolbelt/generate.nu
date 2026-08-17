@@ -46,10 +46,24 @@ def installed [root: string] {
 		| get name | path basename
 		| each {|f| $f | str replace '.fish' '' }
 	)
+    # Tools enabled through a home-manager module rather than listed in
+    # packages.nix. They are installed just as surely, but nothing above sees
+    # them, so a `programs.<tool>.enable` on its own used to read as absent.
+    let modules = (
+        glob $"($root)/nix/modules/home/programs/**/*.nix"
+        | each {|f| open --raw $f | lines }
+        | flatten
+        | each {|l| $l | parse --regex '^\s*programs\.(?<name>[a-z0-9-]+)\s*=' }
+        | flatten
+        | get -o name
+        | default []
+        | uniq
+    )
     {
         packages: $packages
         casks: $casks
         ai: $ai
+        modules: $modules
         skills: $skills
         functions: $functions
         abbr_count: $abbrs
@@ -177,6 +191,7 @@ def drift [root: string, content: record] {
 		[
 			...($have.packages | each {|n| {kind: "package", name: $n}})
 			...($have.ai | each {|n| {kind: "ai", name: $n}})
+			...($have.modules | each {|n| {kind: "module", name: $n}})
 			...($have.skills | each {|n| {kind: "skill", name: $n}})
 		]
 		| where {|r| not (is-documented $r.name $hay) }
@@ -187,6 +202,7 @@ def drift [root: string, content: record] {
             packages: ($have.packages | length)
             casks: ($have.casks | length)
             ai: ($have.ai | length)
+            modules: ($have.modules | length)
             skills: ($have.skills | length)
             functions: ($have.functions | length)
             abbrs: $have.abbr_count

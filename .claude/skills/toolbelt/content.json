@@ -884,6 +884,11 @@
 						{
 							"name": "nh",
 							"desc": "週次クリーンの設定"
+						},
+						{
+							"name": "starship",
+							"desc": "プロンプト。2行表示・git 状態・devshell 判定",
+							"expand": "nix/modules/home/programs/starship.nix"
 						}
 					]
 				},
@@ -1060,10 +1065,6 @@
 					"title": "fish プラグイン",
 					"src": "nix/modules/home/programs/fish/default.nix",
 					"items": [
-						{
-							"name": "hydro",
-							"desc": "プロンプト"
-						},
 						{
 							"name": "fzf",
 							"desc": "fzf のキーバインド統合"

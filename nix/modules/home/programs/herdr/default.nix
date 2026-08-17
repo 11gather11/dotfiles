@@ -24,32 +24,28 @@ let
     # The plugin ships its actions and registers them on link; only the key is
     # left to the user, so it belongs here rather than in the package.
     #
-    # Its README suggests prefix+f, but f is herdr's own default for zoom and
-    # the documentation states no precedence between the two, so the suggestion
-    # would quietly cost a core binding. e is unclaimed — herdr's defaults are
-    # n, shift+n, shift+d, c, v, -, x, f, r and b — and reads as "explorer".
-    # The prefix+ form is required: a bare "e" fails `herdr config check`.
+    # e for "explorer". Not the f these plugins tend to suggest: f is herdr's
+    # own default for zoom and the documentation states no precedence between a
+    # command binding and a core one, so taking it would quietly cost a binding
+    # without saying which won. herdr's defaults are n, shift+n, shift+d, c, v,
+    # -, x, f, r and b; e is unclaimed. The prefix+ form is required — a bare
+    # "e", which the configuration reference's own example uses, fails
+    # `herdr config check`.
     keys.command = [
       {
         key = "prefix+e";
         type = "plugin_action";
-        command = "herdr-file-viewer.open-file-viewer";
-        description = "open file viewer in split";
-      }
-      {
-        key = "prefix+shift+e";
-        type = "plugin_action";
-        command = "herdr-file-viewer.open-file-viewer-tab";
-        description = "open file viewer in tab";
+        command = "persiyanov.reviewr.toggle";
+        description = "review the agent's diff";
       }
     ];
   };
 
   # Plugin roots to keep registered. Each is a directory laid out the way a
   # plugin repository is, with anything the manifest's [[build]] step would have
-  # produced already in place — see nix/packages/herdr-file-viewer.
+  # produced already in place — see nix/packages/herdr-reviewr.
   plugins = [
-    pkgs.herdr-file-viewer
+    pkgs.herdr-reviewr
   ];
 
   herdr = lib.getExe pkgs.llm-agents.herdr;

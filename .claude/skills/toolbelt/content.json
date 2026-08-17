@@ -836,110 +836,62 @@
 						},
 						{
 							"name": "prefix → e",
-							"desc": "<b>ファイルビューア</b>を分割で開く（自分で設定）"
-						},
-						{
-							"name": "prefix → Shift+E",
-							"desc": "ファイルビューアをタブで開く（自分で設定）"
+							"desc": "<b>レビューペイン</b>を開く（自分で設定）"
 						}
 					]
 				},
 				{
-					"title": "ファイルビューア（prefix → e）",
-					"src": "herdr-file-viewer docs/keys.md",
-					"note": "同じキーをもう一度押すと閉じる。ファイルは一切書き換えない。",
+					"title": "レビューペイン（prefix → e）",
+					"src": "herdr-reviewr README",
+					"note": "エージェントが書いた差分を読み、行にコメントを付けて<b>そのまま送り返す</b>。ワークツリーは書き換えない。同じキーで閉じる。",
 					"items": [
+						{
+							"name": "1 / 2 / 3",
+							"desc": "タブ切替 — 変更 / 全ファイル / PR"
+						},
+						{
+							"name": "u / b / t",
+							"desc": "範囲切替 — 未コミット / ブランチ / <b>直前のターン</b>"
+						},
+						{
+							"name": "Shift+B",
+							"desc": "ブランチ範囲の基準を選ぶ"
+						},
 						{
 							"name": "j / k",
 							"desc": "移動"
 						},
 						{
-							"name": "Space",
-							"desc": "1画面送り"
-						},
-						{
-							"name": "l / h",
-							"desc": "ディレクトリを開く / 閉じる"
-						},
-						{
-							"name": "Enter",
-							"desc": "ファイルを全画面で開く"
-						},
-						{
 							"name": "Tab",
-							"desc": "ツリーと内容ペインを行き来"
-						},
-						{
-							"name": "c",
-							"desc": "変更のあるファイルだけに絞る"
-						},
-						{
-							"name": "d",
-							"desc": "git status モード"
+							"desc": "フォーカス切替"
 						},
 						{
 							"name": "] / [",
-							"desc": "次 / 前の変更ファイルへ"
+							"desc": "次 / 前の hunk へ"
 						},
 						{
-							"name": "b",
-							"desc": "差分の基準を切り替え（ブランチ ⇄ HEAD）"
+							"name": "f / Shift+F",
+							"desc": "次 / 前のファイルへ"
 						},
 						{
-							"name": "Shift+D",
-							"desc": "差分の見せ方を切替（delta → 横並び → 素の diff）"
+							"name": "Ctrl+D / Ctrl+U",
+							"desc": "半画面送り"
 						},
 						{
-							"name": "v",
-							"desc": "表示形式を切り替え"
+							"name": "PageUp / PageDown",
+							"desc": "1画面送り"
 						},
 						{
-							"name": "f",
-							"desc": "ファイル名で絞り込み"
+							"name": "→ / ←",
+							"desc": "展開・折りたたみ、または横スクロール"
 						},
 						{
 							"name": "/",
-							"desc": "ファイル内を検索"
+							"desc": "ファイル名とコード全体を検索"
 						},
 						{
-							"name": "n / Shift+N",
-							"desc": "次 / 前の一致"
-						},
-						{
-							"name": ":",
-							"desc": "行番号へジャンプ"
-						},
-						{
-							"name": "y / Shift+Y",
-							"desc": "相対パス / 絶対パスをコピー"
-						},
-						{
-							"name": "Shift+L",
-							"desc": "行を選んで <code>path:行</code> をコピー"
-						},
-						{
-							"name": "a",
-							"desc": "注釈を付ける"
-						},
-						{
-							"name": "Shift+A",
-							"desc": "注釈の一覧"
-						},
-						{
-							"name": "i / .",
-							"desc": "gitignore / 隠しファイルの表示切替"
-						},
-						{
-							"name": "e",
-							"desc": "$EDITOR で開く"
-						},
-						{
-							"name": "Shift+O",
-							"desc": "OS の既定アプリで開く"
-						},
-						{
-							"name": "Shift+R",
-							"desc": "Finder で表示"
+							"name": "Ctrl+F",
+							"desc": "開いているファイル内を検索"
 						}
 					]
 				},

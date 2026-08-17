@@ -417,7 +417,7 @@
 						},
 						{
 							"name": "拡張機能",
-							"desc": "<b>エージェントスキル</b> 26 個。fish プラグイン 12 個"
+							"desc": "<b>エージェントスキル</b> 26 個。fish プラグイン 15 個"
 						},
 						{
 							"name": "GitHub 連携",
@@ -678,7 +678,7 @@
 				{
 					"title": "CLI パッケージ",
 					"src": "nix/modules/home/packages.nix",
-					"note": "31 個。<code>home.packages</code> にあるもの。",
+					"note": "29 個。<code>home.packages</code> にあるもの。",
 					"items": [
 						{
 							"name": "curl",
@@ -821,7 +821,7 @@
 					"items": [
 						{
 							"name": "fish",
-							"desc": "シェル本体。プラグイン 12 個込み"
+							"desc": "シェル本体。プラグイン 15 個込み"
 						},
 						{
 							"name": "ghostty",
@@ -887,7 +887,7 @@
 						},
 						{
 							"name": "starship",
-							"desc": "プロンプト。2行表示・git 状態・devshell 判定",
+							"desc": "プロンプト。2行表示・git 状態・devshell 判定・パッケージマネージャ表示",
 							"expand": "nix/modules/home/programs/starship.nix"
 						}
 					]
@@ -1112,6 +1112,22 @@
 						{
 							"name": "by-binds-yourself",
 							"desc": "キーバインド補助"
+						},
+						{
+							"name": "replay.fish",
+							"desc": "bash のコマンドを fish で実行し、環境変数の変更を取り込む"
+						},
+						{
+							"name": "bdf.fish",
+							"desc": "fzf で上位ディレクトリへ一気に cd"
+						},
+						{
+							"name": "pathed.fish",
+							"desc": "<code>$fish_user_paths</code> をエディタで編集する"
+						},
+						{
+							"name": "nix-env.fish",
+							"desc": "nix のプロファイルを fish の PATH に通す"
 						}
 					]
 				},
@@ -1200,7 +1216,7 @@
 				{
 					"title": "GUI アプリ",
 					"src": "nix/modules/darwin/system.nix ・ homebrew.casks",
-					"note": "22 個。<code>cleanup = \"uninstall\"</code> なので、ここに無いものは switch で消える。",
+					"note": "26 個（cask 25 ＋ Mac App Store 1）。<code>cleanup = \"uninstall\"</code> なので、ここに無いものは switch で消える。",
 					"items": [
 						{
 							"name": "Ghostty",

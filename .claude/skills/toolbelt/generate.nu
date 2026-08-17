@@ -46,6 +46,20 @@ def installed [root: string] {
 		| get name | path basename
 		| each {|f| $f | str replace '.fish' '' }
 	)
+    # fish plugins, which live in their own module and were invisible to every
+    # check here — four of fifteen went undocumented until the counts were read
+    # by hand. The `name = "…"` lines include an install-path template, so the
+    # entry containing a slash is dropped.
+    let fish_plugins = (
+        open --raw $"($root)/nix/modules/home/programs/fish/default.nix"
+        | lines
+        | each {|l| $l | parse --regex '^\s*name = "(?<name>[^"]+)"' }
+        | flatten
+        | get -o name
+        | default []
+        | where {|n| not ($n | str contains "/") }
+        | uniq
+    )
     # Tools enabled through a home-manager module rather than listed in
     # packages.nix. They are installed just as surely, but nothing above sees
     # them, so a `programs.<tool>.enable` on its own used to read as absent.
@@ -64,6 +78,7 @@ def installed [root: string] {
         casks: $casks
         ai: $ai
         modules: $modules
+        fish_plugins: $fish_plugins
         skills: $skills
         functions: $functions
         abbr_count: $abbrs
@@ -192,6 +207,7 @@ def drift [root: string, content: record] {
 			...($have.packages | each {|n| {kind: "package", name: $n}})
 			...($have.ai | each {|n| {kind: "ai", name: $n}})
 			...($have.modules | each {|n| {kind: "module", name: $n}})
+			...($have.fish_plugins | each {|n| {kind: "fish-plugin", name: $n}})
 			...($have.skills | each {|n| {kind: "skill", name: $n}})
 		]
 		| where {|r| not (is-documented $r.name $hay) }
@@ -203,6 +219,7 @@ def drift [root: string, content: record] {
             casks: ($have.casks | length)
             ai: ($have.ai | length)
             modules: ($have.modules | length)
+            fish_plugins: ($have.fish_plugins | length)
             skills: ($have.skills | length)
             functions: ($have.functions | length)
             abbrs: $have.abbr_count

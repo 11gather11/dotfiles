@@ -20,6 +20,23 @@ let
     ui = {
       agent_panel_sort = "spaces";
     };
+
+    # The plugin ships its actions and registers them on link; only the key is
+    # left to the user, so it belongs here rather than in the package.
+    keys.command = [
+      {
+        key = "prefix+f";
+        type = "plugin_action";
+        command = "herdr-file-viewer.open-file-viewer";
+        description = "open file viewer in split";
+      }
+      {
+        key = "prefix+shift+f";
+        type = "plugin_action";
+        command = "herdr-file-viewer.open-file-viewer-tab";
+        description = "open file viewer in tab";
+      }
+    ];
   };
 
   # Plugin roots to keep registered. Each is a directory laid out the way a

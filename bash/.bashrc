@@ -40,6 +40,28 @@ if [ -f "$HM_SESSION_VARS" ]; then
   . "$HM_SESSION_VARS"
 fi
 
+# Put the home-manager profile ahead of /usr/bin, the way fish already has it.
+#
+# A login shell started from an empty environment gets this ordering for free:
+# path_helper builds PATH from /etc/paths and /etc/paths.d, and nix-darwin
+# registers the Nix profiles there. A login shell started from an environment
+# that already has a PATH does not — path_helper puts /etc/paths first and
+# appends what it inherited, which pushes the profile behind /usr/bin. That is
+# exactly how agents spawn `bash -lc`, and it is why `git` resolved to Apple's
+# 2.50.1 there while fish and this configuration's own tools resolved to 2.55.0.
+#
+# Drop any existing occurrence before prepending so repeated sourcing does not
+# grow PATH.
+HM_BIN="$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin"
+if [ ! -d "$HM_BIN" ]; then
+  HM_BIN="/etc/profiles/per-user/$USER/bin"
+fi
+if [ -d "$HM_BIN" ]; then
+  PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HM_BIN" | paste -sd: -)"
+  export PATH="$HM_BIN:$PATH"
+fi
+unset HM_BIN
+
 if [[ -t 0 ]]; then
   stty stop undef
   stty start undef

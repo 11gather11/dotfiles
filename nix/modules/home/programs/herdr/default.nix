@@ -14,6 +14,13 @@ let
 
   tomlFormat = pkgs.formats.toml { };
 
+  # herdr-reviewr installs a prebuilt release binary and upstream publishes one
+  # for aarch64-darwin only, so naming it anywhere else fails the whole
+  # configuration at eval. The other plugins are source trees that link on any
+  # platform. Gate the plugin and its binding together — a key bound to a plugin
+  # that was never linked is a binding that silently does nothing.
+  hasReviewr = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
+
   settings = {
     onboarding = false;
 
@@ -40,7 +47,7 @@ let
     # -, x, f, r and b; e is unclaimed. The prefix+ form is required — a bare
     # "e", which the configuration reference's own example uses, fails
     # `herdr config check`.
-    keys.command = [
+    keys.command = lib.optionals hasReviewr [
       {
         key = "prefix+e";
         type = "plugin_action";
@@ -54,11 +61,11 @@ let
   # plugin repository is, with anything the manifest's [[build]] step would have
   # produced already in place — see nix/packages/herdr-reviewr.
   plugins = [
-    pkgs.herdr-reviewr
     pkgs.herdr-browser
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
-  ];
+  ]
+  ++ lib.optional hasReviewr pkgs.herdr-reviewr;
 
   herdr = lib.getExe pkgs.llm-agents.herdr;
 in

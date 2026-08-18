@@ -33,7 +33,11 @@ runs:
 
         echo "Enabling auto-merge for PR #$PR_NUMBER with $MERGE_METHOD strategy"
 
-        if gh pr merge "$PR_NUMBER" --auto --"$MERGE_METHOD"; then
+        # --delete-branch so the head branch goes when the merge lands. Without
+        # it these accumulate: eighteen update-flake-* branches had built up,
+        # eleven of them from PRs merged as far back as #173. GitHub honours the
+        # flag when the queued auto-merge completes, not at this call.
+        if gh pr merge "$PR_NUMBER" --auto --delete-branch --"$MERGE_METHOD"; then
           echo "Auto-merge enabled successfully"
           echo "enabled=true" >> "$GITHUB_OUTPUT"
         else

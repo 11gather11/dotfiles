@@ -16,8 +16,18 @@ def installed [root: string] {
 		| where {|l| $l =~ '^\s{4}[a-z0-9][a-z0-9._-]*$' }
 		| each {|l| $l | str trim }
 	)
+    # Casks live wherever the nix-darwin tree currently keeps homebrew. Naming
+    # the file broke when darwin-system was split, so find the one that declares
+    # them instead — a rename moves the block, it does not delete it.
+    let cask_file = (
+		glob $"($root)/nix/modules/darwin-system/**/*.nix"
+		| where {|f| (open --raw $f) =~ 'casks\s*=\s*\[' }
+	)
+    if ($cask_file | is-empty) {
+        error make {msg: "no module under nix/modules/darwin-system declares casks"}
+    }
     let casks = (
-		open $"($root)/nix/modules/darwin/system.nix"
+		open ($cask_file | first)
 		| lines
 		| where {|l| $l =~ '^\s+"[a-z0-9/-]+"$' }
 		| each {|l| $l | str trim | str replace --all '"' '' }
@@ -67,7 +77,10 @@ def installed [root: string] {
     let herdr_plugins = (
         open --raw $"($root)/nix/modules/home/programs/herdr/default.nix"
         | lines
-        | each {|l| $l | parse --regex '^\s+pkgs\.(?<name>herdr-[a-z-]+)$' }
+        # Not anchored to the whole line: herdr-reviewr is appended with
+        # `++ lib.optional hasReviewr pkgs.herdr-reviewr` because upstream ships
+        # it for aarch64-darwin only, and an anchored pattern stopped seeing it.
+        | each {|l| $l | parse --regex 'pkgs\.(?<name>herdr-[a-z-]+)' }
         | flatten
         | get -o name
         | default []

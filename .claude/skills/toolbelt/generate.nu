@@ -46,6 +46,19 @@ def installed [root: string] {
 		| get name | path basename
 		| each {|f| $f | str replace '.fish' '' }
 	)
+    # herdr plugins, declared in the module as a list of packages. Same blind
+    # spot the fish plugins had: nothing here read that file, so three plugins
+    # could be added without the page noticing.
+    let herdr_plugins = (
+        open --raw $"($root)/nix/modules/home/programs/herdr/default.nix"
+        | lines
+        | each {|l| $l | parse --regex '^\s+pkgs\.(?<name>herdr-[a-z-]+)$' }
+        | flatten
+        | get -o name
+        | default []
+        | each {|n| $n | str replace 'herdr-' '' }
+        | uniq
+    )
     # fish plugins, which live in their own module and were invisible to every
     # check here — four of fifteen went undocumented until the counts were read
     # by hand. The `name = "…"` lines include an install-path template, so the
@@ -79,6 +92,7 @@ def installed [root: string] {
         ai: $ai
         modules: $modules
         fish_plugins: $fish_plugins
+        herdr_plugins: $herdr_plugins
         skills: $skills
         functions: $functions
         abbr_count: $abbrs
@@ -208,6 +222,7 @@ def drift [root: string, content: record] {
 			...($have.ai | each {|n| {kind: "ai", name: $n}})
 			...($have.modules | each {|n| {kind: "module", name: $n}})
 			...($have.fish_plugins | each {|n| {kind: "fish-plugin", name: $n}})
+			...($have.herdr_plugins | each {|n| {kind: "herdr-plugin", name: $n}})
 			...($have.skills | each {|n| {kind: "skill", name: $n}})
 		]
 		| where {|r| not (is-documented $r.name $hay) }
@@ -220,6 +235,7 @@ def drift [root: string, content: record] {
             ai: ($have.ai | length)
             modules: ($have.modules | length)
             fish_plugins: ($have.fish_plugins | length)
+            herdr_plugins: ($have.herdr_plugins | length)
             skills: ($have.skills | length)
             functions: ($have.functions | length)
             abbrs: $have.abbr_count

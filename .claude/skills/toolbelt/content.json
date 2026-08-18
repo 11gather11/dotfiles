@@ -837,6 +837,10 @@
 						{
 							"name": "prefix → e",
 							"desc": "<b>レビューペイン</b>を開く（自分で設定）"
+						},
+						{
+							"name": "タブ名 [1] [2]",
+							"desc": "先頭の番号は <code>1</code>〜<code>9</code> のジャンプ先。名前はそのタブで動いているプロセス"
 						}
 					]
 				},
@@ -1378,6 +1382,38 @@
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
+							}
+						}
+					]
+				},
+				{
+					"title": "herdr プラグイン",
+					"src": "nix/modules/home/programs/herdr/ ・ nix/overlays/herdr-plugins.nix",
+					"note": "<code>herdr plugin install</code> は使わず、nix が固定したディレクトリを <code>plugin link</code> で登録している。宣言から外すと次の switch で自動的に解除される。",
+					"items": [
+						{
+							"name": "reviewr",
+							"desc": "エージェントの差分をレビューし、行コメントを送り返す（<code>prefix+e</code>）",
+							"expand": "nix/packages/herdr-reviewr",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
+						},
+						{
+							"name": "automatic-rename",
+							"desc": "タブをプロセス名で命名し、<code>[1] [2]</code> のジャンプ番号を付ける",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
+						},
+						{
+							"name": "window-title-sync",
+							"desc": "herdr の状態を Ghostty のウィンドウタイトルに反映",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
 							}
 						}
 					]

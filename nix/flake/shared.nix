@@ -19,7 +19,7 @@ let
     fileset = ../../agents/skills;
   };
 
-  helpers = import ../modules/lib/helpers { inherit (nixpkgs) lib; };
+  helpers = import ../lib/helpers { inherit (nixpkgs) lib; };
 
   # Create pkgs with overlays
   mkPkgs =

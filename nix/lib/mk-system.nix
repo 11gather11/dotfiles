@@ -34,7 +34,7 @@ let
 
   commonHomeModules = [
     agent-skills.homeManagerModules.default
-    ../modules/home
+    (inputs.import-tree ../modules/home)
   ]
   ++ homeModules;
 in

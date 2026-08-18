@@ -23,6 +23,10 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
+    # Imports every .nix under a directory, so nix/modules/ has no index files
+    # to keep in step with the tree. Paths containing /_ are skipped.
+    import-tree.url = "github:denful/import-tree";
+
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";

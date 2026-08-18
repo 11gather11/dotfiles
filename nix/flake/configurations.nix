@@ -22,7 +22,7 @@ let
     mkSystem {
       inherit system;
       homedir = linuxHomedir;
-      homeModules = [ ../modules/linux ];
+      homeModules = [ (inputs.import-tree ../modules/home-linux) ];
     };
 
   linuxHomeConfigurations = {
@@ -37,8 +37,8 @@ in
       system = "aarch64-darwin";
       homedir = darwinHomedir;
       darwin = true;
-      homeModules = [ ../modules/darwin ];
-      systemModules = [ ../modules/darwin/system.nix ];
+      homeModules = [ (inputs.import-tree ../modules/home-darwin) ];
+      systemModules = [ (inputs.import-tree ../modules/darwin-system) ];
     };
 
     # Linux configurations with standalone Home Manager

@@ -61,15 +61,17 @@ in
     # itself from the Settings TUI, and the rest of this directory is runtime
     # state it owns outright (session.json, sockets, logs, plugins.json — the
     # last written by `herdr plugin install`). Only this one file is managed.
-    # herdr-automatic-rename reads its settings from here rather than the plugin
-    # root, which is read-only in the store.
+    # herdr-automatic-rename reads its settings from
+    # $XDG_CONFIG_HOME/herdr-automatic-rename/config.sh — its own directory, not
+    # the per-plugin one under herdr's config. Put here first, it was silently
+    # ignored and the tab naming this disables stayed on.
     #
     # NAME_TABS is off deliberately. Naming a tab after its foreground process
     # assumes one tab is one job; every pane in these tabs is an agent, so the
     # names would all read `claude` and flip to whichever pane has focus. The
     # numbering is the half that survives that: it labels each tab with the
     # digit that jumps to it, and does not depend on what is running inside.
-    file.".config/herdr/plugins/config/herdr-automatic-rename/config.sh".text = ''
+    file.".config/herdr-automatic-rename/config.sh".text = ''
       NAME_TABS=0
       AUTO_INDEX=1
     '';

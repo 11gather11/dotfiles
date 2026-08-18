@@ -55,10 +55,13 @@ in
         fsmonitor = false;
       };
 
-      # One root for everything. Work repositories are told apart by the host
-      # in their clone URL — `ghq get git@github-work:…` lands them under
-      # ghq/github-work/ — rather than by living beneath a second root, which
-      # needed a wrapper to set GHQ_ROOT and was where the tilde bug lived.
+      # Personal checkouts. Work lives under ~/ghq-work, reached through the
+      # ghq-work function, because ghq has no per-URL root — GHQ_ROOT and this
+      # setting are the only controls it offers, and get writes to the last root
+      # listed here, so naming both would send everything to one of them.
+      #
+      # ~/.go/src used to be listed first. It does not exist on this machine and
+      # only made `ghq list` walk a second tree for nothing.
       ghq.root = [ "~/ghq" ];
 
       color.ui = "auto";
@@ -140,28 +143,25 @@ in
     # key. It is deliberately untracked, so only the condition that selects it
     # is configured here.
     #
-    # Selected by the repository's remote, not by where it sits on disk. A
-    # gitdir condition makes the identity depend on the path, which is why a
-    # second ghq root existed at all; it also kept reporting the right identity
-    # while that root was being written to the wrong place, so the breakage
-    # stayed invisible for six months.
+    # Selected by location, which is the invariant this setup is built on: a
+    # checkout under the work root is work, whatever organisation owns it and
+    # whatever URL form its remote uses. Nothing is enumerated, so a new client
+    # organisation needs no edit here.
     #
-    # Two patterns because one cannot cover both URL forms: `*` does not cross a
-    # `/`, so the ssh form (`git@host:owner/repo`) and the https form
-    # (`https://host/owner/repo`) need separate globs. Anchoring on the owner
-    # rather than the host is what closes the real hazard — a repository cloned
-    # as git@github.com:abby-develop/… would otherwise take the personal
-    # identity while insteadOf silently pushed it to the work account, and
-    # `git remote -v` prints the rewritten URL, so nothing would look wrong.
+    # Remote-based conditions were tried and reverted. `hasconfig:remote.*.url`
+    # matches the raw stored URL, and the two work checkouts store different
+    # forms — `git@github-work:…` and `ssh://git@github.com/…` — so every host
+    # and every URL spelling has to be listed, and the organisation with them.
+    # bx-components silently took the personal identity under that scheme. The
+    # location condition had never been the broken part: it kept resolving
+    # correctly for six months while the work root was being written to the
+    # wrong place.
     #
-    # A second work organisation means a second pair of lines.
+    # ~/ghq-work is the work root, sitting next to ~/ghq and named for what it
+    # holds rather than nested two levels down as ~/work/ghq was.
     includes = [
       {
-        condition = "hasconfig:remote.*.url:git@github*:abby-develop/**";
-        path = "~/.gitconfig.work";
-      }
-      {
-        condition = "hasconfig:remote.*.url:https://github*/abby-develop/**";
+        condition = "gitdir:~/ghq-work/";
         path = "~/.gitconfig.work";
       }
       { path = "${aliasesFile}"; }

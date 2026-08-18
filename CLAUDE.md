@@ -15,6 +15,16 @@ nix run .#update  # Update flake.lock inputs
 nix run .#fmt     # Format the tree with treefmt
 ```
 
+These wrap `nh`, which is also usable directly once the configuration has been
+applied once — `programs.nh.flake` points it at this repository, so it works
+from any directory:
+
+```bash
+nh darwin switch   # same as nix run .#switch
+nh darwin build    # same as nix run .#build
+nh darwin switch --ask --no-nom
+```
+
 ## Command Privacy and Secret Handling
 
 - Before running any command, make sure the command text, shell history, process list, terminal output, and agent transcript will not contain raw secrets.
@@ -27,11 +37,14 @@ nix run .#fmt     # Format the tree with treefmt
 ```
 .
 ├── flake.nix        # Nix entry point
-├── nix/modules/     # Nix configuration modules
-│   ├── home/        # Cross-platform (home-manager)
-│   ├── darwin/      # macOS (nix-darwin)
-│   ├── linux/       # Linux
-│   └── lib/         # Shared helpers
+├── nix/
+│   ├── flake/       # flake-parts modules (apps, treefmt, configurations, …)
+│   ├── lib/         # mk-system.nix and helpers — not modules
+│   └── modules/     # auto-imported by import-tree; one class per directory
+│       ├── home/          # home-manager, both platforms
+│       ├── home-darwin/   # home-manager, macOS only
+│       ├── home-linux/    # home-manager, Linux only
+│       └── darwin-system/ # nix-darwin system modules
 ├── fish/            # Fish shell config
 ├── bash/            # Bash config
 ├── zsh/             # Zsh config

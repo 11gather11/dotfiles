@@ -12,15 +12,27 @@ This repository uses Nix with a modular structure for managing system configurat
 
 The configuration is organised into modular files:
 
-- **`flake.nix`** - Main entry point with inputs/outputs
-- **`nix/home.nix`** - Home Manager configuration (cross-platform)
-  - Dotfiles symlinks using `home.file`
-  - User package list
-  - Platform-specific packages via `pkgs.stdenv.isDarwin`
-- **`nix/darwin.nix`** - macOS system configuration (nix-darwin)
-  - System settings and user configuration
-  - Homebrew packages (taps, brews, casks, masApps)
-- **`nix/overlays.nix`** - Package overlays for AI tools
+- **`flake.nix`** - `nixConfig`, inputs, and the flake-parts skeleton. Nothing else.
+- **`nix/flake/`** - the flake's outputs, one flake-parts module per concern:
+  `configurations.nix`, `apps.nix`, `treefmt.nix`, `git-hooks.nix`,
+  `packages.nix`, and `shared.nix` for the values they have in common
+- **`nix/lib/`** - not modules. `mk-system.nix` builds every configuration —
+  nix-darwin with home-manager inside it, or standalone home-manager — and
+  `helpers/` holds the small shared functions
+- **`nix/modules/`** - every `.nix` here is a module, imported automatically by
+  [`import-tree`](https://github.com/denful/import-tree). Adding one is placing
+  the file; there is no index to update. One class of module per directory:
+  - `home/` - home-manager, both platforms
+  - `home-darwin/` - home-manager, macOS only
+  - `home-linux/` - home-manager, Linux only
+  - `darwin-system/` - nix-darwin system modules
+- **`nix/overlays/`** - package overlays
+- **`nix/packages/`** - packages defined in this repository
+
+Because `import-tree` reads whatever is in the directory, a module in the wrong
+one is applied to the wrong configuration. Put a module where its options live:
+`home.*` and `programs.*` under `home*/`, everything nix-darwin owns under
+`darwin-system/`.
 
 ### Initial Setup
 

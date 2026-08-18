@@ -66,6 +66,19 @@ stdenvNoCC.mkDerivation {
     mkdir -p $out
     cp -r . $out/
     cp -r ${node_modules} $out/node_modules
+
+    # The plugin exposes `start` only as an action, so the worker has to be
+    # launched by hand after every reboot — it detaches and survives herdr
+    # itself, but not the machine. A [[startup]] entry hands that to herdr,
+    # which runs it whenever the server comes up; `start` is already
+    # idempotent, reporting "already running" off its pid file, so the extra
+    # invocations from a server restart cost nothing.
+    cat >> $out/herdr-plugin.toml <<'MANIFEST'
+
+    [[startup]]
+    command = ["sh", "src/run-bun.sh", "src/cli.ts", "start"]
+    MANIFEST
+
     runHook postInstall
   '';
 

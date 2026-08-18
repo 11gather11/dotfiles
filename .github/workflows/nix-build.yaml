@@ -9,14 +9,17 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Superseding a pull request's run is the point of this; superseding main's is
+  # not. A cancelled run leaves main with no build result for that commit, which
+  # is how 32129221997 ended up neither green nor red.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Check if Nix-related files changed
   changes:
     runs-on: ubuntu-24.04-arm
     outputs:
-      nix: ${{ steps.filter.outputs.nix }}
+      nix: ${{ steps.decide.outputs.nix }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -29,6 +32,26 @@ jobs:
               - 'nix/**'
               - '.github/workflows/nix-build.yaml'
               - '.github/actions/setup-nix/**'
+
+      # The build steps below are skipped by a step-level `if:`, so a skipped
+      # job still reports success — that is deliberate, because these are
+      # required checks and a job-level skip would block docs-only pull
+      # requests. The cost is that a skip is indistinguishable from a build.
+      #
+      # On a pull request that is a fair trade. On main it is not: after the
+      # Linux build broke, three documentation commits skipped it and reported
+      # success, so main looked green for an hour while both Linux
+      # configurations failed to evaluate. Build main unconditionally, and keep
+      # the filter for pull requests.
+      - id: decide
+        env:
+          FILTERED: ${{ steps.filter.outputs.nix }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "nix=$FILTERED" >> "$GITHUB_OUTPUT"
+          else
+            echo "nix=true" >> "$GITHUB_OUTPUT"
+          fi
 
   build-ubuntu:
     needs: changes

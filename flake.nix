@@ -93,7 +93,6 @@
 
   outputs =
     inputs@{
-      self,
       nixpkgs,
       flake-parts,
       nix-darwin,
@@ -103,12 +102,8 @@
       nix-bun,
       treefmt-nix,
       git-hooks,
-      fish-na,
       nix-index-database,
       agent-skills,
-      ast-grep-skill,
-      agent-browser-skill,
-      tgrab,
       ...
     }:
     let
@@ -119,6 +114,19 @@
       local-skills = nixpkgs.lib.fileset.toSource {
         root = ./.;
         fileset = ./agents/skills;
+      };
+
+      helpers = import ./nix/modules/lib/helpers { inherit (nixpkgs) lib; };
+
+      # What every home-manager module in this tree may ask for by name. Modules
+      # are listed in `imports` and the module system hands them these, so
+      # nothing is threaded down through the intermediate default.nix files.
+      # `inputs` covers the flake inputs a module reaches directly — fish-na,
+      # tgrab, the two external skill sources — so adding one no longer means
+      # editing every file between here and the module that wants it.
+      homeSpecialArgs = homedir: {
+        inherit inputs helpers local-skills;
+        dotfilesDir = "${homedir}/ghq/github.com/11gather11/dotfiles";
       };
 
       # Create pkgs with overlays
@@ -147,53 +155,16 @@
         linuxSystem:
         home-manager.lib.homeManagerConfiguration {
           pkgs = mkPkgs linuxSystem;
+          extraSpecialArgs = homeSpecialArgs linuxHomedir;
           modules = [
             {
               home.username = username;
               home.homeDirectory = linuxHomedir;
             }
-            (
-              {
-                pkgs,
-                config,
-                lib,
-                ...
-              }:
-              let
-                helpers = import ./nix/modules/lib/helpers { inherit lib; };
-              in
-              {
-                imports = [
-                  nix-index-database.homeModules.nix-index
-                  agent-skills.homeManagerModules.default
-
-                  (import ./nix/modules/home {
-                    inherit
-                      pkgs
-                      config
-                      lib
-                      fish-na
-                      helpers
-                      ast-grep-skill
-                      agent-browser-skill
-                      tgrab
-                      local-skills
-                      ;
-                    dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
-                  })
-
-                  (import ./nix/modules/linux {
-                    inherit
-                      pkgs
-                      config
-                      lib
-                      helpers
-                      ;
-                    dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
-                  })
-                ];
-              }
-            )
+            nix-index-database.homeModules.nix-index
+            agent-skills.homeManagerModules.default
+            ./nix/modules/home
+            ./nix/modules/linux
           ];
         };
     in
@@ -478,14 +449,18 @@
         {
           # macOS configuration with nix-darwin
           darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
+            specialArgs = {
+              inherit inputs username;
+              homedir = darwinHomedir;
+            };
             modules = [
-              { nixpkgs.hostPlatform = "aarch64-darwin"; }
+              # nixpkgs.pkgs rather than nixpkgs.hostPlatform: the overlays live
+              # in mkPkgs, and setting the instantiation here is what lets
+              # system.nix be listed as a plain module instead of being called
+              # with a hand-built pkgs.
+              { nixpkgs.pkgs = mkPkgs "aarch64-darwin"; }
 
-              (import ./nix/modules/darwin/system.nix {
-                pkgs = mkPkgs "aarch64-darwin";
-                inherit username;
-                homedir = darwinHomedir;
-              })
+              ./nix/modules/darwin/system.nix
 
               nix-index-database.darwinModules.nix-index
 
@@ -494,49 +469,14 @@
                 home-manager = {
                   useGlobalPkgs = false;
                   useUserPackages = true;
-                  extraSpecialArgs = {
+                  extraSpecialArgs = homeSpecialArgs darwinHomedir // {
                     pkgs = mkPkgs "aarch64-darwin";
                   };
-                  users.${username} =
-                    {
-                      pkgs,
-                      config,
-                      lib,
-                      ...
-                    }:
-                    let
-                      helpers = import ./nix/modules/lib/helpers { inherit lib; };
-                    in
-                    {
-                      imports = [
-                        agent-skills.homeManagerModules.default
-
-                        (import ./nix/modules/home {
-                          inherit
-                            pkgs
-                            config
-                            lib
-                            fish-na
-                            helpers
-                            ast-grep-skill
-                            agent-browser-skill
-                            tgrab
-                            local-skills
-                            ;
-                          dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                        })
-
-                        (import ./nix/modules/darwin {
-                          inherit
-                            pkgs
-                            config
-                            lib
-                            helpers
-                            ;
-                          dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";
-                        })
-                      ];
-                    };
+                  users.${username}.imports = [
+                    agent-skills.homeManagerModules.default
+                    ./nix/modules/home
+                    ./nix/modules/darwin
+                  ];
                 };
               }
             ];

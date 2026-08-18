@@ -1,124 +1,48 @@
 {
-  pkgs,
-  lib,
-  config,
-  dotfilesDir,
-  helpers,
-  fish-na,
-  tgrab,
-  ...
-}:
-{
   imports = [
     # AI tools
-    (import ./ai-tools.nix {
-      inherit pkgs tgrab;
-    })
+    ./ai-tools.nix
 
     # Fish shell plugin configuration
-    (import ./fish {
-      inherit
-        pkgs
-        fish-na
-        lib
-        config
-        ;
-    })
+    ./fish
 
     # Claude Code configuration
-    (import ./claude-code {
-      inherit
-        pkgs
-        lib
-        config
-        dotfilesDir
-        ;
-    })
+    ./claude-code
 
     # Codex configuration
-    (import ./codex.nix {
-      inherit
-        pkgs
-        lib
-        config
-        dotfilesDir
-        ;
-    })
+    ./codex.nix
 
     # GitHub CLI configuration
-    (import ./gh.nix {
-      inherit
-        pkgs
-        lib
-        config
-        ;
-    })
+    ./gh.nix
 
     # gh-nix: run commands with GitHub token bridged into Nix access-tokens
     ./gh-nix.nix
 
     # Git configuration
-    (import ./git {
-      inherit
-        pkgs
-        lib
-        config
-        helpers
-        ;
-    })
+    ./git
 
     # Neovim configuration
-    (import ./neovim {
-      inherit
-        pkgs
-        lib
-        config
-        dotfilesDir
-        helpers
-        ;
-    })
+    ./neovim
 
     # Bat configuration
-    (import ./bat.nix {
-      inherit helpers;
-    })
+    ./bat.nix
 
     # Starship prompt
-    (import ./starship.nix {
-      inherit pkgs;
-    })
+    ./starship.nix
 
     # nh: Nix helper CLI with automatic periodic cleanup
     ./nh.nix
 
     # herdr: agent multiplexer that runs inside the existing terminal
-    (import ./herdr {
-      inherit
-        pkgs
-        lib
-        config
-        ;
-    })
+    ./herdr
 
     # Ghostty terminal configuration
-    (import ./ghostty.nix {
-      inherit
-        pkgs
-        lib
-        config
-        helpers
-        ;
-    })
+    ./ghostty.nix
 
     # Direnv configuration with nix-direnv
     ./direnv.nix
 
     # Lazygit configuration
-    (import ./lazygit {
-      inherit
-        pkgs
-        lib
-        ;
-    })
+    ./lazygit
   ];
 }

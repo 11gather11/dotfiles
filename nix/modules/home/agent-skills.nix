@@ -6,8 +6,7 @@
 {
   pkgs,
   lib,
-  ast-grep-skill,
-  agent-browser-skill,
+  inputs,
   local-skills,
   ...
 }:
@@ -19,12 +18,12 @@
     sources = {
       # External: ast-grep official skill
       ast-grep = {
-        path = ast-grep-skill;
+        path = inputs.ast-grep-skill;
         subdir = "ast-grep/skills";
       };
       # External: agent-browser skill
       agent-browser = {
-        path = agent-browser-skill;
+        path = inputs.agent-browser-skill;
         subdir = "skills";
       };
       # External: herdr's own agent skill, shipped inside the package source

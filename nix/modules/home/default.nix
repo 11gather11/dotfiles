@@ -1,66 +1,20 @@
 {
-  pkgs,
-  config,
-  lib,
-  fish-na,
-  helpers,
-  dotfilesDir,
-  ast-grep-skill,
-  agent-browser-skill,
-  tgrab,
-  local-skills,
-  # system,
-  ...
-}:
-{
   imports = [
     # Common packages
     ./packages.nix
 
     # Agent skills for Claude Code (skills from flake inputs)
-    (import ./agent-skills.nix {
-      inherit
-        pkgs
-        lib
-        ast-grep-skill
-        agent-browser-skill
-        tgrab
-        local-skills
-        config
-        ;
-    })
+    ./agent-skills.nix
 
     # Git hooks for auto-switching nix config on changes
     # Note: pre-commit hook is managed by devShell via git-hooks.nix flakeModule
-    (import ./git-hooks.nix {
-      inherit
-        lib
-        dotfilesDir
-        ;
-    })
+    ./git-hooks.nix
 
     # Program configurations (Claude Code, Codex, Neovim, etc.)
-    (import ./programs {
-      inherit
-        pkgs
-        lib
-        config
-        dotfilesDir
-        helpers
-        fish-na
-        tgrab
-        ;
-    })
+    ./programs
 
     # Common dotfiles symlinks
-    (import ./dotfiles.nix {
-      inherit
-        config
-        lib
-        helpers
-        dotfilesDir
-        ;
-    })
+    ./dotfiles.nix
   ];
 
   home.stateVersion = "25.11";

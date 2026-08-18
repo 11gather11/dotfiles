@@ -1,6 +1,6 @@
 {
   pkgs,
-  fish-na,
+  inputs,
   lib,
   ...
 }:
@@ -113,7 +113,7 @@ let
     # Runtime version switcher
     {
       name = "fish-na";
-      src = fish-na;
+      src = inputs.fish-na;
     }
 
     # Customisable key bindings

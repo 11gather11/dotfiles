@@ -1,26 +1,10 @@
 {
-  pkgs,
-  config,
-  lib,
-  helpers,
-  dotfilesDir,
-  ...
-}:
-{
   imports = [
     # macOS-specific packages
     ./packages.nix
 
     # macOS-specific dotfiles
-    (import ./dotfiles.nix {
-      inherit
-        pkgs
-        config
-        lib
-        helpers
-        dotfilesDir
-        ;
-    })
+    ./dotfiles.nix
 
     # Docker configuration (OrbStack)
     ./programs/docker.nix

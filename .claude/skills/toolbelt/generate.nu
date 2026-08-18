@@ -10,11 +10,28 @@
 # narrow pattern rather than a general Nix reader: these files are hand-written
 # lists, and a stricter parse fails loudly instead of silently returning [].
 def installed [root: string] {
+    # Every home-manager module, not just home/packages.nix. Platform-specific
+    # lists and modules that install alongside their configuration — home-darwin
+    # and the docker module — were invisible here, so the docker client and
+    # lazydocker could be added without the page noticing.
+    #
+    # Scoped to the `home.packages = [ … ]` block rather than matching indented
+    # words anywhere in the file: activation scripts are shell, and a plain
+    # indent-and-word pattern reads `done`, `fi` and `let` as packages.
     let packages = (
-		open $"($root)/nix/modules/home/packages.nix"
+		glob $"($root)/nix/modules/home*/**/*.nix"
+		| each {|f|
+			open --raw $f
+			| parse --regex '(?s)home\.packages\s*=\s*(?:with\s+pkgs;\s*)?\[(?<body>.*?)\]'
+			| get -o body
+			| default []
+		}
+		| flatten
+		| str join "\n"
 		| lines
-		| where {|l| $l =~ '^\s{4}[a-z0-9][a-z0-9._-]*$' }
-		| each {|l| $l | str trim }
+		| each {|l| $l | str trim | str replace --regex '^pkgs\.' '' }
+		| where {|l| $l =~ '^_?[a-z0-9][a-z0-9._-]*$' }
+		| uniq
 	)
     # Casks live wherever the nix-darwin tree currently keeps homebrew. Naming
     # the file broke when darwin-system was split, so find the one that declares

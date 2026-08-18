@@ -1136,6 +1136,30 @@
 								"kind": "t-new",
 								"text": "新"
 							}
+						},
+						{
+							"name": "colima",
+							"desc": "Linux VM を立てて Docker を動かす。OrbStack の置き換え（macOS）"
+						},
+						{
+							"name": "docker-client",
+							"desc": "docker CLI。compose と buildx のプラグインを同梱している"
+						},
+						{
+							"name": "docker-credential-helpers",
+							"desc": "レジストリの認証情報を keychain に預ける"
+						},
+						{
+							"name": "terminal-notifier",
+							"desc": "通知センターに通知を出す。長い処理の完了を知らせるのに使う（macOS）"
+						},
+						{
+							"name": "_1password-cli",
+							"desc": "1Password の CLI（Linux のみ。macOS は nix-darwin の <code>programs._1password</code>）"
+						},
+						{
+							"name": "_1password-gui",
+							"desc": "1Password 本体（Linux のみ。macOS は cask）"
 						}
 					]
 				},
@@ -1523,7 +1547,7 @@
 						},
 						{
 							"name": "ghq-work",
-							"desc": "仕事用の ghq ルートで操作"
+							"desc": "仕事用の ghq。ルートは <code>~/ghq-work</code>。ここに置いたものが仕事の身元になる"
 						},
 						{
 							"name": "nx",
@@ -1568,6 +1592,18 @@
 						{
 							"name": "fish_greeting",
 							"desc": "起動時メッセージ（空）"
+						},
+						{
+							"name": "dlmv",
+							"desc": "ダウンロードを選んで、置き先を選んで移す。fzf が 2 回。<code>cd</code> は要らない"
+						},
+						{
+							"name": "gh",
+							"desc": "<code>gh</code> のラッパ。<code>~/ghq-work/</code> 配下では仕事アカウントのトークンに切り替える"
+						},
+						{
+							"name": "rm",
+							"desc": "<code>trash</code> があればそちらに差し替える。消さずにゴミ箱へ"
 						}
 					]
 				},
@@ -1615,10 +1651,6 @@
 						{
 							"name": "Stats",
 							"desc": "メニューバーの状態表示"
-						},
-						{
-							"name": "OrbStack",
-							"desc": "Docker / Linux VM"
 						},
 						{
 							"name": "Bruno",

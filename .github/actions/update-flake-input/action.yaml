@@ -76,10 +76,24 @@ runs:
         min_age_seconds=$((MIN_AGE_DAYS * 86400))
 
         # Get current revision before update
+        #
+        # The lock's node key is not always the input name. When more than one
+        # flake in the graph pulls the same repository, Nix keeps the extra
+        # copies under suffixed keys and the root's input may point at one of
+        # those — here `nixpkgs` resolves to `nixpkgs_2`, `home-manager` to
+        # `home-manager_2`, `treefmt-nix` to `treefmt-nix_3`. Reading
+        # .nodes.<input-name> therefore reads some other flake's copy: a
+        # different revision, of a different age. That fed the "already current"
+        # short-circuit and the downgrade guard below, so this configuration's
+        # three most important inputs were being compared against the wrong
+        # baseline. Resolve through root.inputs, which is what the root flake
+        # actually locked.
         current_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
-        current_rev=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.rev // \"unknown\"")
-        current_owner=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.owner // \"unknown\"")
-        current_repo=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.repo // \"unknown\"")
+        node=$(echo "$current_metadata" | jq -r ".locks.nodes.root.inputs.\"$INPUT_NAME\" | if type == \"string\" then . else \"$INPUT_NAME\" end")
+        echo "Lock node for $INPUT_NAME: $node"
+        current_rev=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$node\".locked.rev // \"unknown\"")
+        current_owner=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$node\".locked.owner // \"unknown\"")
+        current_repo=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$node\".locked.repo // \"unknown\"")
         echo "Current revision: $current_rev"
 
         # Function to get package versions from a flake
@@ -205,9 +219,9 @@ runs:
 
         # Get new revision info
         new_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
-        new_rev=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.rev // \"unknown\"")
-        new_owner=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.owner // \"unknown\"")
-        new_repo=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.repo // \"unknown\"")
+        new_rev=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.rev // \"unknown\"")
+        new_owner=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.owner // \"unknown\"")
+        new_repo=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.repo // \"unknown\"")
         echo "New revision: $new_rev"
 
         # Get new package versions for special inputs
@@ -260,7 +274,7 @@ runs:
         if [ -z "$target_rev" ] && [ "$SKIP_DELAY" = "false" ]; then
           echo "Verifying release age (minimum: $MIN_AGE_DAYS days)..."
 
-          last_modified=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$INPUT_NAME\".locked.lastModified // 0")
+          last_modified=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.lastModified // 0")
 
           if [ "$last_modified" != "0" ] && [ "$last_modified" != "null" ]; then
             current_time=$(date +%s)

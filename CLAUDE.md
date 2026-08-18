@@ -70,6 +70,29 @@ nh darwin switch --ask --no-nom
 - Use **Conventional Commits** for commit messages.
 - Commits are **SSH-signed** (`user.signingkey` / `gpg.format = ssh`, `commit.gpgSign = true`).
 
+### This repository is public
+
+Everything committed here is published, and that includes commit messages.
+Employment is not the subject of this repository, so keep it out of them.
+
+- Do not name employers, clients, internal repositories, organisations or work
+  account names in commit messages, comments or file contents. Write "the work
+  checkout", "the client organisation", "the work account" instead. Paths are
+  fine as `github.com/<org>/<repo>`.
+- The same goes for anything describing work: internal service names, ticket
+  IDs, customer-facing project names.
+- Work configuration deliberately lives outside this repository —
+  `~/.gitconfig.work` is untracked and holds the work identity, and the tooling
+  here reads it by path. **Do not make any of it declarative.** In a public
+  repository, declaring a value and publishing it are the same act.
+- Personal identity is already public and needs no such care.
+
+This was learned the hard way: commit messages written for reproducibility named
+a client, its repositories and the work account, and they were pushed before
+anyone noticed. Rewriting published history only half works, so the rule is to
+not write it in the first place. Explanations lose nothing by being generic —
+ten commit messages were rewritten without losing any of their reasoning.
+
 ## Applying Changes
 
 Editing a Nix file does not change the system until you switch. After modifying

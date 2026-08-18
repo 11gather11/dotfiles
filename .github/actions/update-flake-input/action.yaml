@@ -89,7 +89,15 @@ runs:
         # baseline. Resolve through root.inputs, which is what the root flake
         # actually locked.
         current_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
-        node=$(echo "$current_metadata" | jq -r ".locks.nodes.root.inputs.\"$INPUT_NAME\" | if type == \"string\" then . else \"$INPUT_NAME\" end")
+        resolve_node() {
+          # Resolve again for each metadata snapshot rather than reusing the
+          # first answer. Updating an input can change how many copies of a
+          # repository the graph holds, which renumbers the suffixed keys, so a
+          # node resolved before the update may name a different flake's copy
+          # after it.
+          jq -r ".locks.nodes.root.inputs.\"$INPUT_NAME\" | if type == \"string\" then . else \"$INPUT_NAME\" end"
+        }
+        node=$(echo "$current_metadata" | resolve_node)
         echo "Lock node for $INPUT_NAME: $node"
         current_rev=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$node\".locked.rev // \"unknown\"")
         current_owner=$(echo "$current_metadata" | jq -r ".locks.nodes.\"$node\".locked.owner // \"unknown\"")
@@ -219,9 +227,10 @@ runs:
 
         # Get new revision info
         new_metadata=$(nix flake metadata --json --no-write-lock-file 2>/dev/null)
-        new_rev=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.rev // \"unknown\"")
-        new_owner=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.owner // \"unknown\"")
-        new_repo=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.repo // \"unknown\"")
+        new_node=$(echo "$new_metadata" | resolve_node)
+        new_rev=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$new_node\".locked.rev // \"unknown\"")
+        new_owner=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$new_node\".locked.owner // \"unknown\"")
+        new_repo=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$new_node\".locked.repo // \"unknown\"")
         echo "New revision: $new_rev"
 
         # Get new package versions for special inputs
@@ -274,7 +283,7 @@ runs:
         if [ -z "$target_rev" ] && [ "$SKIP_DELAY" = "false" ]; then
           echo "Verifying release age (minimum: $MIN_AGE_DAYS days)..."
 
-          last_modified=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$node\".locked.lastModified // 0")
+          last_modified=$(echo "$new_metadata" | jq -r ".locks.nodes.\"$new_node\".locked.lastModified // 0")
 
           if [ "$last_modified" != "0" ] && [ "$last_modified" != "null" ]; then
             current_time=$(date +%s)

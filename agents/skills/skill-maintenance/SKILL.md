@@ -31,8 +31,14 @@ line count, name/description lengths, and references/ + scripts/ presence,
 flagging hard violations with `!`:
 
 ```bash
-agents/skills/skill-maintenance/scripts/audit.sh
+agents/skills/skill-maintenance/scripts/audit.sh              # agents/skills
+agents/skills/skill-maintenance/scripts/audit.sh .claude/skills
 ```
+
+Both directories hold skills, and this skill audits all of them. `agents/skills/`
+is the shared collection deployed to every agent; `.claude/skills/` holds the
+ones scoped to this repository. The script defaults to the first, so the second
+has to be named — audit both every time.
 
 **2. Per-skill audit.** For each skill the script flagged (and spot-check the
 rest), apply the criteria in
@@ -45,7 +51,7 @@ do. Compare skills that touch the same topic and decide, per the
 by name or **merge** them. Find candidates with:
 
 ```bash
-rg -N '^description:' agents/skills/*/SKILL.md   # overlapping triggers
+rg -N '^description:' agents/skills/*/SKILL.md .claude/skills/*/SKILL.md
 ```
 
 **4. References pass.** Confirm each skill points at sources of truth — docs URLs,

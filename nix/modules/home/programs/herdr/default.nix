@@ -46,6 +46,9 @@ let
   # produced already in place — see nix/packages/herdr-reviewr.
   plugins = [
     pkgs.herdr-reviewr
+    pkgs.herdr-tab-smart-rename
+    pkgs.herdr-automatic-rename
+    pkgs.herdr-window-title-sync
   ];
 
   herdr = lib.getExe pkgs.llm-agents.herdr;
@@ -58,6 +61,19 @@ in
     # itself from the Settings TUI, and the rest of this directory is runtime
     # state it owns outright (session.json, sockets, logs, plugins.json — the
     # last written by `herdr plugin install`). Only this one file is managed.
+    # herdr-automatic-rename reads its settings from here rather than the plugin
+    # root, which is read-only in the store.
+    #
+    # NAME_TABS is off deliberately. Naming a tab after its foreground process
+    # assumes one tab is one job; every pane in these tabs is an agent, so the
+    # names would all read `claude` and flip to whichever pane has focus. The
+    # numbering is the half that survives that: it labels each tab with the
+    # digit that jumps to it, and does not depend on what is running inside.
+    file.".config/herdr/plugins/config/herdr-automatic-rename/config.sh".text = ''
+      NAME_TABS=0
+      AUTO_INDEX=1
+    '';
+
     activation.writeHerdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p "${herdrConfigDir}"
       cp --no-preserve=mode,ownership ${tomlFormat.generate "herdr-config.toml" settings} "${herdrConfigDir}/config.toml"

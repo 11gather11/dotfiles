@@ -6,6 +6,7 @@ let
     ./git-now.nix
     ./git-wtpr.nix
     ./herdr-reviewr.nix
+    ./herdr-plugins.nix
   ];
 
   # Apply each overlay and merge results

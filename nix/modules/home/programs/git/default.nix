@@ -152,7 +152,7 @@ in
     # matches the raw stored URL, and the two work checkouts store different
     # forms — `git@github-work:…` and `ssh://git@github.com/…` — so every host
     # and every URL spelling has to be listed, and the organisation with them.
-    # bx-components silently took the personal identity under that scheme. The
+    # one of them silently took the personal identity under that scheme. The
     # location condition had never been the broken part: it kept resolving
     # correctly for six months while the work root was being written to the
     # wrong place.

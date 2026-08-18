@@ -3,12 +3,10 @@ if [ -f ~/.bashrc ]; then
 fi
 
 # Enter the project dev environment in login shells spawned by agents, which
-# never reach the interactive direnv hook.
+# never reach the interactive direnv hook. zsh does not need a branch here —
+# zsh/zshenv runs for every zsh invocation, interactive or not, and does this
+# already; this file is only reached from zshrc, which is interactive-only.
 if command -v direnv >/dev/null 2>&1; then
-    if [ -n "${ZSH_VERSION:-}" ]; then
-        eval "$(direnv export zsh)"
-    else
-        eval "$(direnv export bash)"
-    fi
+    eval "$(direnv export bash)"
 fi
 

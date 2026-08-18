@@ -455,7 +455,6 @@
           packages = {
             inherit (localPkgs)
               git-now
-              git-wtpr
               ;
           };
 

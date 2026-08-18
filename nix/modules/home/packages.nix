@@ -11,8 +11,7 @@
     # VCS
     git
     git-now
-    git-wt
-    git-wtpr
+    worktrunk
     git-lfs
     ghq
     lazygit

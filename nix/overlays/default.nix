@@ -4,7 +4,6 @@ let
   overlayFiles = [
     ./claude-code.nix
     ./git-now.nix
-    ./git-wtpr.nix
     ./herdr-reviewr.nix
     ./herdr-plugins.nix
   ];

@@ -136,9 +136,6 @@ in
         autoupdate = true;
       };
 
-      wt = {
-        remover = pkgs.lib.getExe pkgs.trash-cli;
-      };
     };
 
     # Work-specific configuration (manually managed)

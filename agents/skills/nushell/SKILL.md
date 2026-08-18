@@ -64,5 +64,5 @@ Also:
 
 - CI workflow steps run Nushell via `shell: nu {0}` with `hustcer/setup-nu`. See `.github/workflows/_update-flake-reusable.yaml` for the established style.
 - Pin the interpreter. Workflows pass an explicit `version:` to `setup-nu`; keep doing that, or a Nushell release will break a script that never changed.
-- Standalone scripts live alongside their consumer, e.g. `nix/packages/git-wtpr/git-wtpr.nu`.
+- Standalone scripts live alongside their consumer, e.g. `nix/packages/git-now/git-now.nu`.
 - Neither `nu` nor `nufmt` is on the interactive PATH; use the `missing-tools` skill to reach them.

@@ -55,12 +55,11 @@ in
         fsmonitor = false;
       };
 
-      ghq = {
-        root = [
-          "~/.go/src"
-          "~/ghq"
-        ];
-      };
+      # One root for everything. Work repositories are told apart by the host
+      # in their clone URL — `ghq get git@github-work:…` lands them under
+      # ghq/github-work/ — rather than by living beneath a second root, which
+      # needed a wrapper to set GHQ_ROOT and was where the tilde bug lived.
+      ghq.root = [ "~/ghq" ];
 
       color.ui = "auto";
 
@@ -137,11 +136,32 @@ in
 
     };
 
-    # Work-specific configuration (manually managed)
-    # Create ~/.gitconfig.work for work-related settings
+    # ~/.gitconfig.work holds the work identity, credential helper and signing
+    # key. It is deliberately untracked, so only the condition that selects it
+    # is configured here.
+    #
+    # Selected by the repository's remote, not by where it sits on disk. A
+    # gitdir condition makes the identity depend on the path, which is why a
+    # second ghq root existed at all; it also kept reporting the right identity
+    # while that root was being written to the wrong place, so the breakage
+    # stayed invisible for six months.
+    #
+    # Two patterns because one cannot cover both URL forms: `*` does not cross a
+    # `/`, so the ssh form (`git@host:owner/repo`) and the https form
+    # (`https://host/owner/repo`) need separate globs. Anchoring on the owner
+    # rather than the host is what closes the real hazard — a repository cloned
+    # as git@github.com:abby-develop/… would otherwise take the personal
+    # identity while insteadOf silently pushed it to the work account, and
+    # `git remote -v` prints the rewritten URL, so nothing would look wrong.
+    #
+    # A second work organisation means a second pair of lines.
     includes = [
       {
-        condition = "gitdir:~/work/";
+        condition = "hasconfig:remote.*.url:git@github*:abby-develop/**";
+        path = "~/.gitconfig.work";
+      }
+      {
+        condition = "hasconfig:remote.*.url:https://github*/abby-develop/**";
         path = "~/.gitconfig.work";
       }
       { path = "${aliasesFile}"; }

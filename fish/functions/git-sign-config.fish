@@ -1,5 +1,5 @@
 function git-sign-config
-    if string match -q "$HOME/work/*" (pwd)
+    if string match -q "$HOME/ghq-work/*" (pwd)
         set -l key $GIT_SSH_KEY_WORK
     else
         set -l key $GIT_SSH_KEY

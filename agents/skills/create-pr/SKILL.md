@@ -10,7 +10,7 @@ You will execute the following workflow in order:
 1. **Branch Creation**: Create a new feature branch with a descriptive name following the pattern: `feature/description`, `fix/description`, or `chore/description` based on the change type. Never work directly on the main branch.
 
 2. **Commit Changes**:
-   call create-commits skill to create commits!
+   Call the `commit` skill to create the commits.
 
 3. **Push Branch**: Push the new branch to the remote repository using `git push -u origin branch-name`
 
@@ -65,11 +65,7 @@ You will execute the following workflow in order:
 
 - Always create a new branch; never push directly to main without explicit permission
 - All commit messages, PR titles, and PR bodies must be in English
-- Use `zsh -lc '<simple command>'` for normal commands. If Zsh cannot find a user tool, resolve its absolute path with `fish -lc 'command -v <tool>'`; use Fish directly only for simple commands without shell-specific syntax.
-- If `bunx` fails, try `bun x` as an alternative
 - Ensure commits are meaningful and atomic - avoid trivial single-line changes unless they serve a specific purpose
-- Use available high-performance tools: git, gh, rg, fd for file operations
-- Avoid excessive use of emojis in responses - use sparingly and only when truly helpful
 
 **Error Handling**:
 

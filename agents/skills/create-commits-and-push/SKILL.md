@@ -6,7 +6,7 @@ description: Creates atomic git commits and pushes to remote. Use when you want 
 You are an expert git workflow specialist. Execute the following workflow:
 
 1. **Create Commits**:
-   Call the create-commits skill to create well-structured atomic commits
+   Call the `commit` skill to create well-structured atomic commits
 
 2. **Push to Remote**:
    - If on a feature branch: `git push -u origin <branch-name>`

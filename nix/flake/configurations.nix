@@ -8,29 +8,21 @@
   ...
 }:
 let
-  inherit (inputs)
-    nix-darwin
-    home-manager
-    nix-index-database
-    agent-skills
-    ;
+  mkSystem = import ../lib/mk-system.nix {
+    inherit
+      inputs
+      username
+      mkPkgs
+      homeSpecialArgs
+      ;
+  };
 
-  # Helper to create Linux home configuration
   mkLinuxHomeConfig =
-    linuxSystem:
-    home-manager.lib.homeManagerConfiguration {
-      pkgs = mkPkgs linuxSystem;
-      extraSpecialArgs = homeSpecialArgs linuxHomedir;
-      modules = [
-        {
-          home.username = username;
-          home.homeDirectory = linuxHomedir;
-        }
-        nix-index-database.homeModules.nix-index
-        agent-skills.homeManagerModules.default
-        ../modules/home
-        ../modules/linux
-      ];
+    system:
+    mkSystem {
+      inherit system;
+      homedir = linuxHomedir;
+      homeModules = [ ../modules/linux ];
     };
 
   linuxHomeConfigurations = {
@@ -40,37 +32,12 @@ let
 in
 {
   # macOS configuration with nix-darwin
-  flake.darwinConfigurations.${username} = nix-darwin.lib.darwinSystem {
-    specialArgs = {
-      inherit inputs username;
-      homedir = darwinHomedir;
-    };
-    modules = [
-      # nixpkgs.pkgs rather than nixpkgs.hostPlatform: the overlays live in
-      # mkPkgs, and setting the instantiation here is what lets system.nix be
-      # listed as a plain module instead of being called with a hand-built pkgs.
-      { nixpkgs.pkgs = mkPkgs "aarch64-darwin"; }
-
-      ../modules/darwin/system.nix
-
-      nix-index-database.darwinModules.nix-index
-
-      home-manager.darwinModules.home-manager
-      {
-        home-manager = {
-          useGlobalPkgs = false;
-          useUserPackages = true;
-          extraSpecialArgs = homeSpecialArgs darwinHomedir // {
-            pkgs = mkPkgs "aarch64-darwin";
-          };
-          users.${username}.imports = [
-            agent-skills.homeManagerModules.default
-            ../modules/home
-            ../modules/darwin
-          ];
-        };
-      }
-    ];
+  flake.darwinConfigurations.${username} = mkSystem {
+    system = "aarch64-darwin";
+    homedir = darwinHomedir;
+    darwin = true;
+    homeModules = [ ../modules/darwin ];
+    systemModules = [ ../modules/darwin/system.nix ];
   };
 
   # Linux configurations with standalone Home Manager

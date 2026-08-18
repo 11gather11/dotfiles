@@ -24,4 +24,16 @@ in
     rev = "b07f1140b7308d66487b2f4be546c0c7db065569";
     hash = "sha256-NyRmPI7Ja0NGVzKpMOYWXdK9rISMD5xT27XCW2z6DAw=";
   };
+
+  # First-party: same author as herdr itself. Renders a real Chromium view in a
+  # pane over CDP, so an agent's browser work is visible and steerable instead
+  # of happening headless behind a screenshot. No runtime dependencies — its
+  # package.json declares none — so fetching the source is the whole build.
+  herdr-browser = fetch {
+    owner = "ogulcancelik";
+    repo = "herdr-browser";
+    # No tags published; pinned to the commit read when this was written.
+    rev = "be6888b71cf4eb5939ee79a746bd1a1c22ade046";
+    hash = "sha256-4Dlo4YQpLPJKEPuXSS4EO5LMCmUn/tezEiIqlFXhCxo=";
+  };
 }

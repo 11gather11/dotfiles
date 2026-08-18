@@ -26,6 +26,10 @@ let
       prompt_new_tab_name = false;
     };
 
+    # herdr-browser draws Chromium into a pane through the Kitty graphics
+    # protocol, which herdr keeps behind this flag. Ghostty speaks it.
+    experimental.kitty_graphics = true;
+
     # The plugin ships its actions and registers them on link; only the key is
     # left to the user, so it belongs here rather than in the package.
     #
@@ -51,6 +55,7 @@ let
   # produced already in place — see nix/packages/herdr-reviewr.
   plugins = [
     pkgs.herdr-reviewr
+    pkgs.herdr-browser
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
   ];

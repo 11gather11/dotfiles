@@ -5,8 +5,23 @@
   ...
 }:
 let
-  deadnix = lib.getExe pkgs.deadnix;
-  statix = lib.getExe pkgs.statix;
+  linters = import ../../lib/linters.nix;
+
+  # Build the lint commands from the shared list rather than writing them out.
+  # `files` linters take the staged paths; `tree` linters take a single target
+  # and read the whole checkout. Unquoted $STAGED_NIX on purpose — it is a
+  # newline-separated list the shell has to split.
+  lintCommands = lib.concatMapStringsSep "\n  " (
+    l:
+    let
+      exe = lib.getExe (l.package pkgs);
+      args = lib.concatStringsSep " " l.args;
+      target = if l.scope == "files" then "$STAGED_NIX" else ".";
+    in
+    "${exe} ${args} ${target} || lint_result=$?"
+  ) linters;
+
+  lintNames = lib.concatStringsSep "/" (map (l: l.name) linters);
 in
 {
   # Install git hooks via Home Manager activation
@@ -14,12 +29,12 @@ in
   # pre-commit formats and lints; the post-* hooks re-apply the configuration
   # when a change to it lands in the working tree.
   #
-  # The same three tools are declared as flake checks in nix/flake/git-hooks.nix,
-  # so CI runs them too. The two do not share an implementation: cachix's
-  # git-hooks.nix installs its hook through `pre-commit`, and putting that in the
-  # system closure costs 1.5 GiB — Python 3.14 and its module tree, none of it
-  # already present — to install a shell script. Keep both lists in step by hand;
-  # they are three entries long.
+  # The same tools are declared as flake checks in nix/flake/git-hooks.nix, so CI
+  # runs them too. The two do not share an implementation: cachix's git-hooks.nix
+  # installs its hook through `pre-commit`, and putting that in the system
+  # closure costs 1.5 GiB — Python 3.14 and its module tree, none of it already
+  # present — to install a shell script. They do share the list: both read
+  # nix/lib/linters.nix, so adding a linter is one edit, not two that drift.
   home.activation.installGitHooks = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         DOTFILES_DIR="${dotfilesDir}"
         if [ -d "$DOTFILES_DIR/.git" ]; then
@@ -58,8 +73,7 @@ in
     if [ -n "$STAGED_NIX" ]; then
       echo "Linting staged Nix files..."
       # shellcheck disable=SC2086
-      ${deadnix} --fail $STAGED_NIX || lint_result=$?
-      ${statix} check . || lint_result=$?
+      ${lintCommands}
     fi
 
     # Re-add originally staged files (in case treefmt modified them)
@@ -80,7 +94,7 @@ in
     fi
 
     if [ $lint_result -ne 0 ]; then
-      echo "deadnix/statix found problems"
+      echo "${lintNames} found problems"
       exit 1
     fi
 

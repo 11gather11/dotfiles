@@ -52,6 +52,11 @@ let
     inherit inputs helpers local-skills;
     dotfilesDir = "${homedir}/ghq/github.com/11gather11/dotfiles";
   };
+  # local-skills has exactly one consumer (home/agent-skills.nix). It stays in
+  # the shared set rather than being threaded to that one module because
+  # threading single values by hand is what this refactor removed — but it is
+  # the one entry here that is not genuinely repo-wide, so if a second thing
+  # ever needs a fileset, give them a namespace instead of two loose names.
 in
 {
   _module.args = {

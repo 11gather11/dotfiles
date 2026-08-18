@@ -34,6 +34,11 @@ one is applied to the wrong configuration. Put a module where its options live:
 `home.*` and `programs.*` under `home*/`, everything nix-darwin owns under
 `darwin-system/`.
 
+For the same reason, **any `.nix` file left under `nix/modules/` becomes part of
+the configuration** — a half-written module, a file kept "just in case", a
+scratch copy. Prefix the filename with `_` to have `import-tree` skip it, or
+keep it outside `nix/modules/`.
+
 ### Initial Setup
 
 #### macOS

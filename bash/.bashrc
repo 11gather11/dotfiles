@@ -52,9 +52,13 @@ fi
 #
 # Drop any existing occurrence before prepending so repeated sourcing does not
 # grow PATH.
-HM_BIN="$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin"
+# /etc/profiles/per-user is where useUserPackages puts the profile, so it is the
+# supported path. The gcroots one is home-manager's own bookkeeping — a symlink
+# into a home-manager-generation store path — and is here only for standalone
+# home-manager, which has no /etc/profiles.
+HM_BIN="/etc/profiles/per-user/$USER/bin"
 if [ ! -d "$HM_BIN" ]; then
-  HM_BIN="/etc/profiles/per-user/$USER/bin"
+  HM_BIN="$HOME/.local/state/home-manager/gcroots/current-home/home-path/bin"
 fi
 if [ -d "$HM_BIN" ]; then
   PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$HM_BIN" | paste -sd: -)"

@@ -1,6 +1,6 @@
 {
   perSystem =
-    { config, ... }:
+    { config, lib, ... }:
     {
       pre-commit = {
         # These hooks run as a flake check, which is what makes them run at all:
@@ -20,9 +20,13 @@
             enable = true;
             package = config.treefmt.build.wrapper;
           };
-          deadnix.enable = true;
-          statix.enable = true;
-        };
+        }
+        # The linter list lives in nix/lib/linters.nix, which the home-manager
+        # hook reads too. git-hooks.nix ships a ready-made hook for each of
+        # these, so here the name is all that is needed.
+        // lib.genAttrs (map (l: l.name) (import ../lib/linters.nix)) (_: {
+          enable = true;
+        });
       };
     };
 }

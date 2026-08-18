@@ -122,7 +122,7 @@
 						},
 						{
 							"name": "gwt / gwtpr",
-							"desc": "worktree を作って移動 / <b>PR の worktree を開く</b>（git-wt, git-wtpr）",
+							"desc": "worktree を作って移動、PR の worktree を開く（<code>wt switch</code> / <code>wt switch pr:123</code>）",
 							"tag": {
 								"kind": "t-new",
 								"text": "skill あり"
@@ -1026,18 +1026,6 @@
 							"desc": "軽量な一時コミットを作る"
 						},
 						{
-							"name": "git-wt",
-							"desc": "worktree のライフサイクル管理"
-						},
-						{
-							"name": "git-wtpr",
-							"desc": "PR の worktree を開く／消す",
-							"tag": {
-								"kind": "t-new",
-								"text": "自前"
-							}
-						},
-						{
 							"name": "git-lfs",
 							"desc": "大容量ファイルの管理"
 						},
@@ -1132,6 +1120,14 @@
 						{
 							"name": "nh",
 							"desc": "Nix ヘルパー。週次で自動クリーン",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
+						},
+						{
+							"name": "worktrunk",
+							"desc": "git worktree 管理。<code>wt switch pr:123</code> で PR を開く",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -1252,6 +1248,14 @@
 						{
 							"name": "agent-browser",
 							"desc": "エージェント用ブラウザ操作"
+						},
+						{
+							"name": "tgrab",
+							"desc": "X / Bluesky / YouTube の本文と字幕を取得。使い方は <code>tgrab --help</code>",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
 						}
 					]
 				},
@@ -1299,14 +1303,6 @@
 						{
 							"name": "tdd",
 							"desc": "探索ループと Red-Green-Refactor"
-						},
-						{
-							"name": "git-wt",
-							"desc": "worktree の扱い方"
-						},
-						{
-							"name": "git-wtpr",
-							"desc": "PR worktree の扱い方"
 						},
 						{
 							"name": "missing-tools",
@@ -1392,7 +1388,16 @@
 					"note": "<code>herdr plugin install</code> は使わず、nix が固定したディレクトリを <code>plugin link</code> で登録している。宣言から外すと次の switch で自動的に解除される。",
 					"items": [
 						{
-							"name": "reviewr",
+							"name": "herdr-browser",
+							"desc": "Chromium をペインに描画し CDP で操作。エージェントのブラウザ作業が見える",
+							"expand": "nix/overlays/herdr-plugins.nix",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
+						},
+						{
+							"name": "herdr-reviewr",
 							"desc": "エージェントの差分をレビューし、行コメントを送り返す（<code>prefix+e</code>）",
 							"expand": "nix/packages/herdr-reviewr",
 							"tag": {
@@ -1401,7 +1406,7 @@
 							}
 						},
 						{
-							"name": "automatic-rename",
+							"name": "herdr-automatic-rename",
 							"desc": "タブをプロセス名で命名し、<code>[1] [2]</code> のジャンプ番号を付ける",
 							"tag": {
 								"kind": "t-new",
@@ -1409,7 +1414,7 @@
 							}
 						},
 						{
-							"name": "window-title-sync",
+							"name": "herdr-window-title-sync",
 							"desc": "herdr の状態を Ghostty のウィンドウタイトルに反映",
 							"tag": {
 								"kind": "t-new",

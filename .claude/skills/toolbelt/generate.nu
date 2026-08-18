@@ -56,7 +56,6 @@ def installed [root: string] {
         | flatten
         | get -o name
         | default []
-        | each {|n| $n | str replace 'herdr-' '' }
         | uniq
     )
     # fish plugins, which live in their own module and were invisible to every

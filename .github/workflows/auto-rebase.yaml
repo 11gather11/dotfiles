@@ -8,13 +8,17 @@ on:
 
 concurrency:
   group: auto-rebase
-  cancel-in-progress: false
+  # Debounce, unlike the other workflows here. A burst of commits to main only
+  # needs one rebase — the last one — and each run force-pushes every stale
+  # branch and starts a full CI run on each of their PRs. Cancelling is safe
+  # because the loop handles one PR at a time and pushes it before moving on, so
+  # an interrupted run leaves finished branches finished and the next run picks
+  # up whatever is still behind.
+  cancel-in-progress: true
 
 jobs:
   rebase-prs:
     runs-on: ubuntu-24.04-arm
-    # Run on: 1) merge commits (auto-merge), or 2) manual trigger
-    if: github.event_name == 'workflow_dispatch' || github.event.head_commit.committer.name == 'GitHub'
     steps:
       - name: Checkout repository (for local actions)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

@@ -46,6 +46,36 @@ def installed [root: string] {
 		| get name | path basename
 		| each {|f| $f | str replace '.fish' '' }
 	)
+    # Flake inputs. tgrab arrives only this way — not through packages.nix, not
+    # as a programs.* module — so nothing else here could see it, and it sat
+    # undocumented until someone read the page against the config by hand.
+    #
+    # The exclusions are the plumbing: package sets, the module systems, the
+    # formatter and hook runners. They are how this repository is built rather
+    # than things it installs, and listing them on a page about what is on this
+    # machine would bury the entries that answer that.
+    let infrastructure = [
+        nixpkgs
+        home-manager
+        nix-darwin
+        flake-parts
+        treefmt-nix
+        git-hooks
+        agent-skills
+        nix-index-database
+        nix-bun
+        nix-claude-code
+        llm-agents
+    ]
+    let flake_inputs = (
+        open --raw $"($root)/flake.lock"
+        | from json
+        | get nodes.root.inputs
+        | columns
+        | where {|n| $n not-in $infrastructure }
+        # The page names the tool, not the input: ast-grep-skill ships `ast-grep`.
+        | each {|n| $n | str replace --regex '-skill$' '' }
+    )
     # herdr plugins, declared in the module as a list of packages. Same blind
     # spot the fish plugins had: nothing here read that file, so three plugins
     # could be added without the page noticing.
@@ -92,6 +122,7 @@ def installed [root: string] {
         modules: $modules
         fish_plugins: $fish_plugins
         herdr_plugins: $herdr_plugins
+        flake_inputs: $flake_inputs
         skills: $skills
         functions: $functions
         abbr_count: $abbrs
@@ -222,6 +253,7 @@ def drift [root: string, content: record] {
 			...($have.modules | each {|n| {kind: "module", name: $n}})
 			...($have.fish_plugins | each {|n| {kind: "fish-plugin", name: $n}})
 			...($have.herdr_plugins | each {|n| {kind: "herdr-plugin", name: $n}})
+			...($have.flake_inputs | each {|n| {kind: "flake-input", name: $n}})
 			...($have.skills | each {|n| {kind: "skill", name: $n}})
 		]
 		| where {|r| not (is-documented $r.name $hay) }
@@ -235,6 +267,7 @@ def drift [root: string, content: record] {
             modules: ($have.modules | length)
             fish_plugins: ($have.fish_plugins | length)
             herdr_plugins: ($have.herdr_plugins | length)
+            flake_inputs: ($have.flake_inputs | length)
             skills: ($have.skills | length)
             functions: ($have.functions | length)
             abbrs: $have.abbr_count

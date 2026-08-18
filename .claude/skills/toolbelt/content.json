@@ -571,11 +571,15 @@
 						},
 						{
 							"name": "GUI アプリを足す・消す",
-							"desc": "nix/modules/darwin/system.nix の <code>homebrew.casks</code>"
+							"desc": "nix/modules/darwin-system/homebrew.nix"
 						},
 						{
 							"name": "AI エージェントを足す",
 							"desc": "nix/modules/home/programs/ai-tools.nix"
+						},
+						{
+							"name": "モジュールを足す",
+							"desc": "nix/modules/<code>home</code> / <code>home-darwin</code> / <code>home-linux</code> / <code>darwin-system</code> のどれかに <code>.nix</code> を置くだけ。import-tree が拾うので一覧の編集は要らない"
 						},
 						{
 							"name": "略語・エイリアス",
@@ -591,7 +595,7 @@
 						},
 						{
 							"name": "macOS の挙動",
-							"desc": "nix/modules/darwin/system.nix の <code>system.defaults</code>（Dock・トラックパッド・Finder）"
+							"desc": "nix/modules/darwin-system/defaults.nix（Dock・トラックパッド・Finder）"
 						},
 						{
 							"name": "Neovim",
@@ -1329,16 +1333,16 @@
 							}
 						},
 						{
+							"name": "toolbelt",
+							"desc": "このページ自体を作り直す。設定と突き合わせて記載漏れを報告する"
+						},
+						{
 							"name": "empirical-prompt-tuning",
 							"desc": "指示文を実測で改善"
 						},
 						{
-							"name": "remaining-todo",
-							"desc": "残作業の引き継ぎ"
-						},
-						{
 							"name": "session-summary-japanese",
-							"desc": "セッションの日本語要約"
+							"desc": "セッションの日本語要約。残作業の引き継ぎもここに含む"
 						},
 						{
 							"name": "react-server-components",
@@ -1351,14 +1355,6 @@
 						{
 							"name": "ast-grep",
 							"desc": "構文検索",
-							"tag": {
-								"kind": "t-cfg",
-								"text": "外部"
-							}
-						},
-						{
-							"name": "tgrab",
-							"desc": "X / Bluesky / YouTube の本文取得",
 							"tag": {
 								"kind": "t-cfg",
 								"text": "外部"
@@ -1927,6 +1923,10 @@
 						{
 							"name": "nix-index-database",
 							"desc": "<code>command-not-found</code> と <code>,</code> の索引（<code>nix-community/nix-index-database</code>）"
+						},
+						{
+							"name": "import-tree",
+							"desc": "ディレクトリ配下の <code>.nix</code> を全部モジュールとして読み込む。<code>nix/modules/</code> に一覧ファイルが要らないのはこれのため（<code>denful/import-tree</code>）"
 						}
 					]
 				}

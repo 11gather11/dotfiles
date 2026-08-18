@@ -25,7 +25,6 @@
       "hhkb"
       "karabiner-elements"
       "microsoft-teams"
-      "orbstack"
       "raycast"
       "shottr"
       "slack"

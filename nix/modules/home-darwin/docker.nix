@@ -10,7 +10,7 @@ let
   settings = {
     auths = { };
     credsStore = "osxkeychain";
-    currentContext = "orbstack";
+    currentContext = "colima";
     experimental = "enabled";
     stackOrchestrator = "swarm";
   };
@@ -18,6 +18,14 @@ let
   dockerConfigDir = "${config.home.homeDirectory}/.docker";
 in
 {
+  # docker-client carries the compose and buildx plugins in DOCKER_CLI_PLUGIN_DIRS,
+  # so `docker compose` and `docker buildx` work without packaging them separately
+  home.packages = with pkgs; [
+    docker-client
+    docker-credential-helpers
+    lazydocker
+  ];
+
   # `docker context use` replaces config.json by renaming a temp file over it,
   # which fails with EXDEV when the path is a symlink into the store. Copying
   # leaves the file writable; each switch resets it to the values above.

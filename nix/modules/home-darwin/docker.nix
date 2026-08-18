@@ -11,8 +11,6 @@ let
     auths = { };
     credsStore = "osxkeychain";
     currentContext = "colima";
-    experimental = "enabled";
-    stackOrchestrator = "swarm";
   };
 
   dockerConfigDir = "${config.home.homeDirectory}/.docker";

@@ -7,7 +7,7 @@
   dotfilesDir,
   ast-grep-skill,
   agent-browser-skill,
-  tgrab-skill,
+  tgrab,
   local-skills,
   # system,
   ...
@@ -24,7 +24,7 @@
         lib
         ast-grep-skill
         agent-browser-skill
-        tgrab-skill
+        tgrab
         local-skills
         config
         ;
@@ -48,6 +48,7 @@
         dotfilesDir
         helpers
         fish-na
+        tgrab
         ;
     })
 

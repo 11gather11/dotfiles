@@ -9,6 +9,15 @@ When fetching web content, try methods in this order. Move to the next if the cu
 
 ## Social Media Posts & YouTube Transcripts (tgrab)
 
-For X/Twitter, Bluesky, and YouTube, use the `/tgrab` skill.
+These need a browser or a login, so the fetch order above stalls on them. Run
+`tgrab <url>` instead — it detects the service from the URL and prints the text.
 
-See the skill for full usage details (supported URL patterns, language options, output format).
+Reach for it before the browser tools, not after: it answers in one call what
+step 3 or 4 spends a session on.
+
+    tgrab https://x.com/<user>/status/<id>
+    tgrab -l ja https://youtu.be/<id>          # transcript language
+
+`tgrab --help` carries the full contract — every supported URL pattern and
+option. It used to ship an agent skill; upstream dropped that in favour of the
+help text, so read the help rather than looking for a skill.

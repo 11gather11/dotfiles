@@ -82,9 +82,11 @@
       flake = false;
     };
 
-    tgrab-skill = {
+    # A flake now, not a source tree: the skill it used to ship was dropped
+    # upstream and the CLI is what is consumed instead.
+    tgrab = {
       url = "github:ryoppippi/tgrab";
-      flake = false;
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
   };
@@ -106,7 +108,7 @@
       agent-skills,
       ast-grep-skill,
       agent-browser-skill,
-      tgrab-skill,
+      tgrab,
       ...
     }:
     let
@@ -174,7 +176,7 @@
                       helpers
                       ast-grep-skill
                       agent-browser-skill
-                      tgrab-skill
+                      tgrab
                       local-skills
                       ;
                     dotfilesDir = "${linuxHomedir}/ghq/github.com/11gather11/dotfiles";
@@ -518,7 +520,7 @@
                             helpers
                             ast-grep-skill
                             agent-browser-skill
-                            tgrab-skill
+                            tgrab
                             local-skills
                             ;
                           dotfilesDir = "${darwinHomedir}/ghq/github.com/11gather11/dotfiles";

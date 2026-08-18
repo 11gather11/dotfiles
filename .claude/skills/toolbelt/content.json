@@ -421,7 +421,7 @@
 						},
 						{
 							"name": "GitHub 連携",
-							"desc": "<b>gh</b> ＋拡張 6 個（<code>gh pcr</code> で PR 作成、<code>ghp</code> でブランチ掃除）"
+							"desc": "<b>gh</b> ＋拡張 5 個（<code>gh pcr</code> で PR 作成、<code>ghp</code> でブランチ掃除）"
 						},
 						{
 							"name": "リモート開発",
@@ -1167,8 +1167,8 @@
 						},
 						{
 							"name": "gh",
-							"desc": "GitHub CLI＋拡張 6 個",
-							"expand": "gh-markdown-preview / gh-dash / gh-actions-cache / gh-poi / gh-notify / gh-do"
+							"desc": "GitHub CLI＋拡張 5 個",
+							"expand": "gh-markdown-preview / gh-dash / gh-poi / gh-notify / gh-do"
 						},
 						{
 							"name": "gh-nix",

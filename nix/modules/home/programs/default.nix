@@ -5,12 +5,15 @@
   dotfilesDir,
   helpers,
   fish-na,
+  tgrab,
   ...
 }:
 {
   imports = [
     # AI tools
-    ./ai-tools.nix
+    (import ./ai-tools.nix {
+      inherit pkgs tgrab;
+    })
 
     # Fish shell plugin configuration
     (import ./fish {

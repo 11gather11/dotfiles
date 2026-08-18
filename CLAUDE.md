@@ -44,7 +44,7 @@ nh darwin switch --ask --no-nom
 │       ├── home/          # home-manager, both platforms
 │       ├── home-darwin/   # home-manager, macOS only
 │       ├── home-linux/    # home-manager, Linux only
-│       └── darwin-system/ # nix-darwin system modules
+│       └── darwin-system/ # nix-darwin system modules（core / defaults / homebrew …）
 ├── fish/            # Fish shell config
 ├── bash/            # Bash config
 ├── zsh/             # Zsh config

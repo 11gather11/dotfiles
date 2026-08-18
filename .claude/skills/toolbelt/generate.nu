@@ -237,8 +237,13 @@ def stale [root: string, content: record] {
 
 def drift [root: string, content: record] {
     let have = (installed $root)
+    # Tabs marked `historical` describe what is *not* installed. Their names
+    # must not count as documentation: a tool listed as removed would otherwise
+    # read as described the day it is installed again, and drift would go quiet
+    # about exactly the change worth noticing.
     let hay = (
 		$content.tabs
+		| where {|t| ($t | get -o historical) != true }
 		| each {|t| $t.sections | each {|s| $s.items | each {|i| $"($i.name) ($i.desc)" } } }
 		| flatten | flatten
 		| str join ' '

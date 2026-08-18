@@ -1931,6 +1931,106 @@
 					]
 				}
 			]
+		},
+		{
+			"id": "gone",
+			"label": "外したもの",
+			"historical": true,
+			"lede": "一度は入れて、外したもの。「なぜ無いのか」を毎回調べ直さないための記録で、ここに載っているものは検討済みという意味になる。同じ役割の代わりがあるものは、その名前を添えてある。",
+			"sections": [
+				{
+					"title": "AI エージェント",
+					"note": "どれも動きはした。外した理由は品質ではなく、<b>Claude Code と Codex の 2 つで足りていて、3 つ目を開く手が無かった</b>こと。",
+					"items": [
+						{
+							"name": "opencode",
+							"desc": "OSS のコーディングエージェント。使っていない",
+							"expand": "→ claude / codex"
+						},
+						{
+							"name": "cursor-agent",
+							"desc": "Cursor の CLI 版。使っていない",
+							"expand": "→ claude / codex"
+						},
+						{
+							"name": "copilot-cli",
+							"desc": "GitHub Copilot の CLI。使っていない",
+							"expand": "→ claude / codex"
+						},
+						{
+							"name": "coderabbit-cli",
+							"desc": "AI コードレビュー。使っていない",
+							"expand": "→ codex-review スキル"
+						},
+						{
+							"name": "rtk",
+							"desc": "エージェント向けのリポジトリ要約ツール。使っていない",
+							"expand": "→ claude / codex"
+						}
+					]
+				},
+				{
+					"title": "Git・端末まわり",
+					"note": "自作を 2 つ捨てている。<b>同じことができる OSS があるなら、保守する分だけこちらが損をする</b>という判断。",
+					"items": [
+						{
+							"name": "git-wt",
+							"desc": "worktree を作る自作コマンド",
+							"expand": "→ wt switch"
+						},
+						{
+							"name": "git-wtpr",
+							"desc": "PR を worktree で開く自作コマンド。fish のフックが壊れていて、実は一度も動いていなかった",
+							"expand": "→ wt switch pr:&lt;番号&gt;"
+						},
+						{
+							"name": "tmux",
+							"desc": "端末多重化。ペインとタブの管理を herdr に寄せたので役割が重複した",
+							"expand": "→ herdr"
+						},
+						{
+							"name": "jj",
+							"desc": "Git 互換の VCS。使っていない",
+							"expand": "→ git"
+						},
+						{
+							"name": "bit",
+							"desc": "対話的な git ラッパ。使っていない",
+							"expand": "→ git / lazygit"
+						},
+						{
+							"name": "aqua",
+							"desc": "宣言的な CLI バージョン管理。Nix と役割が完全に重複していた",
+							"expand": "→ Nix"
+						}
+					]
+				},
+				{
+					"title": "スキル・プラグイン",
+					"items": [
+						{
+							"name": "tgrab（スキル）",
+							"desc": "upstream が 2026-08-04 にスキルを廃止し、契約を <code>--help</code> に移した。こちらはスキルだけを取り込んでいたので、参照先が存在しない状態だった",
+							"expand": "→ tgrab CLI"
+						},
+						{
+							"name": "remaining-todo",
+							"desc": "残作業の引き継ぎ。session-summary-japanese が内容を完全に含んでいた",
+							"expand": "→ session-summary-japanese"
+						},
+						{
+							"name": "herdr-tab-smart-rename",
+							"desc": "会話の内容からタブ名を付ける。LLM を呼ぶので API キーが要り、ChatGPT / Claude のサブスクでは使えない",
+							"expand": "→ herdr-automatic-rename"
+						},
+						{
+							"name": "herdr file-viewer",
+							"desc": "ペイン内のファイルビューア。diff を読む用途では reviewr が上位互換だった",
+							"expand": "→ herdr-reviewr"
+						}
+					]
+				}
+			]
 		}
 	]
 }

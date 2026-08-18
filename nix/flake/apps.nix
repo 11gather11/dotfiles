@@ -19,44 +19,28 @@
       # (e.g. neovim ships nvim, nix-output-monitor ships nom).
       bash = lib.getExe localPkgs.bash;
       neovim = lib.getExe localPkgs.neovim;
-      nom = lib.getExe localPkgs.nix-output-monitor;
+      nh = lib.getExe localPkgs.nh;
+
       treefmt = lib.getExe config.treefmt.build.wrapper;
 
-      # Detect AI agent environments to skip nix-output-monitor
+      # nix-output-monitor draws a live TUI, which is noise in a transcript
+      # rather than progress. Detect the agent runners and let nh skip it.
       isAgentCheck = ''
-        IS_AI_AGENT=false
+        NOM_FLAG=""
         for var in CLAUDE_CODE CLAUDECODE CODEX_SANDBOX CODEX_THREAD_ID GEMINI_CLI OPENCODE AUGMENT_AGENT GOOSE_PROVIDER CURSOR_AGENT AI_AGENT; do
           eval "val=\''${!var:-}"
           if [ -n "$val" ]; then
-            IS_AI_AGENT=true
+            NOM_FLAG="--no-nom"
             break
           fi
         done
       '';
 
-      # Keep sudo credentials warm during long Darwin switches so the
-      # activation does not stall waiting for a password prompt. Runs only
-      # on an interactive terminal ([ -t 0 ]); refreshes the timestamp every
-      # 60s in the background and cleans the helper up on exit.
-      sudoKeepAlive = lib.optionalString isDarwin ''
-        if [ -t 0 ]; then
-          sudo -v
-          (
-            while kill -0 "$$" 2>/dev/null; do
-              sudo -n -v || exit 0
-              sleep 60
-            done
-          ) &
-          SUDO_KEEPALIVE_PID=$!
-          trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
-        fi
-      '';
-
-      configurationAttr =
-        if isDarwin then
-          "darwinConfigurations.${hostname}.system"
-        else
-          "homeConfigurations.${username}.activationPackage";
+      # `nh darwin` picks the configuration by hostname and `nh home` by
+      # attribute name, and neither matches this machine's actual hostname —
+      # both configurations are keyed on the username.
+      nhTarget = if isDarwin then "darwin switch -H ${hostname}" else "home switch -c ${username}";
+      nhBuildTarget = if isDarwin then "darwin build -H ${hostname}" else "home build -c ${username}";
     in
     {
       apps = {
@@ -84,11 +68,7 @@
               set -e
               ${isAgentCheck}
               echo "Building ${if isDarwin then "darwin" else "Home Manager"} configuration..."
-              if [ "$IS_AI_AGENT" = true ]; then
-                nix build .#${configurationAttr}
-              else
-                ${nom} build .#${configurationAttr}
-              fi
+              ${nh} ${nhBuildTarget} $NOM_FLAG "$@" .
               echo "Build successful! Run 'nix run .#switch' to apply."
             ''
           );
@@ -100,23 +80,8 @@
             localPkgs.writeShellScript (if isDarwin then "darwin-switch" else "home-manager-switch") ''
               set -eo pipefail
               ${isAgentCheck}
-              ${sudoKeepAlive}
               echo "Building and switching to ${if isDarwin then "darwin" else "Home Manager"} configuration..."
-              if [ "$IS_AI_AGENT" = true ]; then
-                ${
-                  if isDarwin then
-                    "sudo nix run nix-darwin -- switch --flake .#${hostname}"
-                  else
-                    "nix run nixpkgs#home-manager -- switch --flake .#${username}"
-                }
-              else
-                ${
-                  if isDarwin then
-                    "sudo nix run nix-darwin -- switch --flake .#${hostname} |& ${nom}"
-                  else
-                    "nix run nixpkgs#home-manager -- switch --flake .#${username} |& ${nom}"
-                }
-              fi
+              ${nh} ${nhTarget} $NOM_FLAG "$@" .
               echo "Clearing fish cache..."
               rm -rf "$TMPDIR/fish-cache"
               echo "Done!"

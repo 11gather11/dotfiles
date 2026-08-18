@@ -19,6 +19,11 @@ let
 
     ui = {
       agent_panel_sort = "spaces";
+
+      # herdr asks every new tab for a name. With automatic naming on there is
+      # nothing for it to do, and worse: a name typed into that prompt counts as
+      # a hand rename, which opts the tab out of automatic naming for good.
+      prompt_new_tab_name = false;
     };
 
     # The plugin ships its actions and registers them on link; only the key is

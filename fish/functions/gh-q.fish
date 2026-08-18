@@ -12,8 +12,21 @@ function gh-q --description 'pick a GitHub account, then one of its repositories
     )
     test -n "$account"; or return 0
 
+    # Which account is the work one is not recorded here. This repository is
+    # public, so anything it declares it also publishes; the work identity lives
+    # in ~/.gitconfig.work, which is untracked for that reason, and its user.name
+    # is already the work account. Read it rather than keeping a second copy.
+    set -l work_account (command git config --file ~/.gitconfig.work --get user.name 2>/dev/null)
+    if test -z "$work_account"
+        echo "gh-q: no work account in ~/.gitconfig.work" >&2
+        return 1
+    end
+
+    # Refusing beats guessing. Falling back to the personal root when the work
+    # account cannot be read would clone work repositories where the personal
+    # identity applies, silently — the one outcome this is here to prevent.
     set -l root ~/ghq
-    test "$account" = "$GH_WORK_ACCOUNT"; and set root ~/ghq-work
+    test "$account" = "$work_account"; and set root ~/ghq-work
 
     # Name the token rather than inheriting one. gh uses whichever account is
     # active, and the active account here is the work one, so a listing without

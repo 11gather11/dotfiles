@@ -1,4 +1,4 @@
-final: prev:
+_final: prev:
 let
   # prev, not final: this attribute set is what the overlay contributes, so
   # resolving through final would require its own output to already exist.

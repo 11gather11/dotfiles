@@ -31,22 +31,24 @@ let
   };
 in
 {
-  # macOS configuration with nix-darwin
-  flake.darwinConfigurations.${username} = mkSystem {
-    system = "aarch64-darwin";
-    homedir = darwinHomedir;
-    darwin = true;
-    homeModules = [ ../modules/darwin ];
-    systemModules = [ ../modules/darwin/system.nix ];
-  };
+  flake = {
+    # macOS configuration with nix-darwin
+    darwinConfigurations.${username} = mkSystem {
+      system = "aarch64-darwin";
+      homedir = darwinHomedir;
+      darwin = true;
+      homeModules = [ ../modules/darwin ];
+      systemModules = [ ../modules/darwin/system.nix ];
+    };
 
-  # Linux configurations with standalone Home Manager
-  flake.homeConfigurations = linuxHomeConfigurations;
+    # Linux configurations with standalone Home Manager
+    homeConfigurations = linuxHomeConfigurations;
 
-  # Aliases for tools that can't parse digit-starting attribute segments
-  # (e.g. natsukium/nix-diff-action's attribute path validator).
-  flake.diffTargets = {
-    home-x86_64-linux = linuxHomeConfigurations.${username}.activationPackage;
-    home-aarch64-linux = linuxHomeConfigurations."${username}-aarch64".activationPackage;
+    # Aliases for tools that can't parse digit-starting attribute segments
+    # (e.g. natsukium/nix-diff-action's attribute path validator).
+    diffTargets = {
+      home-x86_64-linux = linuxHomeConfigurations.${username}.activationPackage;
+      home-aarch64-linux = linuxHomeConfigurations."${username}-aarch64".activationPackage;
+    };
   };
 }

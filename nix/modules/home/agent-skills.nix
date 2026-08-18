@@ -38,55 +38,59 @@
       };
     };
 
-    # Enable all local skills
-    skills.enableAll = [ "local" ];
+    skills = {
+      # Enable all local skills
+      enableAll = [ "local" ];
 
-    skills.explicit.ast-grep = {
-      from = "ast-grep";
-      path = "ast-grep";
-      packages = [ pkgs.ast-grep ];
-      transform =
-        { original, dependencies }:
-        let
-          patched =
-            builtins.replaceStrings
-              [ "| ast-grep " "ast-grep scan " "ast-grep run " ]
-              [ "| ./ast-grep " "./ast-grep scan " "./ast-grep run " ]
-              original;
-        in
-        ''
-          ${patched}
+      explicit = {
+        ast-grep = {
+          from = "ast-grep";
+          path = "ast-grep";
+          packages = [ pkgs.ast-grep ];
+          transform =
+            { original, dependencies }:
+            let
+              patched =
+                builtins.replaceStrings
+                  [ "| ast-grep " "ast-grep scan " "ast-grep run " ]
+                  [ "| ./ast-grep " "./ast-grep scan " "./ast-grep run " ]
+                  original;
+            in
+            ''
+              ${patched}
 
-          ${dependencies}
-        '';
-    };
+              ${dependencies}
+            '';
+        };
 
-    skills.explicit.herdr = {
-      from = "herdr";
-      path = "herdr";
-    };
+        herdr = {
+          from = "herdr";
+          path = "herdr";
+        };
 
-    skills.explicit.agent-browser =
-      let
-        agentBrowserBin = lib.getExe pkgs.llm-agents.agent-browser;
-      in
-      {
-        from = "agent-browser";
-        path = "agent-browser";
-        packages = [ pkgs.llm-agents.agent-browser ];
-        transform =
-          { original, ... }:
-          builtins.replaceStrings
-            [
-              "Bash(npx agent-browser:*), Bash(agent-browser:*)"
-              "./agent-browser"
-            ]
-            [
-              "Bash(${agentBrowserBin}:*)"
-              agentBrowserBin
-            ]
-            original;
+        agent-browser =
+          let
+            agentBrowserBin = lib.getExe pkgs.llm-agents.agent-browser;
+          in
+          {
+            from = "agent-browser";
+            path = "agent-browser";
+            packages = [ pkgs.llm-agents.agent-browser ];
+            transform =
+              { original, ... }:
+              builtins.replaceStrings
+                [
+                  "Bash(npx agent-browser:*), Bash(agent-browser:*)"
+                  "./agent-browser"
+                ]
+                [
+                  "Bash(${agentBrowserBin}:*)"
+                  agentBrowserBin
+                ]
+                original;
+          };
       };
+    };
 
     # Deploy to standard skills directories
     targets = {

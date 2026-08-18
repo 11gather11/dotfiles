@@ -50,29 +50,14 @@ def installed [root: string] {
     # as a programs.* module — so nothing else here could see it, and it sat
     # undocumented until someone read the page against the config by hand.
     #
-    # The exclusions are the plumbing: package sets, the module systems, the
-    # formatter and hook runners. They are how this repository is built rather
-    # than things it installs, and listing them on a page about what is on this
-    # machine would bury the entries that answer that.
-    let infrastructure = [
-        nixpkgs
-        home-manager
-        nix-darwin
-        flake-parts
-        treefmt-nix
-        git-hooks
-        agent-skills
-        nix-index-database
-        nix-bun
-        nix-claude-code
-        llm-agents
-    ]
+    # All of them, plumbing included: the package sets and module systems this
+    # configuration is built from belong on a page about this machine as much as
+    # the tools do. They get their own section so they do not crowd those.
     let flake_inputs = (
         open --raw $"($root)/flake.lock"
         | from json
         | get nodes.root.inputs
         | columns
-        | where {|n| $n not-in $infrastructure }
         # The page names the tool, not the input: ast-grep-skill ships `ast-grep`.
         | each {|n| $n | str replace --regex '-skill$' '' }
     )

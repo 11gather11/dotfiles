@@ -1878,6 +1878,57 @@
 							"desc": "設定再読込 / source / clear / open"
 						}
 					]
+				},
+				{
+					"title": "基盤 — flake 入力",
+					"src": "flake.nix ・ flake.lock",
+					"note": "この構成そのものを組み立てているもの。ツールではなく<b>土台</b>で、更新は <code>nix run .#update</code> がまとめて行う。",
+					"items": [
+						{
+							"name": "nixpkgs",
+							"desc": "パッケージ集合。ここのツールのほとんどが由来する（<code>nixos/nixpkgs</code>）"
+						},
+						{
+							"name": "home-manager",
+							"desc": "ユーザー環境（dotfiles・パッケージ・サービス）を宣言的に構成（<code>nix-community/home-manager</code>）"
+						},
+						{
+							"name": "nix-darwin",
+							"desc": "macOS 本体の設定（Homebrew・システム設定・フォント）（<code>LnL7/nix-darwin</code>）"
+						},
+						{
+							"name": "flake-parts",
+							"desc": "flake をモジュールに分割する枠組み（<code>hercules-ci/flake-parts</code>）"
+						},
+						{
+							"name": "treefmt-nix",
+							"desc": "<code>nix run .#fmt</code> の整形器。コミット時にも走る（<code>numtide/treefmt-nix</code>）"
+						},
+						{
+							"name": "git-hooks",
+							"desc": "pre-commit / pre-push の実体（<code>cachix/git-hooks.nix</code>）"
+						},
+						{
+							"name": "agent-skills",
+							"desc": "skill を Claude / Codex 両方に配る仕組み（<code>Kyure-A/agent-skills-nix</code>）"
+						},
+						{
+							"name": "llm-agents",
+							"desc": "grok などエージェント CLI の供給元（<code>numtide/llm-agents.nix</code>）"
+						},
+						{
+							"name": "nix-claude-code",
+							"desc": "claude-code パッケージ（<code>ryoppippi/nix-claude-code</code>）"
+						},
+						{
+							"name": "nix-bun",
+							"desc": "bun パッケージ（<code>ryoppippi/nix-bun</code>）"
+						},
+						{
+							"name": "nix-index-database",
+							"desc": "<code>command-not-found</code> と <code>,</code> の索引（<code>nix-community/nix-index-database</code>）"
+						}
+					]
 				}
 			]
 		}

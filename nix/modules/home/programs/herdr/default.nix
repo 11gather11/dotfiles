@@ -46,7 +46,6 @@ let
   # produced already in place — see nix/packages/herdr-reviewr.
   plugins = [
     pkgs.herdr-reviewr
-    pkgs.herdr-tab-smart-rename
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
   ];
@@ -66,13 +65,14 @@ in
     # the per-plugin one under herdr's config. Put here first, it was silently
     # ignored and the tab naming this disables stayed on.
     #
-    # NAME_TABS is off deliberately. Naming a tab after its foreground process
-    # assumes one tab is one job; every pane in these tabs is an agent, so the
-    # names would all read `claude` and flip to whichever pane has focus. The
-    # numbering is the half that survives that: it labels each tab with the
-    # digit that jumps to it, and does not depend on what is running inside.
+    # Naming a tab after its foreground process assumes one tab is one job,
+    # which these tabs are not — several agents share one, so the name follows
+    # whichever pane has focus. It is on regardless: the alternative was an
+    # LLM naming them from the conversation, and that wanted a paid API key
+    # rather than the subscriptions already here, so a name that moves beats no
+    # name at all. The numbering is unaffected either way.
     file.".config/herdr-automatic-rename/config.sh".text = ''
-      NAME_TABS=0
+      NAME_TABS=1
       AUTO_INDEX=1
     '';
 

@@ -24,6 +24,4 @@ in
     rev = "b07f1140b7308d66487b2f4be546c0c7db065569";
     hash = "sha256-NyRmPI7Ja0NGVzKpMOYWXdK9rISMD5xT27XCW2z6DAw=";
   };
-
-  herdr-tab-smart-rename = prev.callPackage ../packages/herdr-tab-smart-rename { };
 }

@@ -42,30 +42,13 @@ for file in $FISH_CONFIG_DIR/config/*.fish
 end
 
 # theme
-set -gx theme_nerd_fonts yes
-set -gx BIT_THEME monochrome
 source $FISH_CONFIG_DIR/themes/catppuccin-mocha.fish
 
 # general bin paths
 fish_add_path $HOME/.local/bin
-fish_add_path /usr/local/opt/coreutils/libexec/gnubin
-fish_add_path /usr/local/opt/curl/bin
 
 # brew
 fish_add_path /opt/homebrew/bin
-
-# js/ts
-## bun
-fish_add_path $HOME/.bun/bin
-fish_add_path $HOME/.cache/.bun/bin
-
-# go
-set -gx GOPATH $HOME/go
-fish_add_path $GOPATH/bin
-
-# user scripts
-fish_add_path $HOME/.scripts
-fish_add_path $HOME/.scripts/bin
 
 # Add home-manager packages to PATH.
 # Prefer the standalone home-manager gcroots (Linux / `home-manager switch`),

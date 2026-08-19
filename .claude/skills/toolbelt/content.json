@@ -1570,10 +1570,6 @@
 							"desc": "ブランチを fzf で選んで switch"
 						},
 						{
-							"name": "git-sign-config",
-							"desc": "リポジトリごとの署名設定"
-						},
-						{
 							"name": "pathclean",
 							"desc": "PATH の重複を除去"
 						},

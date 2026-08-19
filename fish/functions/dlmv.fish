@@ -67,11 +67,40 @@ function dlmv --description 'pick a download, pick where it goes, move it'
     set -l dest (path normalize "$base/$rel")
     mkdir -p "$dest"; or return 1
 
+    set -l shown (string replace "$base/" '' "$dest")
     for f in $picked
-        # -i rather than -f: a download that collides with a file already in the
-        # task directory is usually a second copy of it, and picking which one
-        # survives is not a decision to make silently.
-        mv -i -- "$HOME/Downloads/$f" "$dest"; or return 1
-        echo "→ "(string replace "$base/" '' "$dest")"/"(path basename "$f")
+        set -l src "$HOME/Downloads/$f"
+        set -l name (path basename "$f")
+
+        if not test -e "$dest/$name"
+            command mv -- "$src" "$dest/$name"
+            echo "→ $shown/$name"
+            continue
+        end
+
+        # A collision here is usually the same spreadsheet downloaded again, so
+        # the useful answers are three, not the two `mv -i` offers. Keeping both
+        # is the default because it is the only one that neither destroys the
+        # copy already filed nor leaves the download where it was.
+        read -l -P "$shown/$name exists — [o]verwrite / [K]eep both / [s]kip? " reply
+        switch (string lower -- (string trim -- "$reply"))
+            case o overwrite
+                command mv -f -- "$src" "$dest/$name"
+                echo "→ $shown/$name (replaced)"
+            case s skip
+                echo "left in ~/Downloads: $name"
+            case '*'
+                # -2, -3, … before the extension: predictable, and it does not
+                # collide with the .orig convention already used in these
+                # directories for a file kept deliberately.
+                set -l stem (path change-extension '' "$name")
+                set -l ext (path extension "$name")
+                set -l n 2
+                while test -e "$dest/$stem-$n$ext"
+                    set n (math $n + 1)
+                end
+                command mv -- "$src" "$dest/$stem-$n$ext"
+                echo "→ $shown/$stem-$n$ext"
+        end
     end
 end

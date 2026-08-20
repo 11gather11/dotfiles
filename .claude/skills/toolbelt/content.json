@@ -1054,6 +1054,14 @@
 						{
 							"name": "_1password-gui",
 							"desc": "1Password 本体（Linux のみ。macOS は cask）"
+						},
+						{
+							"name": "lazydocker",
+							"desc": "コンテナの TUI。ログ・シェル・再起動をキーで。<code>lzd</code>"
+						},
+						{
+							"name": "mas",
+							"desc": "App Store の CLI。<code>homebrew.masApps</code> の実行に使われる（macOS）"
 						}
 					]
 				},

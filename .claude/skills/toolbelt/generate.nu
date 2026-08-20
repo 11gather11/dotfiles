@@ -174,8 +174,12 @@ def documented [content: record] {
 
 # A name counts as documented if any mentioned name contains it — entries like
 # "ll / la / lt" or "z <部分文字列>" cover several commands in one row.
-def is-documented [name: string, haystack: string] {
-    $haystack | str contains ($name | str lowercase)
+# Matched against the set of documented names, not against the page's prose.
+# A substring test called `gh` documented because some description contained
+# "github" — the check said none of these were missing while never having
+# looked one of them up.
+def is-documented [name: string, documented: list<string>] {
+    ($name | str downcase) in $documented
 }
 
 # Aliases resolve to a different binary than the name typed, so history records
@@ -327,10 +331,10 @@ def drift [root: string, content: record] {
     let hay = (
 		$content.tabs
 		| where {|t| ($t | get -o historical) != true }
-		| each {|t| $t.sections | each {|s| $s.items | each {|i| $"($i.name) ($i.desc)" } } }
+		| each {|t| $t.sections | each {|s| $s.items | each {|i| $i.name } } }
 		| flatten | flatten
-		| str join ' '
-		| str lowercase
+		| each {|n| $n | str downcase }
+		| uniq
 	)
     let missing = (
 		[

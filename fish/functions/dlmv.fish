@@ -64,7 +64,14 @@ function dlmv --description 'pick a download, pick where it goes, move it'
         set rel $choice[1]
     end
 
+    # Refuse a destination outside the repository. The typed path goes through
+    # unchanged, so ../.. reaches anywhere the shell can write, and the prompt
+    # offers to create it.
     set -l dest (path normalize "$base/$rel")
+    if not string match -q -- "$base/*" "$dest/"
+        echo "dlmv: $rel is outside $base" >&2
+        return 1
+    end
     mkdir -p "$dest"; or return 1
 
     set -l shown (string replace "$base/" '' "$dest")
@@ -73,7 +80,10 @@ function dlmv --description 'pick a download, pick where it goes, move it'
         set -l name (path basename "$f")
 
         if not test -e "$dest/$name"
-            command mv -- "$src" "$dest/$name"
+            if not command mv -- "$src" "$dest/$name"
+                echo "dlmv: could not move $name" >&2
+                continue
+            end
             echo "→ $shown/$name"
             continue
         end
@@ -85,7 +95,10 @@ function dlmv --description 'pick a download, pick where it goes, move it'
         read -l -P "$shown/$name exists — [o]verwrite / [K]eep both / [s]kip? " reply
         switch (string lower -- (string trim -- "$reply"))
             case o overwrite
-                command mv -f -- "$src" "$dest/$name"
+                if not command mv -f -- "$src" "$dest/$name"
+                    echo "dlmv: could not replace $shown/$name" >&2
+                    continue
+                end
                 echo "→ $shown/$name (replaced)"
             case s skip
                 echo "left in ~/Downloads: $name"
@@ -99,7 +112,10 @@ function dlmv --description 'pick a download, pick where it goes, move it'
                 while test -e "$dest/$stem-$n$ext"
                     set n (math $n + 1)
                 end
-                command mv -- "$src" "$dest/$stem-$n$ext"
+                if not command mv -- "$src" "$dest/$stem-$n$ext"
+                    echo "dlmv: could not move $name" >&2
+                    continue
+                end
                 echo "→ $shown/$stem-$n$ext"
         end
     end

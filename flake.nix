@@ -86,6 +86,11 @@
       flake = false;
     };
 
+    mattpocock-skills = {
+      url = "github:mattpocock/skills";
+      flake = false;
+    };
+
     # A flake now, not a source tree: the skill it used to ship was dropped
     # upstream and the CLI is what is consumed instead.
     tgrab = {

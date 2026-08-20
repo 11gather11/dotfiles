@@ -33,11 +33,15 @@ let
     # and is not declared: trusting a hook is a decision to make at the prompt.
     features.hooks = true;
 
-    model = "gpt-5.6-sol";
+    # Codex here is mostly a reviewer, and review is input-heavy and
+    # output-light — the shape Luna is cheapest at. Max effort is affordable
+    # for the same reason: it grows only the small half of a request. Sol
+    # stays one /model away for the work that needs the extra depth.
+    model = "gpt-5.6-luna";
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
-    model_reasoning_effort = "medium";
+    model_reasoning_effort = "max";
     service_tier = "fast";
     personality = "pragmatic";
     web_search_request = true;

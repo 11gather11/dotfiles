@@ -99,9 +99,12 @@ in
       # [hooks.state."<file>:<event>:..."] and sort together.
       state=""
       if [ -f "${codexHomeDir}/config.toml" ]; then
+        # Leading whitespace is legal before a TOML header, so the anchors
+        # allow it — matching only at column zero swallowed an indented
+        # section that followed and carried it across every switch.
         state="$(${pkgs.gawk}/bin/awk '
-          /^\[hooks\.state/ { keep = 1 }
-          /^\[/ && !/^\[hooks\.state/ { keep = 0 }
+          /^[[:space:]]*\[hooks\.state/ { keep = 1; print; next }
+          /^[[:space:]]*\[/ { keep = 0 }
           keep { print }
         ' "${codexHomeDir}/config.toml")"
       fi

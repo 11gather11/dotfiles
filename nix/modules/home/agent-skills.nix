@@ -10,6 +10,19 @@
   local-skills,
   ...
 }:
+let
+  # mattpocock/skills is two directories of same-shaped entries, so name them
+  # once rather than writing `from` and `path` out for each.
+  mattpocockSelect =
+    groups:
+    lib.concatMapAttrs (
+      group: names:
+      lib.genAttrs names (name: {
+        from = "mattpocock-${group}";
+        path = name;
+      })
+    ) groups;
+in
 {
   programs.agent-skills = {
     enable = true;
@@ -58,62 +71,44 @@
       # Enable all local skills
       enableAll = [ "local" ];
 
-      # Skills taken from mattpocock/skills keep that namespace in their id,
-      # which the source's idPrefix already produces. It is what lets the
-      # upstream tdd sit beside the local one without either being edited,
-      # and it keeps where a skill came from readable from its name.
+      # Flat names, because Claude Code reads the directories directly under
+      # its skills directory and nothing below them. An id with a `/` in it —
+      # which the source's idPrefix produces and the module happily lays out —
+      # nests them one level down, where they are simply never found.
       explicit = {
-        # Namespaced rather than renamed. The local tdd keeps the bare name —
-        # it carries the loop and detects the project's test runner — and this
-        # one sits beside it as what upstream calls "a reference to consult,
-        # not a session to run": seams, and the anti-patterns worth naming.
+        # Selected from mattpocock/skills. Names only: each is a directory in
+        # the source and installs under the same name, so the interesting part
+        # is which ones and not how.
         #
-        # A `/` in the id is what the source's idPrefix already produces, so
-        # neither side is edited: no rename here, no rewriting of upstream's
-        # frontmatter to stop a renamed skill still describing itself as tdd.
-        "mattpocock/tdd" = {
+        # Flat, because Claude Code reads the directories directly under its
+        # skills directory and nothing below them. The source's idPrefix
+        # produces `/`-separated ids, and the module lays those out as nested
+        # directories, where nothing ever finds them.
+        #
+        # tdd is the exception: the local one keeps the bare name because it is
+        # the one to run — it carries the loop and detects the project's test
+        # runner — and upstream's installs alongside as what its own text calls
+        # "a reference to consult, not a session to run".
+      }
+      // mattpocockSelect {
+        engineering = [
+          "grill-with-docs"
+          "diagnosing-bugs"
+          "codebase-design"
+          "domain-modeling"
+          "research"
+          "wayfinder"
+        ];
+        productivity = [
+          "grill-me"
+          "grilling"
+        ];
+      }
+      // {
+        # The one that cannot keep upstream's name: the local tdd holds it.
+        mattpocock-tdd = {
           from = "mattpocock-engineering";
           path = "tdd";
-        };
-        # 計画や設計を執拗に問い詰めて穴を出す
-        "mattpocock/grill-me" = {
-          from = "mattpocock-productivity";
-          path = "grill-me";
-        };
-        # 同じことを、ユーザーを問い詰める側から
-        "mattpocock/grilling" = {
-          from = "mattpocock-productivity";
-          path = "grilling";
-        };
-        # grill しながら ADR と用語集を作る
-        "mattpocock/grill-with-docs" = {
-          from = "mattpocock-engineering";
-          path = "grill-with-docs";
-        };
-        # 難しいバグと性能変化の診断ループ
-        "mattpocock/diagnosing-bugs" = {
-          from = "mattpocock-engineering";
-          path = "diagnosing-bugs";
-        };
-        # 深いモジュールを設計するための共通語彙
-        "mattpocock/codebase-design" = {
-          from = "mattpocock-engineering";
-          path = "codebase-design";
-        };
-        # ドメインモデルと用語を磨く
-        "mattpocock/domain-modeling" = {
-          from = "mattpocock-engineering";
-          path = "domain-modeling";
-        };
-        # 一次情報に当たって Markdown に残す
-        "mattpocock/research" = {
-          from = "mattpocock-engineering";
-          path = "research";
-        };
-        # 1 セッションに収まらない作業を決定の地図として計画
-        "mattpocock/wayfinder" = {
-          from = "mattpocock-engineering";
-          path = "wayfinder";
         };
         ast-grep = {
           from = "ast-grep";

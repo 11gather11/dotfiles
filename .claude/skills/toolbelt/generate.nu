@@ -270,6 +270,54 @@ def stale [root: string, content: record] {
     | each {|i| {name: $i.name, path: $i.expand} }
 }
 
+# What an external skill source offers that this configuration has not taken.
+#
+# The allowlist in agent-skills.nix decides what installs, which is what keeps
+# a skill from arriving in the agent's context because upstream added it. The
+# cost is that upstream growing is invisible: renovate bumps the input, the lock
+# moves, and nothing says a new skill appeared. This reports that, so the choice
+# stays deliberate in both directions — nothing installs itself, and nothing new
+# goes unnoticed either.
+def unselected [root: string] {
+    # Names come from two places now: the generator's lists, and the few
+    # entries still written out with an explicit `path`. Reading only the
+    # latter reported everything as unselected, which reads as "nothing is
+    # installed" — the opposite of the truth.
+    let module = (open --raw $"($root)/nix/modules/home/agent-skills.nix")
+    let selected = (
+        ($module | lines | each {|l| $l | parse --regex '^\s+"(?<p>[a-z0-9][a-z0-9-]*)"$' } | flatten | get -o p | default [])
+        | append ($module | lines | each {|l| $l | parse --regex 'path = "(?<p>[^"]+)"' } | flatten | get -o p | default [])
+        | uniq
+    )
+
+    # `open --raw` then `from json`: opening flake.lock directly yields a byte
+    # stream, which has no cell paths, and the failure is a parse error rather
+    # than an empty result.
+    let rev = (
+        open --raw $"($root)/flake.lock"
+        | from json
+        | get nodes
+        | get -o "mattpocock-skills"
+        | default {}
+        | get -o locked.rev
+    )
+    if ($rev | is-empty) { return [] }
+    let fetched = (^nix flake prefetch --json $"github:mattpocock/skills/($rev)" | complete)
+    if $fetched.exit_code != 0 { return [] }
+    let base = $fetched.stdout | from json | get storePath
+    ["engineering" "productivity"]
+    | each {|g|
+        let dir = $"($base)/skills/($g)"
+        if ($dir | path exists) {
+            ls $dir | where type == dir | get name | path basename
+            | where {|n| $n not-in $selected }
+            | each {|n| $"($g)/($n)" }
+        } else { [] }
+    }
+    | flatten
+    | sort
+}
+
 def drift [root: string, content: record] {
     let have = (installed $root)
     # Tabs marked `historical` describe what is *not* installed. Their names
@@ -404,6 +452,12 @@ def main [--check, --root: string = ""] {
         }
     } else {
         print "history: fish history not found; usage cannot be measured"
+    }
+
+    let spare = (unselected $root)
+    if ($spare | is-not-empty) {
+        print $"unselected: ($spare | length) skill\(s\) in mattpocock/skills not taken"
+        print $"  ($spare | str join ', ')"
     }
 
     if $check { return }

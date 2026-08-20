@@ -1807,27 +1807,27 @@
 					"note": "外部由来。<b>決める前に問い詰めさせる</b>ためのもので、答えを出すより穴を出すのが目的。",
 					"items": [
 						{
-							"name": "mattpocock/grill-me",
+							"name": "grill-me",
 							"desc": "計画や設計を執拗に問い詰めて穴を出す"
 						},
 						{
-							"name": "mattpocock/grilling",
+							"name": "grilling",
 							"desc": "同じことを、ユーザーを問い詰める側から"
 						},
 						{
-							"name": "mattpocock/grill-with-docs",
+							"name": "grill-with-docs",
 							"desc": "問い詰めながら ADR と用語集を残す"
 						},
 						{
-							"name": "mattpocock/wayfinder",
+							"name": "wayfinder",
 							"desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
 						},
 						{
-							"name": "mattpocock/codebase-design",
+							"name": "codebase-design",
 							"desc": "深いモジュール・境界・seam を語るための共通語彙"
 						},
 						{
-							"name": "mattpocock/domain-modeling",
+							"name": "domain-modeling",
 							"desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
 						}
 					]
@@ -1840,11 +1840,11 @@
 							"desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
 						},
 						{
-							"name": "mattpocock/tdd",
+							"name": "mattpocock-tdd",
 							"desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。<b>回す前に読む参照</b>"
 						},
 						{
-							"name": "mattpocock/diagnosing-bugs",
+							"name": "diagnosing-bugs",
 							"desc": "難しいバグと性能変化の診断ループ"
 						},
 						{
@@ -1857,7 +1857,7 @@
 					"title": "調べる・探す",
 					"items": [
 						{
-							"name": "mattpocock/research",
+							"name": "research",
 							"desc": "一次情報に当たって調べ、Markdown に残す"
 						},
 						{

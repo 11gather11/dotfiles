@@ -137,12 +137,29 @@ in
         lib.hm.dag.entryAfter
           [
             "writeClaudeSettings"
+            # Codex's config.toml is regenerated too, and the integration writes
+            # into it — without this the install ran five hundred lines before
+            # the file that overwrites it, in the same switch.
+            "writeCodexConfig"
             "writeHerdrConfig"
           ]
           ''
             ${lib.concatMapStringsSep "\n" (a: ''
-              $DRY_RUN_CMD ${herdr} integration install ${a} >/dev/null 2>&1 \
-                || echo "herdr: integration install ${a} failed (is it on PATH?)"
+              # Fail the activation. Swallowing this let a switch report success
+              # while the declared integration was not installed — and there is
+              # a routine way to reach it: Nix updates the CLI while the server
+              # keeps running the version it started with, and every herdr
+              # command then fails on the protocol mismatch.
+              if ! out="$($DRY_RUN_CMD ${herdr} integration install ${a} 2>&1)"; then
+                echo "herdr: integration install ${a} failed:" >&2
+                echo "$out" >&2
+                case "$out" in
+                  *protocol*)
+                    echo "herdr: the CLI is newer than the running server; stop it and switch again." >&2
+                    ;;
+                esac
+                exit 1
+              fi
             '') integrations}
           '';
 

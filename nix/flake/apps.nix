@@ -83,7 +83,10 @@
               echo "Building and switching to ${if isDarwin then "darwin" else "Home Manager"} configuration..."
               ${nh} ${nhTarget} $NOM_FLAG "$@" .
               echo "Clearing fish cache..."
-              rm -rf "$TMPDIR/fish-cache"
+              # /tmp, matching FISH_CACHE_DIR in fish/config.fish. $TMPDIR is a
+              # per-user directory under /var/folders on macOS, so removing that
+              # cleared nothing and the switch said it had.
+              rm -rf /tmp/fish-cache
               echo "Done!"
             ''
           );

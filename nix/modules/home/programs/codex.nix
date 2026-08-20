@@ -81,9 +81,35 @@ in
       ln -sfn "${codexHomeDir}" "${codexXdgDir}"
     '';
 
+    # [hooks.state] is carried across the rewrite. It is not configuration —
+    # Codex writes it when a hook is trusted at the prompt, recording the hash
+    # of the hook file it agreed to run. Regenerating config.toml erased that,
+    # so every switch made Codex ask again.
+    #
+    # Carried, not declared. Writing the hash from here would mean a hook is
+    # trusted because this file says so, and a changed hook would be trusted
+    # too — which is the whole thing the mechanism exists to prevent. Preserving
+    # what was already answered keeps that intact: if herdr updates the hook,
+    # the hash no longer matches and Codex asks again, as it should.
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "linkCodexXdgDir" ] ''
       mkdir -p "${codexHomeDir}"
+
+      # From the first [hooks.state...] header to the next section that is not
+      # one, which is how TOML delimits it — the subsection headers are
+      # [hooks.state."<file>:<event>:..."] and sort together.
+      state=""
+      if [ -f "${codexHomeDir}/config.toml" ]; then
+        state="$(${pkgs.gawk}/bin/awk '
+          /^\[hooks\.state/ { keep = 1 }
+          /^\[/ && !/^\[hooks\.state/ { keep = 0 }
+          keep { print }
+        ' "${codexHomeDir}/config.toml")"
+      fi
+
       cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
+      if [ -n "$state" ]; then
+        printf '\n%s\n' "$state" >> "${codexHomeDir}/config.toml"
+      fi
       chmod 644 "${codexHomeDir}/config.toml"
     '';
 

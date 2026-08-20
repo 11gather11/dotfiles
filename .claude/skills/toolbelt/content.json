@@ -1746,14 +1746,28 @@
 		{
 			"id": "skills",
 			"label": "スキル",
-			"lede": "エージェントに読ませる手順書。<b>呼ぶのではなく、状況が合えば向こうが読む</b> —— description が引き金なので、いつ使うものかが書いてある。<code>/名前</code> で明示的にも呼べる。<code>mattpocock/</code> 付きは外部由来で、名前空間で出どころが分かる。",
+			"lede": "エージェントに読ませる手順書。<b>呼ぶのではなく、状況が合えば向こうが読む</b> —— description が引き金なので、いつ使うものかが書いてある。<code>/名前</code> で明示的にも呼べる。出どころ順、その中は名前順。",
 			"sections": [
 				{
-					"title": "Git を進める",
+					"title": "自作",
+					"src": "agents/skills/",
+					"note": "このリポジトリで書いたもの。<code>enableAll</code> なので、ディレクトリを置けば入る。",
 					"items": [
+						{
+							"name": "ask-codex",
+							"desc": "実装方針やレビューについて Codex に第二意見を求める"
+						},
+						{
+							"name": "codex-review",
+							"desc": "Codex CLI でコードレビューを走らせる"
+						},
 						{
 							"name": "commit",
 							"desc": "変更を revert 可能な単位に割って Conventional Commits にする"
+						},
+						{
+							"name": "council",
+							"desc": "並列エージェントでコードベースの一領域を多角的に調べる"
 						},
 						{
 							"name": "create-commits-and-push",
@@ -1764,127 +1778,36 @@
 							"desc": "ブランチを切ってコミット・push・PR 作成まで通す"
 						},
 						{
+							"name": "empirical-prompt-tuning",
+							"desc": "指示文をバイアス無しの実行者に回して、両面から測って改善する"
+						},
+						{
+							"name": "fix-ci",
+							"desc": "CI が赤いとき、gh でログを取って原因を追い、直す"
+						},
+						{
 							"name": "merge-main",
 							"desc": "main を今のブランチに取り込む"
+						},
+						{
+							"name": "missing-tools",
+							"desc": "コマンドが無いときに、入れずに動かす道を探す"
+						},
+						{
+							"name": "nushell",
+							"desc": "このリポジトリの既定スクリプト言語。新しいスクリプトを書くとき"
 						},
 						{
 							"name": "pr-apply-review",
 							"desc": "PR のレビューコメントを取ってきて適用する"
 						},
 						{
-							"name": "fix-ci",
-							"desc": "CI が赤いとき、gh でログを取って原因を追い、直す"
-						}
-					]
-				},
-				{
-					"title": "読む・レビューする",
-					"items": [
-						{
-							"name": "codex-review",
-							"desc": "Codex CLI でコードレビューを走らせる"
-						},
-						{
-							"name": "ask-codex",
-							"desc": "実装方針やレビューについて Codex に第二意見を求める"
-						},
-						{
-							"name": "council",
-							"desc": "並列エージェントでコードベースの一領域を多角的に調べる"
-						},
-						{
 							"name": "react-server-components",
 							"desc": "<code>'use client'</code> の位置を Next.js / React の文書に照らして監査"
 						},
 						{
-							"name": "you-might-not-need-an-effect",
-							"desc": "不要な useEffect を react.dev の基準で洗う"
-						}
-					]
-				},
-				{
-					"title": "設計を詰める",
-					"note": "外部由来。<b>決める前に問い詰めさせる</b>ためのもので、答えを出すより穴を出すのが目的。",
-					"items": [
-						{
-							"name": "grill-me",
-							"desc": "計画や設計を執拗に問い詰めて穴を出す"
-						},
-						{
-							"name": "grilling",
-							"desc": "同じことを、ユーザーを問い詰める側から"
-						},
-						{
-							"name": "grill-with-docs",
-							"desc": "問い詰めながら ADR と用語集を残す"
-						},
-						{
-							"name": "wayfinder",
-							"desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
-						},
-						{
-							"name": "codebase-design",
-							"desc": "深いモジュール・境界・seam を語るための共通語彙"
-						},
-						{
-							"name": "domain-modeling",
-							"desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
-						}
-					]
-				},
-				{
-					"title": "実装する・直す",
-					"items": [
-						{
-							"name": "tdd",
-							"desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
-						},
-						{
-							"name": "mattpocock-tdd",
-							"desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。<b>回す前に読む参照</b>"
-						},
-						{
-							"name": "diagnosing-bugs",
-							"desc": "難しいバグと性能変化の診断ループ"
-						},
-						{
-							"name": "nushell",
-							"desc": "このリポジトリの既定スクリプト言語。新しいスクリプトを書くとき"
-						}
-					]
-				},
-				{
-					"title": "調べる・探す",
-					"items": [
-						{
-							"name": "research",
-							"desc": "一次情報に当たって調べ、Markdown に残す"
-						},
-						{
-							"name": "ast-grep",
-							"desc": "構文木でコードを検索する。素の grep より構造に強い"
-						},
-						{
-							"name": "agent-browser",
-							"desc": "ブラウザ操作。フォーム・スクショ・スクレイピング・Electron アプリ"
-						},
-						{
-							"name": "missing-tools",
-							"desc": "コマンドが無いときに、入れずに動かす道を探す"
-						}
-					]
-				},
-				{
-					"title": "この環境を保つ",
-					"note": "このリポジトリ限定のもの（<code>.claude/skills/</code>）を含む。",
-					"items": [
-						{
-							"name": "toolbelt",
-							"desc": "このページを作り直す。設定と突き合わせて記載漏れを報告する"
-						},
-						{
-							"name": "check-dotfiles-updates",
-							"desc": "監視している 19 の dotfiles の新着を見て、動向とツールを拾う"
+							"name": "session-summary-japanese",
+							"desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
 						},
 						{
 							"name": "skill-creator",
@@ -1895,12 +1818,85 @@
 							"desc": "スキル全体を監査する。重複・説明の質・長さ"
 						},
 						{
-							"name": "empirical-prompt-tuning",
-							"desc": "指示文をバイアス無しの実行者に回して、両面から測って改善する"
+							"name": "tdd",
+							"desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
 						},
 						{
-							"name": "session-summary-japanese",
-							"desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
+							"name": "you-might-not-need-an-effect",
+							"desc": "不要な useEffect を react.dev の基準で洗う"
+						}
+					]
+				},
+				{
+					"title": "このリポジトリ限定",
+					"src": ".claude/skills/",
+					"note": "dotfiles の中でしか読まれない。他のリポジトリでは出てこない。",
+					"items": [
+						{
+							"name": "check-dotfiles-updates",
+							"desc": "監視している 19 の dotfiles の新着を見て、動向とツールを拾う"
+						},
+						{
+							"name": "toolbelt",
+							"desc": "このページを作り直す。設定と突き合わせて記載漏れを報告する"
+						}
+					]
+				},
+				{
+					"title": "mattpocock/skills",
+					"src": "flake input",
+					"note": "25 件のうち 9 件を選択。<b>上流のファイルは無改変</b>。<code>tdd</code> は自作と名前が衝突するので <code>mattpocock-tdd</code> で入れてある。",
+					"items": [
+						{
+							"name": "codebase-design",
+							"desc": "深いモジュール・境界・seam を語るための共通語彙"
+						},
+						{
+							"name": "diagnosing-bugs",
+							"desc": "難しいバグと性能変化の診断ループ"
+						},
+						{
+							"name": "domain-modeling",
+							"desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
+						},
+						{
+							"name": "grill-me",
+							"desc": "計画や設計を執拗に問い詰めて穴を出す"
+						},
+						{
+							"name": "grill-with-docs",
+							"desc": "問い詰めながら ADR と用語集を残す"
+						},
+						{
+							"name": "grilling",
+							"desc": "同じことを、ユーザーを問い詰める側から"
+						},
+						{
+							"name": "mattpocock-tdd",
+							"desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。<b>回す前に読む参照</b>"
+						},
+						{
+							"name": "research",
+							"desc": "一次情報に当たって調べ、Markdown に残す"
+						},
+						{
+							"name": "wayfinder",
+							"desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
+						}
+					]
+				},
+				{
+					"title": "ツール同梱",
+					"src": "各パッケージの source",
+					"note": "ツール本体と<b>バージョンが必ず一致</b>する。herdr のものは herdr のパッケージから取っているので、herdr が上がればスキルも一緒に上がる。",
+					"items": [
+						{
+							"name": "agent-browser",
+							"desc": "ブラウザ操作。フォーム・スクショ・スクレイピング・Electron アプリ"
+						},
+						{
+							"name": "ast-grep",
+							"desc": "構文木でコードを検索する。素の grep より構造に強い"
 						},
 						{
 							"name": "herdr",

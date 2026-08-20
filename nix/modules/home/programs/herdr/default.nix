@@ -67,6 +67,18 @@ let
   ]
   ++ lib.optional hasReviewr pkgs.herdr-reviewr;
 
+  # Agents whose official integration should be installed. Without one, herdr
+  # reads an agent's state from what its TUI draws, and a pane restored after a
+  # server restart comes back as a plain shell rather than the conversation —
+  # which is what happened to three work panes when herdr was last restarted.
+  #
+  # Only agents actually installed here: `herdr integration` offers seventeen.
+  integrations = [
+    "claude"
+    "codex"
+    "grok"
+  ];
+
   herdr = lib.getExe pkgs.llm-agents.herdr;
 in
 {
@@ -93,42 +105,69 @@ in
       AUTO_INDEX=1
     '';
 
-    activation.writeHerdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "${herdrConfigDir}"
-      cp --no-preserve=mode,ownership ${tomlFormat.generate "herdr-config.toml" settings} "${herdrConfigDir}/config.toml"
-      chmod 644 "${herdrConfigDir}/config.toml"
-    '';
+    activation = {
+      writeHerdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        mkdir -p "${herdrConfigDir}"
+        cp --no-preserve=mode,ownership ${tomlFormat.generate "herdr-config.toml" settings} "${herdrConfigDir}/config.toml"
+        chmod 644 "${herdrConfigDir}/config.toml"
+      '';
 
-    # `herdr plugin install` fetches a repository and runs its build step at
-    # install time, which pins nothing. `link` takes a directory that already
-    # exists — including a read-only one in the store — and records it in
-    # plugins.json, so the version installed is the version this file names.
-    #
-    # Registering is idempotent, so every plugin is linked on each activation
-    # rather than diffed first. Removal is not: anything registered that this
-    # list no longer names is unlinked, which is what makes deleting a line here
-    # actually uninstall it, the way homebrew.onActivation.cleanup does.
-    activation.linkHerdrPlugins = lib.hm.dag.entryAfter [ "writeHerdrConfig" ] ''
-      wanted=""
-      ${lib.concatMapStringsSep "\n" (p: ''
-        id="$(${pkgs.jq}/bin/jq -r '.result.plugin.plugin_id' <<<"$($DRY_RUN_CMD ${herdr} plugin link ${p} 2>/dev/null)")"
-        wanted="$wanted $id"
-      '') plugins}
+      # `herdr plugin install` fetches a repository and runs its build step at
+      # install time, which pins nothing. `link` takes a directory that already
+      # exists — including a read-only one in the store — and records it in
+      # plugins.json, so the version installed is the version this file names.
+      #
+      # Registering is idempotent, so every plugin is linked on each activation
+      # rather than diffed first. Removal is not: anything registered that this
+      # list no longer names is unlinked, which is what makes deleting a line here
+      # actually uninstall it, the way homebrew.onActivation.cleanup does.
+      # After the agents' own settings are written, not before: installing an
+      # integration appends a hook to files this configuration also generates —
+      # claude's settings.json is copied fresh on every switch — so running this
+      # first would have it overwritten moments later. Installing is idempotent
+      # and reports "current" when nothing changed.
+      #
+      # This restores the integration when the configuration changes, not on
+      # every switch: a switch that builds an identical closure does not re-run
+      # home-manager's activation at all. Verified by deleting the hook and
+      # switching — it came back only once something else had changed. So this
+      # keeps the integration declared and repairs it alongside real changes; it
+      # is not a guard against something deleting the hook in between.
+      installHerdrIntegrations =
+        lib.hm.dag.entryAfter
+          [
+            "writeClaudeSettings"
+            "writeHerdrConfig"
+          ]
+          ''
+            ${lib.concatMapStringsSep "\n" (a: ''
+              $DRY_RUN_CMD ${herdr} integration install ${a} >/dev/null 2>&1 \
+                || echo "herdr: integration install ${a} failed (is it on PATH?)"
+            '') integrations}
+          '';
 
-      # A missing or unreadable registry means nothing is registered yet, which
-      # is the same as nothing to remove.
-      registered="$(${herdr} plugin list --json 2>/dev/null \
-        | ${pkgs.jq}/bin/jq -r '.result.plugins[]?.plugin_id // empty' || true)"
+      linkHerdrPlugins = lib.hm.dag.entryAfter [ "writeHerdrConfig" ] ''
+        wanted=""
+        ${lib.concatMapStringsSep "\n" (p: ''
+          id="$(${pkgs.jq}/bin/jq -r '.result.plugin.plugin_id' <<<"$($DRY_RUN_CMD ${herdr} plugin link ${p} 2>/dev/null)")"
+          wanted="$wanted $id"
+        '') plugins}
 
-      for id in $registered; do
-        case " $wanted " in
-          *" $id "*) ;;
-          *)
-            echo "herdr: unlinking plugin no longer declared: $id"
-            $DRY_RUN_CMD ${herdr} plugin unlink "$id" >/dev/null || true
-            ;;
-        esac
-      done
-    '';
+        # A missing or unreadable registry means nothing is registered yet, which
+        # is the same as nothing to remove.
+        registered="$(${herdr} plugin list --json 2>/dev/null \
+          | ${pkgs.jq}/bin/jq -r '.result.plugins[]?.plugin_id // empty' || true)"
+
+        for id in $registered; do
+          case " $wanted " in
+            *" $id "*) ;;
+            *)
+              echo "herdr: unlinking plugin no longer declared: $id"
+              $DRY_RUN_CMD ${herdr} plugin unlink "$id" >/dev/null || true
+              ;;
+          esac
+        done
+      '';
+    };
   };
 }

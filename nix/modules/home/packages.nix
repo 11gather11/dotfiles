@@ -15,6 +15,7 @@
     git-lfs
     ghq
     lazygit
+    serie
     # Security
     tirith
     # Search & file utilities

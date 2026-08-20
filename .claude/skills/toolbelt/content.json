@@ -426,6 +426,10 @@
 						{
 							"name": "リモート開発",
 							"desc": "<b>Tailscale</b> ＋ herdr の detach／再接続"
+						},
+						{
+							"name": "Git Graph",
+							"desc": "serie。<code>git log --graph</code> を画像プロトコルで描くので、罫線文字の制約が無い。Ghostty は kitty graphics に対応済み。<b>watchlist の採用は 0/19</b> ——見た目が要求そのものなので、採用数ではなく読みやすさで選んだ"
 						}
 					]
 				},
@@ -444,7 +448,7 @@
 						},
 						{
 							"name": "ファイル操作 UI",
-							"desc": "<b>yazi</b> — プレビュー付きの TUI ファイルマネージャ。一括リネームや移動が得意（3/12）"
+							"desc": "<b>yazi</b> — プレビュー付きの TUI ファイルマネージャ。一括リネームや移動が得意（5/19）"
 						},
 						{
 							"name": "Replace All",
@@ -452,23 +456,19 @@
 						},
 						{
 							"name": "履歴・blame",
-							"desc": "<b>tig</b> — lazygit は blame が弱い。GitLens の File History 相当（5/12 で difftastic と併用）"
-						},
-						{
-							"name": "きれいなグラフ",
-							"desc": "<b>serie</b> — Ghostty の画像表示に対応。Git Graph 拡張の見た目に最も近い"
+							"desc": "<b>tig</b> — lazygit は blame が弱い。GitLens の File History 相当（2/19）"
 						},
 						{
 							"name": "タスク実行",
-							"desc": "<b>just</b> — tasks.json 相当。<code>justfile</code> にコマンドをまとめる（3/12）"
+							"desc": "<b>just</b> — tasks.json 相当。<code>justfile</code> にコマンドをまとめる（4/19）"
 						},
 						{
 							"name": "構造的な差分",
-							"desc": "<b>difftastic</b> — 構文木で比較。delta と役割が違うので共存できる（3/12）"
+							"desc": "<b>difftastic</b> — 構文木で比較。delta と役割が違うので共存できる（4/19）"
 						},
 						{
 							"name": "コマンド履歴",
-							"desc": "<b>atuin</b> — ディレクトリ・終了コード・所要時間で履歴を検索（4/12。mitchellh も使用）"
+							"desc": "<b>atuin</b> — ディレクトリ・終了コード・所要時間で履歴を検索（4/19。mitchellh も使用）"
 						}
 					]
 				},
@@ -482,7 +482,7 @@
 						},
 						{
 							"name": "テスト実行 UI",
-							"desc": "<b>neotest</b> は <b>0/12</b>。誰も使っていない。テストは素直に CLI で流すほうが早い"
+							"desc": "<b>neotest</b> は <b>1/19</b>。誰も使っていない。テストは素直に CLI で流すほうが早い"
 						},
 						{
 							"name": "GUI が要る作業",

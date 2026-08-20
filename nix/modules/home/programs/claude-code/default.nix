@@ -41,6 +41,26 @@ let
     skipAutoPermissionPrompt = true;
     skipDangerousModePermissionPrompt = true;
     hooks = {
+      # herdr's agent integration. The script is installed and versioned by
+      # `herdr integration install claude` — see the herdr module — but the
+      # registration belongs here, because this file is regenerated on every
+      # switch and anything herdr appends to it is lost at the next one. That
+      # is not hypothetical: the hook was added, a switch overwrote it, and
+      # `herdr integration status` went on reporting "current" because it only
+      # checks that the script exists, not that anything calls it.
+      SessionStart = [
+        {
+          matcher = "*";
+          hooks = [
+            {
+              type = "command";
+              command = "bash '${claudeConfigDir}/hooks/herdr-agent-state.sh' session";
+              timeout = 10;
+            }
+          ];
+        }
+      ];
+
       PreToolUse = [
         {
           matcher = "Bash";

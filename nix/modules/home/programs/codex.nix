@@ -25,6 +25,14 @@ let
   tomlFormat = pkgs.formats.toml { };
 
   settings = {
+    # Codex only runs hooks when this is on, and herdr's integration turns it
+    # on by editing config.toml — which this module regenerates on every
+    # switch, so the setting lasted until the next one. The hook itself lives
+    # in ~/.codex/hooks.json, which nothing here writes, so only this needed
+    # declaring. The trust recorded under [hooks.state] is Codex's own state
+    # and is not declared: trusting a hook is a decision to make at the prompt.
+    features.hooks = true;
+
     model = "gpt-5.6-sol";
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";

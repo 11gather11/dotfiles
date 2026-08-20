@@ -75,7 +75,11 @@ def installed [root: string] {
             | default []
             | str join "\n"
             | lines
-            | each {|l| $l | parse --regex '^\s{8}(?<name>[a-z0-9][a-z0-9-]*)\s*=\s*\{' }
+            # Quotes and slashes allowed: an id namespaced by its source is
+            # written "mattpocock/tdd", and a pattern that only accepted bare
+            # words stopped counting nine skills the moment they were namespaced
+            # — while still reporting no drift, because it was not looking.
+            | each {|l| $l | parse --regex '^\s{8}"?(?<name>[a-z0-9][a-z0-9/-]*)"?\s*=\s*\{' }
             | flatten
             | get -o name
             | default []

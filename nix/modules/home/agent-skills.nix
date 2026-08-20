@@ -58,44 +58,60 @@
       # Enable all local skills
       enableAll = [ "local" ];
 
+      # Skills taken from mattpocock/skills keep that namespace in their id,
+      # which the source's idPrefix already produces. It is what lets the
+      # upstream tdd sit beside the local one without either being edited,
+      # and it keeps where a skill came from readable from its name.
       explicit = {
+        # Namespaced rather than renamed. The local tdd keeps the bare name —
+        # it carries the loop and detects the project's test runner — and this
+        # one sits beside it as what upstream calls "a reference to consult,
+        # not a session to run": seams, and the anti-patterns worth naming.
+        #
+        # A `/` in the id is what the source's idPrefix already produces, so
+        # neither side is edited: no rename here, no rewriting of upstream's
+        # frontmatter to stop a renamed skill still describing itself as tdd.
+        "mattpocock/tdd" = {
+          from = "mattpocock-engineering";
+          path = "tdd";
+        };
         # 計画や設計を執拗に問い詰めて穴を出す
-        grill-me = {
+        "mattpocock/grill-me" = {
           from = "mattpocock-productivity";
           path = "grill-me";
         };
         # 同じことを、ユーザーを問い詰める側から
-        grilling = {
+        "mattpocock/grilling" = {
           from = "mattpocock-productivity";
           path = "grilling";
         };
         # grill しながら ADR と用語集を作る
-        grill-with-docs = {
+        "mattpocock/grill-with-docs" = {
           from = "mattpocock-engineering";
           path = "grill-with-docs";
         };
         # 難しいバグと性能変化の診断ループ
-        diagnosing-bugs = {
+        "mattpocock/diagnosing-bugs" = {
           from = "mattpocock-engineering";
           path = "diagnosing-bugs";
         };
         # 深いモジュールを設計するための共通語彙
-        codebase-design = {
+        "mattpocock/codebase-design" = {
           from = "mattpocock-engineering";
           path = "codebase-design";
         };
         # ドメインモデルと用語を磨く
-        domain-modeling = {
+        "mattpocock/domain-modeling" = {
           from = "mattpocock-engineering";
           path = "domain-modeling";
         };
         # 一次情報に当たって Markdown に残す
-        research = {
+        "mattpocock/research" = {
           from = "mattpocock-engineering";
           path = "research";
         };
         # 1 セッションに収まらない作業を決定の地図として計画
-        wayfinder = {
+        "mattpocock/wayfinder" = {
           from = "mattpocock-engineering";
           path = "wayfinder";
         };

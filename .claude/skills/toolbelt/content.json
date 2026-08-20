@@ -1405,36 +1405,40 @@
 							}
 						},
 						{
-							"name": "grill-me",
-							"desc": "計画や設計を執拗に問い詰めて穴を出す（mattpocock）"
+							"name": "mattpocock/grill-me",
+							"desc": "計画や設計を執拗に問い詰めて穴を出す"
 						},
 						{
-							"name": "grilling",
-							"desc": "同じことを、ユーザーを問い詰める側から（mattpocock）"
+							"name": "mattpocock/grilling",
+							"desc": "同じことを、ユーザーを問い詰める側から"
 						},
 						{
-							"name": "grill-with-docs",
-							"desc": "grill しながら ADR と用語集を残す（mattpocock）"
+							"name": "mattpocock/grill-with-docs",
+							"desc": "grill しながら ADR と用語集を残す"
 						},
 						{
-							"name": "diagnosing-bugs",
-							"desc": "難しいバグと性能変化の診断ループ（mattpocock）"
+							"name": "mattpocock/diagnosing-bugs",
+							"desc": "難しいバグと性能変化の診断ループ"
 						},
 						{
-							"name": "codebase-design",
-							"desc": "深いモジュールを設計するための共通語彙（mattpocock）"
+							"name": "mattpocock/codebase-design",
+							"desc": "深いモジュールを設計するための共通語彙"
 						},
 						{
-							"name": "domain-modeling",
-							"desc": "ドメインモデルと用語を磨く（mattpocock）"
+							"name": "mattpocock/domain-modeling",
+							"desc": "ドメインモデルと用語を磨く"
 						},
 						{
-							"name": "research",
-							"desc": "一次情報に当たって Markdown に残す（mattpocock）"
+							"name": "mattpocock/research",
+							"desc": "一次情報に当たって Markdown に残す"
 						},
 						{
-							"name": "wayfinder",
-							"desc": "1 セッションに収まらない作業を決定の地図として計画（mattpocock）"
+							"name": "mattpocock/wayfinder",
+							"desc": "1 セッションに収まらない作業を決定の地図として計画"
+						},
+						{
+							"name": "mattpocock/tdd",
+							"desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。ローカルの <code>tdd</code> がループを回す側で、こちらは参照。名前空間が分かれているので両方入っている"
 						}
 					]
 				},

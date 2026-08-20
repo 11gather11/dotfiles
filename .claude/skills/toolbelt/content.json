@@ -89,6 +89,10 @@
 						{
 							"name": "tree",
 							"desc": "ツリー表示（tre があればそちらを使う）"
+						},
+						{
+							"name": "yazi",
+							"desc": "ファイルを見て回る・一括リネーム・場所どうしの移動。<code>?</code> でキー一覧"
 						}
 					]
 				},
@@ -430,6 +434,10 @@
 						{
 							"name": "Git Graph",
 							"desc": "serie。<code>git log --graph</code> を画像プロトコルで描くので罫線文字の制約が無い。<b>herdr のペインで使うには <code>experimental.kitty_graphics</code> が要る</b> —— 設定してあっても、それより前から動いているサーバは読まない。watchlist の採用は 0/19 で、見た目が要求そのものなので採用数ではなく読みやすさで選んだ"
+						},
+						{
+							"name": "ファイル操作 UI",
+							"desc": "yazi。プレビュー付きの TUI ファイルマネージャ。<code>yazi</code> で起動し、<code>q</code> で抜けるとシェルがそのディレクトリに残る。複数選択して <code>r</code> で一括リネーム、<code>y</code> ヤンク / <code>p</code> ペーストで任意の場所どうしのコピー。ダウンロードの移動は <code>dlmv</code> のほうが速い"
 						}
 					]
 				},
@@ -445,10 +453,6 @@
 								"kind": "t-warn",
 								"text": "最優先"
 							}
-						},
-						{
-							"name": "ファイル操作 UI",
-							"desc": "yazi — プレビュー付きの TUI ファイルマネージャ。一括リネームと、任意の場所どうしのコピーが得意。<b>3/19（設定まで持つのは 2 人）</b>。ダウンロードの移動は <code>dlmv</code> で解決済みなので、残る空白は一括リネームと Downloads 以外からの移動"
 						},
 						{
 							"name": "Replace All",

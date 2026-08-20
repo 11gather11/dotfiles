@@ -1403,6 +1403,38 @@
 								"kind": "t-cfg",
 								"text": "外部"
 							}
+						},
+						{
+							"name": "grill-me",
+							"desc": "計画や設計を執拗に問い詰めて穴を出す（mattpocock）"
+						},
+						{
+							"name": "grilling",
+							"desc": "同じことを、ユーザーを問い詰める側から（mattpocock）"
+						},
+						{
+							"name": "grill-with-docs",
+							"desc": "grill しながら ADR と用語集を残す（mattpocock）"
+						},
+						{
+							"name": "diagnosing-bugs",
+							"desc": "難しいバグと性能変化の診断ループ（mattpocock）"
+						},
+						{
+							"name": "codebase-design",
+							"desc": "深いモジュールを設計するための共通語彙（mattpocock）"
+						},
+						{
+							"name": "domain-modeling",
+							"desc": "ドメインモデルと用語を磨く（mattpocock）"
+						},
+						{
+							"name": "research",
+							"desc": "一次情報に当たって Markdown に残す（mattpocock）"
+						},
+						{
+							"name": "wayfinder",
+							"desc": "1 セッションに収まらない作業を決定の地図として計画（mattpocock）"
 						}
 					]
 				},
@@ -1959,6 +1991,10 @@
 						{
 							"name": "import-tree",
 							"desc": "ディレクトリ配下の <code>.nix</code> を全部モジュールとして読み込む。<code>nix/modules/</code> に一覧ファイルが要らないのはこれのため（<code>denful/import-tree</code>）"
+						},
+						{
+							"name": "mattpocock-skills",
+							"desc": "エージェントスキル集。25 件のうち 8 件を <code>explicit</code> で選択。ソースには <code>idPrefix</code> を付けてある —— 登録するだけで全件が見えるので、upstream の <code>tdd</code> がローカルのものと衝突する（<code>mattpocock/skills</code>）"
 						}
 					]
 				}

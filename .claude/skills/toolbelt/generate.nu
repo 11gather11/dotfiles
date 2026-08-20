@@ -62,11 +62,25 @@ def installed [root: string] {
 		| where {|l| $l =~ '^abbr ' }
 		| length
 	)
+    # Local skills, plus the ones selected from external sources. Only the
+    # local directory used to be read, so a skill taken from a flake input was
+    # installed without the page having to mention it — which is how eight
+    # arrived at once and nothing said so.
     let skills = (
-        ls $"($root)/agents/skills"
-        | where type == dir
-        | get name
-        | path basename
+        (ls $"($root)/agents/skills" | where type == dir | get name | path basename)
+        | append (
+            open --raw $"($root)/nix/modules/home/agent-skills.nix"
+            | parse --regex '(?s)explicit\s*=\s*\{(?<body>.*)'
+            | get -o body
+            | default []
+            | str join "\n"
+            | lines
+            | each {|l| $l | parse --regex '^\s{8}(?<name>[a-z0-9][a-z0-9-]*)\s*=\s*\{' }
+            | flatten
+            | get -o name
+            | default []
+        )
+        | uniq
     )
     let functions = (
 		ls $"($root)/fish/functions"

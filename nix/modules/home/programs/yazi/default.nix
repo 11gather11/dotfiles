@@ -5,14 +5,13 @@
   config,
   lib,
   pkgs,
-  helpers,
   ...
 }:
 let
-  # The two plugins written here are linked into place rather than copied into
-  # the store, so that editing one takes effect on the next yazi rather than on
-  # the next switch. That is the whole point while they are being worked on: a
-  # forty-second build to see whether a colour is right is a build nobody runs.
+  # The plugin written here is linked into place rather than copied into the
+  # store, so that editing it takes effect on the next yazi rather than on the
+  # next switch — a forty-second build to see whether a number is right is a
+  # build nobody runs.
   #
   # It costs reproducibility — the link is dead on a machine without this
   # checkout — so set this false once they settle, and they go back to being
@@ -20,23 +19,13 @@ let
   developing = true;
 
   localPlugins = {
-    git-diff = ./git-diff;
     gitstat = ./gitstat;
   };
 
   # The path as it is on this machine, which is what a link out of the store
-  # has to name. `./git-diff` would be the store copy this is avoiding.
+  # has to name. `./gitstat` would be the store copy this is avoiding.
   checkout = "${config.home.homeDirectory}/ghq/github.com/11gather11/dotfiles/nix/modules/home/programs/yazi";
 
-  # The palette's diff colours, as a Lua list of delta arguments.
-  # delta's style strings carry quotes of their own — `syntax "#394545"` — so
-  # they are escaped for Lua rather than dropped into it as they are.
-  deltaArgs =
-    lib.concatMapStringsSep ", " (arg: ''"${lib.replaceStrings [ ''"'' ] [ ''\"'' ] arg}"'')
-      (
-        [ "--syntax-theme=${helpers.theme.bat}" ]
-        ++ lib.mapAttrsToList (name: style: "--${name}=${style}") helpers.theme.delta
-      );
 in
 {
   programs.yazi = {
@@ -78,15 +67,6 @@ in
       require("git"):setup()
       require("gitstat"):setup()
 
-      -- delta reads none of the [delta] gitconfig section here: it is written
-      -- for reading a diff in a full terminal, side-by-side above all, and
-      -- none of that suits a pane this narrow. The palette has to arrive some
-      -- other way, so it arrives as arguments.
-      require("git-diff"):setup {
-        git = "${lib.getExe pkgs.git}",
-        delta = "${lib.getExe pkgs.delta}",
-        delta_args = { ${deltaArgs} },
-      }
 
       -- The tree keeps its own idea of what to show, separate from the file
       -- list's, so hiding dotfiles has to be turned off in both places.
@@ -106,17 +86,6 @@ in
 
       plugin = {
         prepend_previewers = [
-          # Same mime patterns yazi sends to its own `code` previewer, so the
-          # files that were shown as source are the ones shown as source with
-          # their changes marked. Images, PDFs and archives keep their own.
-          {
-            mime = "text/*";
-            run = "git-diff";
-          }
-          {
-            mime = "application/{mbox,javascript,wine-extension-ini}";
-            run = "git-diff";
-          }
           {
             # A directory previewed as a tree rather than one level. What is
             # being looked for here is the shape of a repository, and one level

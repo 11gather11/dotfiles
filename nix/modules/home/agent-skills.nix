@@ -44,6 +44,14 @@ in
         path = pkgs.llm-agents.herdr.src;
         subdir = "skills";
       };
+      # External: hunk's own skill, shipped inside the package. It tells an
+      # agent to drive a review the user already has open through `hunk
+      # session`, rather than opening its own — which is the difference
+      # between reviewing together and reviewing twice.
+      hunk = {
+        path = pkgs.hunk;
+        subdir = "share/skills/hunk";
+      };
       # External: mattpocock/skills. Two subdirectories hold the current ones;
       # deprecated/ and in-progress/ also exist and are deliberately not read.
       mattpocock-engineering = {
@@ -144,6 +152,13 @@ in
         herdr = {
           from = "herdr";
           path = "herdr";
+        };
+
+        # Registering the source is not installing the skill; each one is named
+        # here or it stays in the store. hunk ships exactly one.
+        hunk-review = {
+          from = "hunk";
+          path = "hunk-review";
         };
 
         agent-browser =

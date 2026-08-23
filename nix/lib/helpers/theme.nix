@@ -27,6 +27,9 @@ _: {
   # it takes the same value.
   bat = "Catppuccin Mocha";
 
+  # hunk ships the scheme as one of its built-in themes, under an id.
+  hunk = "catppuccin-mocha";
+
   # The colours delta paints an added and a removed line with, taken from
   # catppuccin/delta rather than left at delta's own — which are a saturated
   # green and red mixed with nothing, and read as a warning next to a scheme

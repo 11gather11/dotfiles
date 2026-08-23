@@ -14,9 +14,6 @@
     git-lfs
     ghq
     lazygit
-    # Reading a changeset an agent wrote, which is most of them now. Took
-    # reviewr's place: same job, without a herdr plugin and a pinned binary.
-    hunk
     # Security
     tirith
     # Search & file utilities

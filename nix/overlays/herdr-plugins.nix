@@ -36,4 +36,9 @@ in
     rev = "be6888b71cf4eb5939ee79a746bd1a1c22ade046";
     hash = "sha256-4Dlo4YQpLPJKEPuXSS4EO5LMCmUn/tezEiIqlFXhCxo=";
   };
+
+  # Reviewing an agent's diff in a pane, and sending the comments written there
+  # back to the agent that wrote the code. Built here rather than fetched, so
+  # it has a package of its own; see nix/packages/herdr-hunk-diff.
+  herdr-hunk-diff = prev.callPackage ../packages/herdr-hunk-diff { };
 }

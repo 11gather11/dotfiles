@@ -39,6 +39,7 @@ let
     pkgs.herdr-browser
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
+    pkgs.herdr-hunk-diff
   ];
 
   # Agents whose official integration should be installed. Without one, herdr

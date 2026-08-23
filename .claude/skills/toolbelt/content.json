@@ -1,2033 +1,2082 @@
 {
-	"tabs": [
-		{
-			"id": "use",
-			"label": "用途から引く",
-			"lede": "日常的に効くものを用途別に。まず何ができるかを掴むためのページ。",
-			"sections": [
-				{
-					"title": "移動する",
-					"note": "ディレクトリ間を最短で移動する。<b>cd をほぼ打たなくなる</b>のがこの環境の前提。",
-					"items": [
-						{
-							"name": "z <部分文字列>",
-							"desc": "よく行くディレクトリへ一発で飛ぶ（zoxide）。履歴から学習するので打つほど当たる",
-							"expand": "z dotfiles → ~/ghq/github.com/11gather11/dotfiles"
-						},
-						{
-							"name": "zi",
-							"desc": "飛び先を fzf で一覧から選ぶ"
-						},
-						{
-							"name": "cdr",
-							"desc": "今いる git リポジトリのルートへ戻る",
-							"expand": "cd -- (git root)"
-						},
-						{
-							"name": "cdf",
-							"desc": "fzf でディレクトリを選んで移動"
-						},
-						{
-							"name": "gg <repo>",
-							"desc": "GitHub リポジトリを clone して ~/ghq 配下に整理（ghq get）"
-						},
-						{
-							"name": "gh-q",
-							"desc": "自分のリポジトリを fzf で選んで clone＋移動"
-						},
-						{
-							"name": "mkcd <dir>",
-							"desc": "ディレクトリを作ってそのまま入る"
-						}
-					]
-				},
-				{
-					"title": "見る・探す",
-					"note": "ls / cat / grep / find は、すべて中身が置き換わっている。",
-					"items": [
-						{
-							"name": "ls",
-							"desc": "eza。git 状態つきの一覧（実体は eza のエイリアス）"
-						},
-						{
-							"name": "ll / la / lt",
-							"desc": "詳細 / 隠しファイル込み / ツリー表示",
-							"expand": "ls -hl / ls -hlA / ls --tree"
-						},
-						{
-							"name": "bat <file>",
-							"desc": "cat の代わり。シンタックスハイライトと行番号つき"
-						},
-						{
-							"name": "rg <pattern>",
-							"desc": "ripgrep。.gitignore を尊重した高速全文検索（VS Code の Search 相当）"
-						},
-						{
-							"name": "fd <name>",
-							"desc": "find の代わり。ファイル名検索"
-						},
-						{
-							"name": "fzf",
-							"desc": "あらゆる一覧を絞り込む土台。他のコマンドと繋いで使う"
-						},
-						{
-							"name": "ast-grep",
-							"desc": "構文木ベースの検索・一括置換。文字列置換で壊れるコード改変に使う",
-							"tag": {
-								"kind": "t-new",
-								"text": "skill あり"
-							}
-						},
-						{
-							"name": "jq <filter>",
-							"desc": "JSON の抽出・加工"
-						},
-						{
-							"name": "dust",
-							"desc": "du の代わり。どのディレクトリが容量を食っているか可視化"
-						},
-						{
-							"name": "tree",
-							"desc": "ツリー表示（tre があればそちらを使う）"
-						},
-						{
-							"name": "yazi",
-							"desc": "ファイルを見て回る・一括リネーム・場所どうしの移動。<code>?</code> でキー一覧"
-						}
-					]
-				},
-				{
-					"title": "Git を操作する",
-					"note": "2 系統ある。<b>lazygit</b> は画面で操作、<b>略語</b> は打鍵で操作。",
-					"items": [
-						{
-							"name": "lzg",
-							"desc": "lazygit。差分・ステージング・履歴・rebase を画面で（VS Code の Source Control 相当）。<b>a キーで全ブランチのグラフ</b>"
-						},
-						{
-							"name": "g",
-							"desc": "git 本体。以下はすべて g の後に続く短縮形"
-						},
-						{
-							"name": "ga / ga. / gaa",
-							"desc": "add / add . / add --all"
-						},
-						{
-							"name": "gc / gcm / gcam",
-							"desc": "commit / commit -m / amend -m"
-						},
-						{
-							"name": "gsw / gsm / gswf",
-							"desc": "switch / main へ戻る / feature ブランチを作る"
-						},
-						{
-							"name": "gp / gpf / gpl",
-							"desc": "push / push --force-with-lease / pull"
-						},
-						{
-							"name": "gwt / gwtpr",
-							"desc": "worktree を作って移動、PR の worktree を開く（<code>wt switch</code> / <code>wt switch pr:123</code>）",
-							"tag": {
-								"kind": "t-new",
-								"text": "skill あり"
-							}
-						},
-						{
-							"name": "git sts / git st",
-							"desc": "短い status / stash（git 自体のエイリアス。g を付けずに git で打つ）"
-						},
-						{
-							"name": "delta",
-							"desc": "git の差分表示エンジン。自動で効いている（設定不要）"
-						},
-						{
-							"name": "ghp",
-							"desc": "マージ済みローカルブランチを掃除（gh poi）"
-						},
-						{
-							"name": "gh pcr / pco",
-							"desc": "PR を作る / PR をチェックアウト"
-						},
-						{
-							"name": "serie",
-							"desc": "コミットグラフを画像で描く。<code>git log --graph</code> の読みにくさを解く。herdr のペイン内で使うには herdr 側の <code>kitty_graphics</code> が要る"
-						}
-					]
-				},
-				{
-					"title": "AI エージェント",
-					"note": "この環境の主目的。すべて nix（llm-agents）で管理され、日次で更新される。",
-					"items": [
-						{
-							"name": "cl / clc",
-							"desc": "Claude Code を起動 / 直前の会話を継続"
-						},
-						{
-							"name": "clo / cls / clh",
-							"desc": "モデル指定で起動（opus / sonnet / haiku）"
-						},
-						{
-							"name": "cx",
-							"desc": "Codex。別視点のレビューや調査に使う（今日この画面の右で動いていたもの）"
-						},
-						{
-							"name": "herdr",
-							"desc": "エージェント多重化。ペインを分けて複数のエージェントを走らせ、detach しても動き続ける",
-							"tag": {
-								"kind": "t-new",
-								"text": "今日導入"
-							}
-						},
-						{
-							"name": "grok",
-							"desc": "xAI のエージェント CLI"
-						}
-					]
-				},
-				{
-					"title": "編集する",
-					"items": [
-						{
-							"name": "v / nv",
-							"desc": "Neovim（LazyVim 構成）。VS Code の編集を置き換える本体"
-						},
-						{
-							"name": "vc",
-							"desc": "今のディレクトリを VS Code で開く（移行中の逃げ道）"
-						},
-						{
-							"name": "nvim の LSP",
-							"desc": "現在は lua と TypeScript(tsgo) のみ手動設定。<b>LazyVim extras が空</b>なので言語サポートは最小限",
-							"tag": {
-								"kind": "t-warn",
-								"text": "要設定"
-							}
-						}
-					]
-				},
-				{
-					"title": "Nix を回す",
-					"note": "この dotfiles 自体を操作する系統。",
-					"items": [
-						{
-							"name": "nix run .#switch",
-							"desc": "設定を適用する。<b>編集しただけでは反映されない</b>"
-						},
-						{
-							"name": "nix run .#build",
-							"desc": "適用せずビルドだけ試す"
-						},
-						{
-							"name": "nix run .#update",
-							"desc": "flake.lock を更新"
-						},
-						{
-							"name": "gnix <cmd>",
-							"desc": "GitHub のレート制限を避けて nix を実行（gh のトークンを渡す）",
-							"tag": {
-								"kind": "t-new",
-								"text": "今日導入"
-							}
-						},
-						{
-							"name": "nx <pkg> -- <cmd>",
-							"desc": "パッケージを一時的に引いてコマンドを実行"
-						},
-						{
-							"name": ", <cmd>",
-							"desc": "未インストールのコマンドをその場で実行（comma）",
-							"tag": {
-								"kind": "t-new",
-								"text": "skill あり"
-							}
-						},
-						{
-							"name": "nh clean",
-							"desc": "古い世代を掃除。週次で自動実行される",
-							"tag": {
-								"kind": "t-new",
-								"text": "今日導入"
-							}
-						},
-						{
-							"name": "ngc",
-							"desc": "nix-collect-garbage"
-						},
-						{
-							"name": "devenv / dv",
-							"desc": "プロジェクト単位の開発環境"
-						}
-					]
-				},
-				{
-					"title": "音声・入力",
-					"items": [
-						{
-							"name": "TypeWhisper",
-							"desc": "端末内で完結する音声入力。ホットキーで話すと文字が入る",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "辞書の同期",
-							"desc": "誤認識した語を dictionary.json に足して同期する",
-							"expand": "cd typewhisper && ./dict-sync.ts"
-						},
-						{
-							"name": "Karabiner",
-							"desc": "キー配列の改変。設定は TypeScript で書かれている",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						}
-					]
-				},
-				{
-					"title": "その他の便利もの",
-					"items": [
-						{
-							"name": "ss",
-							"desc": "直前のコマンドを sudo で打ち直す"
-						},
-						{
-							"name": "fkill",
-							"desc": "プロセスを fzf で選んで kill"
-						},
-						{
-							"name": "gip / lip",
-							"desc": "グローバル IP / ローカル IP を表示"
-						},
-						{
-							"name": "gheye <repo>",
-							"desc": "GitHub リポジトリの README を端末で読む"
-						},
-						{
-							"name": "npkill",
-							"desc": "散らばった node_modules を探して消す"
-						},
-						{
-							"name": "clean",
-							"desc": "aqua / brew / mise などのキャッシュを一括掃除"
-						},
-						{
-							"name": "trash",
-							"desc": "rm の代わりにゴミ箱へ（git の削除にも設定済み）"
-						},
-						{
-							"name": "tirith",
-							"desc": "危険なコマンドを実行前に検査するフック。裏で常時動いている",
-							"tag": {
-								"kind": "t-new",
-								"text": "今日導入"
-							}
-						},
-						{
-							"name": "caf",
-							"desc": "スリープさせない（caffeinate -d）"
-						}
-					]
-				},
-				{
-					"title": "GUI アプリ",
-					"note": "Homebrew cask で管理。<code>nix run .#switch</code> で入る／消える。",
-					"items": [
-						{
-							"name": "Ghostty",
-							"desc": "端末。watchlist の 12 人中 7 人が使う最多派",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "Raycast / AltTab",
-							"desc": "ランチャー / ウィンドウ切替",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "Bruno",
-							"desc": "API クライアント（Postman 代替）",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "OrbStack",
-							"desc": "Docker / Linux VM。do・dc 系の略語がこれに繋がる",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "Shottr / Stats",
-							"desc": "スクリーンショット / メニューバーの状態表示",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
-							"name": "1Password",
-							"desc": "パスワード管理。<b>git の署名鍵もここ</b>（ロックすると commit が失敗する）",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "todo",
-			"label": "未活用・要設定",
-			"lede": "設定が空のもの、入っているのに存在を忘れやすいもの。ここが次にやることの候補。",
-			"sections": [
-				{
-					"title": "設定が要る",
-					"note": "入っているのに、設定が空か最小限で本来の力が出ていないもの。",
-					"items": [
-						{
-							"name": "LazyVim extras",
-							"desc": "<b>空</b>。言語ごとの LSP・フォーマッタ・リンタが一つも有効になっていない。<code>v</code> → <code>:LazyExtras</code> で選ぶだけ",
-							"expand": "nvim/lazyvim.json",
-							"tag": {
-								"kind": "t-warn",
-								"text": "最優先"
-							}
-						}
-					]
-				},
-				{
-					"title": "知られていない可能性が高い",
-					"note": "入っていて動くが、存在を忘れやすいもの。",
-					"items": [
-						{
-							"name": "git ap",
-							"desc": "hunk 単位で add。部分コミットに効く"
-						},
-						{
-							"name": "git difff",
-							"desc": "単語単位の差分。文章の変更が読みやすい"
-						},
-						{
-							"name": "forgit",
-							"desc": "git 操作を fzf で。<code>ga</code> や <code>glo</code> が対話的になる"
-						},
-						{
-							"name": "puffer-fish",
-							"desc": "<code>...</code> と打つと <code>../..</code> に展開される"
-						},
-						{
-							"name": "fish-abbreviation-tips",
-							"desc": "長く打つと「略語があるよ」と教えてくれる"
-						},
-						{
-							"name": "ss",
-							"desc": "直前のコマンドを sudo で打ち直す"
-						},
-						{
-							"name": "gheye <repo>",
-							"desc": "GitHub の README を端末で読む"
-						},
-						{
-							"name": "nx <pkg> -- <cmd>",
-							"desc": "パッケージを一時的に引いて実行。入れずに試せる"
-						},
-						{
-							"name": ", <cmd>",
-							"desc": "未インストールのコマンドをその場で実行（comma）"
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "map",
-			"label": "設定の地図",
-			"lede": "何かを変えたいときに、どのファイルを開けばいいか。",
-			"sections": [
-				{
-					"title": "どこを直せばいいか",
-					"note": "変えたいものから、編集するファイルを引く。編集後は <code>nix run .#switch</code>。",
-					"items": [
-						{
-							"name": "CLI を足す・消す",
-							"desc": "nix/modules/home/packages.nix"
-						},
-						{
-							"name": "GUI アプリを足す・消す",
-							"desc": "nix/modules/darwin-system/homebrew.nix"
-						},
-						{
-							"name": "AI エージェントを足す",
-							"desc": "nix/modules/home/programs/ai-tools.nix"
-						},
-						{
-							"name": "モジュールを足す",
-							"desc": "nix/modules/<code>home</code> / <code>home-darwin</code> / <code>home-linux</code> / <code>darwin-system</code> のどれかに <code>.nix</code> を置くだけ。import-tree が拾うので一覧の編集は要らない"
-						},
-						{
-							"name": "略語・エイリアス",
-							"desc": "fish/config/abbrs_aliases.fish"
-						},
-						{
-							"name": "自作コマンド",
-							"desc": "fish/functions/&lt;名前&gt;.fish（ファイル名がコマンド名になる）"
-						},
-						{
-							"name": "シェルの起動処理",
-							"desc": "fish/config.fish（PATH・環境変数・各種 init）"
-						},
-						{
-							"name": "macOS の挙動",
-							"desc": "nix/modules/darwin-system/defaults.nix（Dock・トラックパッド・Finder）"
-						},
-						{
-							"name": "Neovim",
-							"desc": "nvim/lua/plugins/*.lua と nvim/lazyvim.json"
-						},
-						{
-							"name": "Claude Code の設定",
-							"desc": "nix/modules/home/programs/claude-code/default.nix（モデル・フック・statusline）"
-						},
-						{
-							"name": "Claude への指示",
-							"desc": "claude/CLAUDE.md（全プロジェクト）／ CLAUDE.md（このリポジトリ）／ agents/shared/*.md（両エージェント共通）"
-						},
-						{
-							"name": "エージェントスキル",
-							"desc": "agents/skills/&lt;名前&gt;/SKILL.md（追加すれば自動で有効）"
-						},
-						{
-							"name": "Codex の設定",
-							"desc": "nix/modules/home/programs/codex.nix ／ codex/AGENTS.md"
-						},
-						{
-							"name": "herdr の設定",
-							"desc": "nix/modules/home/programs/herdr/default.nix"
-						},
-						{
-							"name": "git の設定・エイリアス",
-							"desc": "nix/modules/home/programs/git/default.nix と同 aliases"
-						},
-						{
-							"name": "端末の見た目",
-							"desc": "nix/modules/home/programs/ghostty.nix ／ fish/themes/catppuccin-mocha.fish"
-						},
-						{
-							"name": "キー配列",
-							"desc": "karabiner/karabiner.ts（TypeScript で書いて生成）"
-						},
-						{
-							"name": "音声入力の辞書",
-							"desc": "typewhisper/dictionary.json（同期は ./dict-sync.ts）"
-						},
-						{
-							"name": "監視する dotfiles",
-							"desc": ".claude/skills/check-dotfiles-updates/watchlist.json"
-						},
-						{
-							"name": "外部スキル・入力の追加",
-							"desc": "flake.nix の <code>inputs</code> ＋ nix/modules/home/agent-skills.nix"
-						}
-					]
-				},
-				{
-					"title": "反映のしかた",
-					"items": [
-						{
-							"name": "nix run .#switch",
-							"desc": "設定を適用。<b>編集しただけでは反映されない</b>。git commit 時にも自動で走る"
-						},
-						{
-							"name": "nix run .#build",
-							"desc": "適用せずビルドだけ試す"
-						},
-						{
-							"name": "nix run .#update",
-							"desc": "flake.lock を更新（依存の更新）"
-						},
-						{
-							"name": "nix run .#fmt",
-							"desc": "treefmt で整形（nix・lua・sh・ts・fish・nu）"
-						},
-						{
-							"name": "gnix <cmd>",
-							"desc": "GitHub のレート制限に当たったらこれで包む"
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "keys",
-			"label": "ショートカット",
-			"lede": "キーを忘れたとき用。すべて実機から取得したもので、推測は含まない。",
-			"sections": [
-				{
-					"title": "キーボードの土台",
-					"src": "karabiner/karabiner.ts",
-					"note": "Karabiner による物理キーの入れ替え。<b>他のすべてのショートカットはこの上に乗る</b>ので、まずここ。",
-					"items": [
-						{
-							"name": "Caps Lock",
-							"desc": "<b>Control</b> になる"
-						},
-						{
-							"name": "Ctrl 単押し",
-							"desc": "英数 ＋ Esc（IME を確実に抜ける）"
-						},
-						{
-							"name": "Esc 単押し",
-							"desc": "英数 ＋ Esc"
-						},
-						{
-							"name": "Cmd 単押し",
-							"desc": "かな / 英数 を切り替え（左右で別々）"
-						},
-						{
-							"name": "Tab 長押し",
-							"desc": "<b>Cmd</b> として働く。単押しは Tab のまま"
-						},
-						{
-							"name": "右 Option",
-							"desc": "<b>Cmd</b> として働く"
-						},
-						{
-							"name": "fn + h j k l",
-							"desc": "← ↓ ↑ →"
-						},
-						{
-							"name": "Cmd+Q 長押し",
-							"desc": "長押しでのみアプリ終了（誤爆防止）"
-						}
-					]
-				},
-				{
-					"title": "Ghostty — ウィンドウとタブ",
-					"src": "ghostty +list-keybinds",
-					"note": "<code>Cmd</code> は Karabiner により <b>Tab 長押し</b>・<b>右 Option</b> でも代用できる。",
-					"items": [
-						{
-							"name": "Cmd+T",
-							"desc": "新しいタブ"
-						},
-						{
-							"name": "Cmd+1〜8",
-							"desc": "タブを番号で選ぶ"
-						},
-						{
-							"name": "Cmd+9",
-							"desc": "最後のタブ"
-						},
-						{
-							"name": "Cmd+D",
-							"desc": "右に分割"
-						},
-						{
-							"name": "Cmd+Shift+D",
-							"desc": "下に分割"
-						},
-						{
-							"name": "Cmd+[ / ]",
-							"desc": "前 / 次のペインへ"
-						},
-						{
-							"name": "Cmd+Option+↑↓←→",
-							"desc": "方向でペインを選ぶ"
-						},
-						{
-							"name": "Cmd+Shift+Enter",
-							"desc": "ペインをズーム"
-						},
-						{
-							"name": "Cmd+Enter",
-							"desc": "フルスクリーン"
-						},
-						{
-							"name": "Cmd+W",
-							"desc": "ペインを閉じる"
-						},
-						{
-							"name": "Cmd+Option+W",
-							"desc": "タブを閉じる"
-						},
-						{
-							"name": "Cmd+Shift+P",
-							"desc": "コマンドパレット"
-						},
-						{
-							"name": "Cmd+K",
-							"desc": "画面を消す"
-						},
-						{
-							"name": "Cmd+= / -",
-							"desc": "文字サイズ"
-						},
-						{
-							"name": "Cmd+0",
-							"desc": "文字サイズを戻す"
-						},
-						{
-							"name": "Cmd+Shift+,",
-							"desc": "設定を再読み込み"
-						}
-					]
-				},
-				{
-					"title": "herdr — prefix モード",
-					"src": "herdr 既定 ＋ nix/modules/home/programs/herdr/",
-					"note": "まず <code>Ctrl+B</code>（prefix）を押してから、下のキー。tmux と同じ作法。",
-					"items": [
-						{
-							"name": "Ctrl+B",
-							"desc": "prefix。ここから下のキーが効く"
-						},
-						{
-							"name": "prefix → n",
-							"desc": "ワークスペース作成"
-						},
-						{
-							"name": "prefix → Shift+N",
-							"desc": "名前変更"
-						},
-						{
-							"name": "prefix → Shift+D",
-							"desc": "閉じる"
-						},
-						{
-							"name": "prefix → c",
-							"desc": "タブ作成"
-						},
-						{
-							"name": "prefix → v",
-							"desc": "左右に分割"
-						},
-						{
-							"name": "prefix → -",
-							"desc": "上下に分割"
-						},
-						{
-							"name": "prefix → x",
-							"desc": "ペインを閉じる"
-						},
-						{
-							"name": "prefix → f",
-							"desc": "ペインをズーム"
-						},
-						{
-							"name": "prefix → r",
-							"desc": "リサイズモード"
-						},
-						{
-							"name": "prefix → b",
-							"desc": "サイドバー開閉"
-						},
-						{
-							"name": "prefix → e",
-							"desc": "<b>レビューペイン</b>を開く（自分で設定）"
-						},
-						{
-							"name": "タブ名 [1] [2]",
-							"desc": "先頭の番号は <code>1</code>〜<code>9</code> のジャンプ先。名前はそのタブで動いているプロセス"
-						}
-					]
-				},
-				{
-					"title": "レビューペイン（prefix → e）",
-					"src": "herdr-reviewr README",
-					"note": "エージェントが書いた差分を読み、行にコメントを付けて<b>そのまま送り返す</b>。ワークツリーは書き換えない。同じキーで閉じる。",
-					"items": [
-						{
-							"name": "1 / 2 / 3",
-							"desc": "タブ切替 — 変更 / 全ファイル / PR"
-						},
-						{
-							"name": "u / b / t",
-							"desc": "範囲切替 — 未コミット / ブランチ / <b>直前のターン</b>"
-						},
-						{
-							"name": "Shift+B",
-							"desc": "ブランチ範囲の基準を選ぶ"
-						},
-						{
-							"name": "j / k",
-							"desc": "移動"
-						},
-						{
-							"name": "Tab",
-							"desc": "フォーカス切替"
-						},
-						{
-							"name": "] / [",
-							"desc": "次 / 前の hunk へ"
-						},
-						{
-							"name": "f / Shift+F",
-							"desc": "次 / 前のファイルへ"
-						},
-						{
-							"name": "Ctrl+D / Ctrl+U",
-							"desc": "半画面送り"
-						},
-						{
-							"name": "PageUp / PageDown",
-							"desc": "1画面送り"
-						},
-						{
-							"name": "→ / ←",
-							"desc": "展開・折りたたみ、または横スクロール"
-						},
-						{
-							"name": "/",
-							"desc": "ファイル名とコード全体を検索"
-						},
-						{
-							"name": "Ctrl+F",
-							"desc": "開いているファイル内を検索"
-						}
-					]
-				},
-				{
-					"title": "fish — 行編集",
-					"src": "fish -c bind",
-					"note": "プラグインが足したものだけ。標準の Emacs 系キー（Ctrl+A/E/U など）は省略。",
-					"items": [
-						{
-							"name": "Ctrl+R",
-							"desc": "履歴を fzf で検索"
-						},
-						{
-							"name": "Ctrl+O",
-							"desc": "ファイルを fzf で探して挿入"
-						},
-						{
-							"name": "Alt+C",
-							"desc": "ディレクトリを fzf で選んで cd"
-						},
-						{
-							"name": "Alt+Shift+C",
-							"desc": "隠しディレクトリも含める"
-						},
-						{
-							"name": "Alt+O",
-							"desc": "ファイルを開く"
-						},
-						{
-							"name": "Alt+Shift+O",
-							"desc": "エディタで開く"
-						},
-						{
-							"name": "Alt+Y",
-							"desc": "今いるパスをコピー"
-						},
-						{
-							"name": "Space",
-							"desc": "略語を展開（打った略語がその場で開く）"
-						},
-						{
-							"name": "Enter",
-							"desc": "tirith が危険なコマンドを事前チェック"
-						}
-					]
-				},
-				{
-					"title": "lazygit",
-					"src": "lazygit --config",
-					"note": "<code>lzg</code> で起動。迷ったら <code>?</code>。",
-					"items": [
-						{
-							"name": "?",
-							"desc": "キー一覧を出す"
-						},
-						{
-							"name": "q",
-							"desc": "終了"
-						},
-						{
-							"name": "Tab",
-							"desc": "パネル移動"
-						},
-						{
-							"name": "← / →",
-							"desc": "前 / 次のパネル"
-						},
-						{
-							"name": "↑ / ↓",
-							"desc": "項目移動"
-						},
-						{
-							"name": "&lt; / &gt;",
-							"desc": "先頭 / 末尾へ"
-						},
-						{
-							"name": "Space",
-							"desc": "選択（ステージ / アンステージ）"
-						},
-						{
-							"name": "v",
-							"desc": "範囲選択モード"
-						},
-						{
-							"name": "/",
-							"desc": "検索"
-						},
-						{
-							"name": "n / Shift+N",
-							"desc": "次 / 前の一致"
-						},
-						{
-							"name": "Esc",
-							"desc": "戻る"
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "all",
-			"label": "全量を見る",
-			"lede": "nix が管理している全量。定義元のファイルつきで、どこに書かれているかまで辿れる。",
-			"sections": [
-				{
-					"title": "CLI パッケージ",
-					"src": "nix/modules/home/packages.nix",
-					"note": "29 個。<code>home.packages</code> にあるもの。",
-					"items": [
-						{
-							"name": "curl",
-							"desc": "HTTP クライアント"
-						},
-						{
-							"name": "htop",
-							"desc": "プロセス監視"
-						},
-						{
-							"name": "fish",
-							"desc": "既定シェル"
-						},
-						{
-							"name": "git",
-							"desc": "バージョン管理"
-						},
-						{
-							"name": "git-now",
-							"desc": "軽量な一時コミットを作る"
-						},
-						{
-							"name": "git-lfs",
-							"desc": "大容量ファイルの管理"
-						},
-						{
-							"name": "ghq",
-							"desc": "リポジトリを ~/ghq 配下に整理して clone"
-						},
-						{
-							"name": "lazygit",
-							"desc": "git の TUI"
-						},
-						{
-							"name": "tirith",
-							"desc": "危険コマンドを実行前に検査",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "ripgrep",
-							"desc": "全文検索（rg）"
-						},
-						{
-							"name": "fd",
-							"desc": "ファイル名検索"
-						},
-						{
-							"name": "fzf",
-							"desc": "対話的絞り込み"
-						},
-						{
-							"name": "zoxide",
-							"desc": "学習するディレクトリ移動（z）"
-						},
-						{
-							"name": "bat",
-							"desc": "ハイライト付き cat"
-						},
-						{
-							"name": "eza",
-							"desc": "git 対応の ls"
-						},
-						{
-							"name": "jq",
-							"desc": "JSON 処理"
-						},
-						{
-							"name": "dust",
-							"desc": "ディスク使用量の可視化"
-						},
-						{
-							"name": "delta",
-							"desc": "git 差分の表示エンジン"
-						},
-						{
-							"name": "vivid",
-							"desc": "LS_COLORS 生成（gruvbox-dark）"
-						},
-						{
-							"name": "trash-cli",
-							"desc": "ゴミ箱へ送る rm"
-						},
-						{
-							"name": "devenv",
-							"desc": "プロジェクト単位の開発環境"
-						},
-						{
-							"name": "nodejs_24",
-							"desc": "Node.js"
-						},
-						{
-							"name": "bun",
-							"desc": "JS ランタイム／パッケージ管理"
-						},
-						{
-							"name": "pnpm",
-							"desc": "JS パッケージ管理"
-						},
-						{
-							"name": "uv",
-							"desc": "Python パッケージ管理"
-						},
-						{
-							"name": "fixjson",
-							"desc": "JSON 整形"
-						},
-						{
-							"name": "nixd",
-							"desc": "Nix の言語サーバ"
-						},
-						{
-							"name": "nh",
-							"desc": "Nix ヘルパー。週次で自動クリーン",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "worktrunk",
-							"desc": "git worktree 管理。<code>wt switch pr:123</code> で PR を開く",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "colima",
-							"desc": "Linux VM を立てて Docker を動かす。OrbStack の置き換え（macOS）"
-						},
-						{
-							"name": "docker-client",
-							"desc": "docker CLI。compose と buildx のプラグインを同梱している"
-						},
-						{
-							"name": "docker-credential-helpers",
-							"desc": "レジストリの認証情報を keychain に預ける"
-						},
-						{
-							"name": "terminal-notifier",
-							"desc": "通知センターに通知を出す。長い処理の完了を知らせるのに使う（macOS）"
-						},
-						{
-							"name": "_1password-cli",
-							"desc": "1Password の CLI（Linux のみ。macOS は nix-darwin の <code>programs._1password</code>）"
-						},
-						{
-							"name": "_1password-gui",
-							"desc": "1Password 本体（Linux のみ。macOS は cask）"
-						},
-						{
-							"name": "lazydocker",
-							"desc": "コンテナの TUI。ログ・シェル・再起動をキーで。<code>lzd</code>"
-						},
-						{
-							"name": "mas",
-							"desc": "App Store の CLI。<code>homebrew.masApps</code> の実行に使われる（macOS）"
-						}
-					]
-				},
-				{
-					"title": "設定付きモジュール",
-					"src": "nix/modules/home/programs/",
-					"note": "単に入れるだけでなく、設定ファイルまで nix が書いているもの。",
-					"items": [
-						{
-							"name": "fish",
-							"desc": "シェル本体。プラグイン 15 個込み"
-						},
-						{
-							"name": "ghostty",
-							"desc": "端末。テーマとフォント設定"
-						},
-						{
-							"name": "neovim",
-							"desc": "エディタ。LazyVim 構成",
-							"expand": "同梱: lua-language-server / stylua / tree-sitter"
-						},
-						{
-							"name": "git",
-							"desc": "エイリアス多数、delta 連携、SSH 署名"
-						},
-						{
-							"name": "lazygit",
-							"desc": "グラフ表示のコマンドを設定済み"
-						},
-						{
-							"name": "gh",
-							"desc": "GitHub CLI＋拡張 5 個",
-							"expand": "gh-markdown-preview / gh-dash / gh-poi / gh-notify / gh-do"
-						},
-						{
-							"name": "gh-nix",
-							"desc": "gh のトークンを nix に渡してレート制限を回避",
-							"tag": {
-								"kind": "t-new",
-								"text": "自前"
-							}
-						},
-						{
-							"name": "claude-code",
-							"desc": "設定・フック・statusline"
-						},
-						{
-							"name": "codex",
-							"desc": "設定・AGENTS.md 生成"
-						},
-						{
-							"name": "herdr",
-							"desc": "エージェント多重化",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "ai-tools",
-							"desc": "その他 AI CLI をまとめて"
-						},
-						{
-							"name": "bat",
-							"desc": "テーマ設定"
-						},
-						{
-							"name": "direnv",
-							"desc": "ディレクトリ単位の環境変数"
-						},
-						{
-							"name": "nh",
-							"desc": "週次クリーンの設定"
-						},
-						{
-							"name": "starship",
-							"desc": "プロンプト。2行表示・git 状態・devshell 判定・パッケージマネージャ表示",
-							"expand": "nix/modules/home/programs/starship.nix"
-						}
-					]
-				},
-				{
-					"title": "AI エージェント",
-					"src": "programs/ai-tools.nix ・ codex.nix ・ claude-code/ ・ herdr/",
-					"items": [
-						{
-							"name": "claude",
-							"desc": "Claude Code",
-							"tag": {
-								"kind": "t-cfg",
-								"text": "既定 opus"
-							}
-						},
-						{
-							"name": "codex",
-							"desc": "Codex",
-							"tag": {
-								"kind": "t-cfg",
-								"text": "gpt-5.6-sol / effort medium"
-							}
-						},
-						{
-							"name": "herdr",
-							"desc": "エージェント多重化ランタイム",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "grok",
-							"desc": "xAI の CLI"
-						},
-						{
-							"name": "agent-browser",
-							"desc": "エージェント用ブラウザ操作"
-						},
-						{
-							"name": "tgrab",
-							"desc": "X / Bluesky / YouTube の本文と字幕を取得。使い方は <code>tgrab --help</code>",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						}
-					]
-				},
-				{
-					"title": "herdr プラグイン",
-					"src": "nix/modules/home/programs/herdr/ ・ nix/overlays/herdr-plugins.nix",
-					"note": "<code>herdr plugin install</code> は使わず、nix が固定したディレクトリを <code>plugin link</code> で登録している。宣言から外すと次の switch で自動的に解除される。",
-					"items": [
-						{
-							"name": "herdr-browser",
-							"desc": "Chromium をペインに描画し CDP で操作。エージェントのブラウザ作業が見える",
-							"expand": "nix/overlays/herdr-plugins.nix",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "herdr-reviewr",
-							"desc": "エージェントの差分をレビューし、行コメントを送り返す（<code>prefix+e</code>）",
-							"expand": "nix/packages/herdr-reviewr",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "herdr-automatic-rename",
-							"desc": "タブをプロセス名で命名し、<code>[1] [2]</code> のジャンプ番号を付ける",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "herdr-window-title-sync",
-							"desc": "herdr の状態を Ghostty のウィンドウタイトルに反映",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						}
-					]
-				},
-				{
-					"title": "fish プラグイン",
-					"src": "nix/modules/home/programs/fish/default.nix",
-					"items": [
-						{
-							"name": "fzf",
-							"desc": "fzf のキーバインド統合"
-						},
-						{
-							"name": "forgit",
-							"desc": "git 操作を fzf で",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "autopair-fish",
-							"desc": "括弧の自動補完"
-						},
-						{
-							"name": "puffer-fish",
-							"desc": "... を ../.. に展開など"
-						},
-						{
-							"name": "fish-abbreviation-tips",
-							"desc": "略語があることを教えてくれる"
-						},
-						{
-							"name": "fish-bd",
-							"desc": "親ディレクトリへ一気に戻る"
-						},
-						{
-							"name": "bass",
-							"desc": "bash スクリプトを fish で動かす"
-						},
-						{
-							"name": "spark",
-							"desc": "数値をスパークラインで表示"
-						},
-						{
-							"name": "ev-fish",
-							"desc": "環境変数の操作"
-						},
-						{
-							"name": "fish-na",
-							"desc": "パッケージマネージャ自動判別"
-						},
-						{
-							"name": "by-binds-yourself",
-							"desc": "キーバインド補助"
-						},
-						{
-							"name": "replay.fish",
-							"desc": "bash のコマンドを fish で実行し、環境変数の変更を取り込む"
-						},
-						{
-							"name": "bdf.fish",
-							"desc": "fzf で上位ディレクトリへ一気に cd"
-						},
-						{
-							"name": "pathed.fish",
-							"desc": "<code>$fish_user_paths</code> をエディタで編集する"
-						},
-						{
-							"name": "nix-env.fish",
-							"desc": "nix のプロファイルを fish の PATH に通す"
-						}
-					]
-				},
-				{
-					"title": "自作 fish 関数",
-					"src": "fish/functions/",
-					"items": [
-						{
-							"name": "ss",
-							"desc": "直前のコマンドを sudo で打ち直す"
-						},
-						{
-							"name": "fkill",
-							"desc": "プロセスを fzf で選んで kill"
-						},
-						{
-							"name": "mkcd",
-							"desc": "作って入る"
-						},
-						{
-							"name": "gip",
-							"desc": "グローバル IP を表示"
-						},
-						{
-							"name": "lip",
-							"desc": "ローカル IP（en0）を表示"
-						},
-						{
-							"name": "gheye",
-							"desc": "GitHub の README を端末で読む"
-						},
-						{
-							"name": "gh-q",
-							"desc": "自分のリポジトリを fzf で選んで clone"
-						},
-						{
-							"name": "ghq-work",
-							"desc": "仕事用の ghq。ルートは <code>~/ghq-work</code>。ここに置いたものが仕事の身元になる"
-						},
-						{
-							"name": "nx",
-							"desc": "nix shell でパッケージを一時的に引く"
-						},
-						{
-							"name": "npkill",
-							"desc": "node_modules を探して消す"
-						},
-						{
-							"name": "clean",
-							"desc": "aqua / brew / mise のキャッシュ掃除"
-						},
-						{
-							"name": "tree",
-							"desc": "tre か tree を使い分け"
-						},
-						{
-							"name": "git_switch_branch",
-							"desc": "ブランチを fzf で選んで switch"
-						},
-						{
-							"name": "pathclean",
-							"desc": "PATH の重複を除去"
-						},
-						{
-							"name": "source_venv_py",
-							"desc": "Python の venv を有効化"
-						},
-						{
-							"name": "ensure_installed",
-							"desc": "未導入なら黙ってスキップ（config 用）"
-						},
-						{
-							"name": "is_vim_shell",
-							"desc": "Neovim 内かを判定"
-						},
-						{
-							"name": "fish_greeting",
-							"desc": "起動時メッセージ（空）"
-						},
-						{
-							"name": "dlmv",
-							"desc": "ダウンロードを選んで、置き先を選んで移す。fzf が 2 回。<code>cd</code> は要らない"
-						},
-						{
-							"name": "gh",
-							"desc": "<code>gh</code> のラッパ。<code>~/ghq-work/</code> 配下では仕事アカウントのトークンに切り替える"
-						},
-						{
-							"name": "rm",
-							"desc": "<code>trash</code> があればそちらに差し替える。消さずにゴミ箱へ"
-						}
-					]
-				},
-				{
-					"title": "GUI アプリ",
-					"src": "nix/modules/darwin/system.nix ・ homebrew.casks",
-					"note": "26 個（cask 25 ＋ Mac App Store 1）。<code>cleanup = \"uninstall\"</code> なので、ここに無いものは switch で消える。",
-					"items": [
-						{
-							"name": "Ghostty",
-							"desc": "端末"
-						},
-						{
-							"name": "Visual Studio Code",
-							"desc": "エディタ（CLI 移行中）"
-						},
-						{
-							"name": "1Password",
-							"desc": "パスワード管理＋SSH 署名鍵"
-						},
-						{
-							"name": "Raycast",
-							"desc": "ランチャー"
-						},
-						{
-							"name": "AltTab",
-							"desc": "ウィンドウ切替"
-						},
-						{
-							"name": "Karabiner-Elements",
-							"desc": "キー配列改変"
-						},
-						{
-							"name": "TypeWhisper",
-							"desc": "オンデバイス音声入力",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "Shottr",
-							"desc": "スクリーンショット"
-						},
-						{
-							"name": "Stats",
-							"desc": "メニューバーの状態表示"
-						},
-						{
-							"name": "Bruno",
-							"desc": "API クライアント",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
-						},
-						{
-							"name": "Google Chrome",
-							"desc": "ブラウザ"
-						},
-						{
-							"name": "Claude",
-							"desc": "Claude デスクトップ"
-						},
-						{
-							"name": "ChatGPT",
-							"desc": "ChatGPT デスクトップ"
-						},
-						{
-							"name": "Slack / Discord / Microsoft Teams",
-							"desc": "チャット"
-						},
-						{
-							"name": "Tailscale",
-							"desc": "VPN"
-						},
-						{
-							"name": "HHKB",
-							"desc": "キーボード設定"
-						},
-						{
-							"name": "Autodesk Fusion",
-							"desc": "CAD"
-						},
-						{
-							"name": "Bambu Studio",
-							"desc": "3D プリンタ"
-						},
-						{
-							"name": "Steam",
-							"desc": "ゲーム"
-						},
-						{
-							"name": "VLC",
-							"desc": "動画再生"
-						},
-						{
-							"name": "AppCleaner",
-							"desc": "アプリ削除"
-						},
-						{
-							"name": "Klack",
-							"desc": "打鍵音（Mac App Store）"
-						}
-					]
-				},
-				{
-					"title": "略語 — git 系",
-					"src": "fish/config/abbrs_aliases.fish",
-					"note": "g で始まるものは fish の略語。<code>git xx</code> 形式は git 自身のエイリアス。",
-					"items": [
-						{
-							"name": "g",
-							"desc": "git"
-						},
-						{
-							"name": "ga / ga. / gaa",
-							"desc": "add / add . / add --all"
-						},
-						{
-							"name": "gc / gcn",
-							"desc": "commit / commit -n"
-						},
-						{
-							"name": "gcm / gcnm / gcam / gcem",
-							"desc": "commit -m / -n -m / amend -m / allow-empty -m"
-						},
-						{
-							"name": "gco / gsw / gswc",
-							"desc": "checkout / switch / switch -c"
-						},
-						{
-							"name": "gsm",
-							"desc": "main か master に戻る"
-						},
-						{
-							"name": "gswf",
-							"desc": "feature/ ブランチを作る"
-						},
-						{
-							"name": "gp / gpo / gpl / gf",
-							"desc": "push / push origin / pull / fetch"
-						},
-						{
-							"name": "gpf / gpff",
-							"desc": "force-with-lease / force"
-						},
-						{
-							"name": "gr / gcl / gpt",
-							"desc": "rebase / clone / push --tags"
-						},
-						{
-							"name": "gwt / gwtpr",
-							"desc": "worktree / PR worktree"
-						},
-						{
-							"name": "git sts",
-							"desc": "status -s -uno（短い状態表示）"
-						},
-						{
-							"name": "git st",
-							"desc": "stash"
-						},
-						{
-							"name": "git ap",
-							"desc": "add -p（hunk 単位）"
-						},
-						{
-							"name": "git rbm",
-							"desc": "rebase origin/main"
-						},
-						{
-							"name": "git cp / cpn",
-							"desc": "cherry-pick / -n"
-						},
-						{
-							"name": "git bv / bu",
-							"desc": "branch -vv / upstream 名を表示"
-						},
-						{
-							"name": "git br / pbr",
-							"desc": "ブラウザで開く / PR を開く"
-						},
-						{
-							"name": "git sha / id / cid",
-							"desc": "HEAD の SHA / 直近コミットの SHA"
-						},
-						{
-							"name": "git difff",
-							"desc": "diff --word-diff"
-						},
-						{
-							"name": "git clb",
-							"desc": "マージ済みローカルブランチを掃除"
-						},
-						{
-							"name": "git smu",
-							"desc": "submodule を再帰更新"
-						},
-						{
-							"name": "git wtd",
-							"desc": "worktree を強制削除"
-						},
-						{
-							"name": "ghp",
-							"desc": "gh poi（ブランチ掃除）"
-						},
-						{
-							"name": "gh pcr / pco",
-							"desc": "PR を作る / チェックアウト"
-						},
-						{
-							"name": "gh-fork-sync",
-							"desc": "fork を一括同期"
-						},
-						{
-							"name": "gg",
-							"desc": "ghq get"
-						}
-					]
-				},
-				{
-					"title": "略語 — その他",
-					"src": "fish/config/abbrs_aliases.fish",
-					"items": [
-						{
-							"name": "v / nv",
-							"desc": "nvim"
-						},
-						{
-							"name": "vc",
-							"desc": "今のディレクトリを VS Code で開く"
-						},
-						{
-							"name": "ll / la / lt / lg",
-							"desc": "詳細 / 隠し込み / ツリー / グループ表示"
-						},
-						{
-							"name": "cdr / cdf",
-							"desc": "リポジトリのルートへ / fzf で移動"
-						},
-						{
-							"name": "lzg / lzd",
-							"desc": "lazygit / lazydocker"
-						},
-						{
-							"name": "cl / clc",
-							"desc": "claude / --continue"
-						},
-						{
-							"name": "clo / cls / clh / cls1",
-							"desc": "opus / sonnet / haiku / sonnet[1m]"
-						},
-						{
-							"name": "cx",
-							"desc": "codex"
-						},
-						{
-							"name": "do / dop / dor / dox",
-							"desc": "docker container / ps / run --rm / exec -it"
-						},
-						{
-							"name": "dc / dcu / dcub / dcd / dcr",
-							"desc": "compose / up / up --build / down / restart"
-						},
-						{
-							"name": "ns / ngc / nrn",
-							"desc": "nix-shell / gc / nix run nixpkgs#"
-						},
-						{
-							"name": "gnix",
-							"desc": "gh-nix（レート制限回避）"
-						},
-						{
-							"name": "dv",
-							"desc": "devenv"
-						},
-						{
-							"name": "br / bri",
-							"desc": "brew / brew install"
-						},
-						{
-							"name": "bunb / bunbx",
-							"desc": "bun --bun / bunx --bun"
-						},
-						{
-							"name": "py / pbc / pbp",
-							"desc": "python / pbcopy / pbpaste"
-						},
-						{
-							"name": "mkd / rr / rf",
-							"desc": "mkdir -p / rm -r / rm -rf"
-						},
-						{
-							"name": "caf",
-							"desc": "スリープさせない"
-						},
-						{
-							"name": "sc / src / clr / o",
-							"desc": "設定再読込 / source / clear / open"
-						}
-					]
-				},
-				{
-					"title": "基盤 — flake 入力",
-					"src": "flake.nix ・ flake.lock",
-					"note": "この構成そのものを組み立てているもの。ツールではなく<b>土台</b>で、更新は <code>nix run .#update</code> がまとめて行う。",
-					"items": [
-						{
-							"name": "nixpkgs",
-							"desc": "パッケージ集合。ここのツールのほとんどが由来する（<code>nixos/nixpkgs</code>）"
-						},
-						{
-							"name": "home-manager",
-							"desc": "ユーザー環境（dotfiles・パッケージ・サービス）を宣言的に構成（<code>nix-community/home-manager</code>）"
-						},
-						{
-							"name": "nix-darwin",
-							"desc": "macOS 本体の設定（Homebrew・システム設定・フォント）（<code>LnL7/nix-darwin</code>）"
-						},
-						{
-							"name": "flake-parts",
-							"desc": "flake をモジュールに分割する枠組み（<code>hercules-ci/flake-parts</code>）"
-						},
-						{
-							"name": "treefmt-nix",
-							"desc": "<code>nix run .#fmt</code> の整形器。コミット時にも走る（<code>numtide/treefmt-nix</code>）"
-						},
-						{
-							"name": "git-hooks",
-							"desc": "pre-commit / pre-push の実体（<code>cachix/git-hooks.nix</code>）"
-						},
-						{
-							"name": "agent-skills",
-							"desc": "skill を Claude / Codex 両方に配る仕組み（<code>Kyure-A/agent-skills-nix</code>）"
-						},
-						{
-							"name": "llm-agents",
-							"desc": "grok などエージェント CLI の供給元（<code>numtide/llm-agents.nix</code>）"
-						},
-						{
-							"name": "nix-claude-code",
-							"desc": "claude-code パッケージ（<code>ryoppippi/nix-claude-code</code>）"
-						},
-						{
-							"name": "nix-bun",
-							"desc": "bun パッケージ（<code>ryoppippi/nix-bun</code>）"
-						},
-						{
-							"name": "nix-index-database",
-							"desc": "<code>command-not-found</code> と <code>,</code> の索引（<code>nix-community/nix-index-database</code>）"
-						},
-						{
-							"name": "import-tree",
-							"desc": "ディレクトリ配下の <code>.nix</code> を全部モジュールとして読み込む。<code>nix/modules/</code> に一覧ファイルが要らないのはこれのため（<code>denful/import-tree</code>）"
-						},
-						{
-							"name": "mattpocock-skills",
-							"desc": "エージェントスキル集。25 件のうち 8 件を <code>explicit</code> で選択。ソースには <code>idPrefix</code> を付けてある —— 登録するだけで全件が見えるので、upstream の <code>tdd</code> がローカルのものと衝突する（<code>mattpocock/skills</code>）"
-						},
-						{
-							"name": "cloudflare-skills",
-							"desc": "Cloudflare 公式のエージェントスキル集。13 件のうち wrangler を選択（<code>cloudflare/skills</code>）"
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "skills",
-			"label": "スキル",
-			"lede": "エージェントに読ませる手順書。<b>呼ぶのではなく、状況が合えば向こうが読む</b> —— description が引き金なので、いつ使うものかが書いてある。<code>/名前</code> で明示的にも呼べる。出どころ順、その中は名前順。",
-			"sections": [
-				{
-					"title": "自作",
-					"src": "agents/skills/",
-					"note": "このリポジトリで書いたもの。<code>enableAll</code> なので、ディレクトリを置けば入る。",
-					"items": [
-						{
-							"name": "ask-codex",
-							"desc": "実装方針やレビューについて Codex に第二意見を求める"
-						},
-						{
-							"name": "codex-review",
-							"desc": "Codex CLI でコードレビューを走らせる"
-						},
-						{
-							"name": "commit",
-							"desc": "変更を revert 可能な単位に割って Conventional Commits にする"
-						},
-						{
-							"name": "council",
-							"desc": "並列エージェントでコードベースの一領域を多角的に調べる"
-						},
-						{
-							"name": "create-commits-and-push",
-							"desc": "コミットして push まで。PR は作らない"
-						},
-						{
-							"name": "create-pr",
-							"desc": "ブランチを切ってコミット・push・PR 作成まで通す"
-						},
-						{
-							"name": "empirical-prompt-tuning",
-							"desc": "指示文をバイアス無しの実行者に回して、両面から測って改善する"
-						},
-						{
-							"name": "fix-ci",
-							"desc": "CI が赤いとき、gh でログを取って原因を追い、直す"
-						},
-						{
-							"name": "merge-main",
-							"desc": "main を今のブランチに取り込む"
-						},
-						{
-							"name": "missing-tools",
-							"desc": "コマンドが無いときに、入れずに動かす道を探す"
-						},
-						{
-							"name": "nushell",
-							"desc": "このリポジトリの既定スクリプト言語。新しいスクリプトを書くとき"
-						},
-						{
-							"name": "pr-apply-review",
-							"desc": "PR のレビューコメントを取ってきて適用する"
-						},
-						{
-							"name": "react-server-components",
-							"desc": "<code>'use client'</code> の位置を Next.js / React の文書に照らして監査"
-						},
-						{
-							"name": "session-summary-japanese",
-							"desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
-						},
-						{
-							"name": "skill-creator",
-							"desc": "スキルを新規作成・改訂する。SKILL.md の作法に沿わせる"
-						},
-						{
-							"name": "skill-maintenance",
-							"desc": "スキル全体を監査する。重複・説明の質・長さ"
-						},
-						{
-							"name": "tdd",
-							"desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
-						},
-						{
-							"name": "you-might-not-need-an-effect",
-							"desc": "不要な useEffect を react.dev の基準で洗う"
-						}
-					]
-				},
-				{
-					"title": "このリポジトリ限定",
-					"src": ".claude/skills/",
-					"note": "dotfiles の中でしか読まれない。他のリポジトリでは出てこない。",
-					"items": [
-						{
-							"name": "check-dotfiles-updates",
-							"desc": "監視している 19 の dotfiles の新着を見て、動向とツールを拾う"
-						},
-						{
-							"name": "toolbelt",
-							"desc": "このページを作り直す。設定と突き合わせて記載漏れを報告する"
-						}
-					]
-				},
-				{
-					"title": "mattpocock/skills",
-					"src": "flake input",
-					"note": "25 件のうち 9 件を選択。<b>上流のファイルは無改変</b>。<code>tdd</code> は自作と名前が衝突するので <code>mattpocock-tdd</code> で入れてある。",
-					"items": [
-						{
-							"name": "codebase-design",
-							"desc": "深いモジュール・境界・seam を語るための共通語彙"
-						},
-						{
-							"name": "diagnosing-bugs",
-							"desc": "難しいバグと性能変化の診断ループ"
-						},
-						{
-							"name": "domain-modeling",
-							"desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
-						},
-						{
-							"name": "grill-me",
-							"desc": "計画や設計を執拗に問い詰めて穴を出す"
-						},
-						{
-							"name": "grill-with-docs",
-							"desc": "問い詰めながら ADR と用語集を残す"
-						},
-						{
-							"name": "grilling",
-							"desc": "同じことを、ユーザーを問い詰める側から"
-						},
-						{
-							"name": "mattpocock-tdd",
-							"desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。<b>回す前に読む参照</b>"
-						},
-						{
-							"name": "research",
-							"desc": "一次情報に当たって調べ、Markdown に残す"
-						},
-						{
-							"name": "wayfinder",
-							"desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
-						}
-					]
-				},
-				{
-					"title": "cloudflare/skills",
-					"src": "flake input",
-					"note": "13 件のうち 1 件。Workers 関係は wrangler CLI 経由なのでそれだけ。",
-					"items": [
-						{
-							"name": "wrangler",
-							"desc": "Workers / KV / R2 / D1 / Queues などの CLI。<b>事前学習より Cloudflare のドキュメント参照を優先する</b>と明記されている"
-						}
-					]
-				},
-				{
-					"title": "ツール同梱",
-					"src": "各パッケージの source",
-					"note": "ツール本体と<b>バージョンが必ず一致</b>する。herdr のものは herdr のパッケージから取っているので、herdr が上がればスキルも一緒に上がる。",
-					"items": [
-						{
-							"name": "agent-browser",
-							"desc": "ブラウザ操作。フォーム・スクショ・スクレイピング・Electron アプリ"
-						},
-						{
-							"name": "ast-grep",
-							"desc": "構文木でコードを検索する。素の grep より構造に強い"
-						},
-						{
-							"name": "herdr",
-							"desc": "herdr のペイン・タブ・エージェントを操作する"
-						}
-					]
-				}
-			]
-		},
-		{
-			"id": "gone",
-			"label": "外したもの",
-			"historical": true,
-			"lede": "一度は入れて、外したもの。「なぜ無いのか」を毎回調べ直さないための記録で、ここに載っているものは検討済みという意味になる。同じ役割の代わりがあるものは、その名前を添えてある。",
-			"sections": [
-				{
-					"title": "AI エージェント",
-					"note": "どれも動きはした。外した理由は品質ではなく、<b>Claude Code と Codex の 2 つで足りていて、3 つ目を開く手が無かった</b>こと。",
-					"items": [
-						{
-							"name": "opencode",
-							"desc": "OSS のコーディングエージェント。使っていない",
-							"expand": "→ claude / codex"
-						},
-						{
-							"name": "cursor-agent",
-							"desc": "Cursor の CLI 版。使っていない",
-							"expand": "→ claude / codex"
-						},
-						{
-							"name": "copilot-cli",
-							"desc": "GitHub Copilot の CLI。使っていない",
-							"expand": "→ claude / codex"
-						},
-						{
-							"name": "coderabbit-cli",
-							"desc": "AI コードレビュー。使っていない",
-							"expand": "→ codex-review スキル"
-						},
-						{
-							"name": "rtk",
-							"desc": "エージェント向けのリポジトリ要約ツール。使っていない",
-							"expand": "→ claude / codex"
-						}
-					]
-				},
-				{
-					"title": "Git・端末まわり",
-					"note": "自作を 2 つ捨てている。<b>同じことができる OSS があるなら、保守する分だけこちらが損をする</b>という判断。",
-					"items": [
-						{
-							"name": "git-wt",
-							"desc": "worktree を作る自作コマンド",
-							"expand": "→ wt switch"
-						},
-						{
-							"name": "git-wtpr",
-							"desc": "PR を worktree で開く自作コマンド。fish のフックが壊れていて、実は一度も動いていなかった",
-							"expand": "→ wt switch pr:&lt;番号&gt;"
-						},
-						{
-							"name": "tmux",
-							"desc": "端末多重化。ペインとタブの管理を herdr に寄せたので役割が重複した",
-							"expand": "→ herdr"
-						},
-						{
-							"name": "jj",
-							"desc": "Git 互換の VCS。使っていない",
-							"expand": "→ git"
-						},
-						{
-							"name": "bit",
-							"desc": "対話的な git ラッパ。使っていない",
-							"expand": "→ git / lazygit"
-						},
-						{
-							"name": "aqua",
-							"desc": "宣言的な CLI バージョン管理。Nix と役割が完全に重複していた",
-							"expand": "→ Nix"
-						}
-					]
-				},
-				{
-					"title": "スキル・プラグイン",
-					"items": [
-						{
-							"name": "tgrab（スキル）",
-							"desc": "upstream が 2026-08-04 にスキルを廃止し、契約を <code>--help</code> に移した。こちらはスキルだけを取り込んでいたので、参照先が存在しない状態だった",
-							"expand": "→ tgrab CLI"
-						},
-						{
-							"name": "remaining-todo",
-							"desc": "残作業の引き継ぎ。session-summary-japanese が内容を完全に含んでいた",
-							"expand": "→ session-summary-japanese"
-						},
-						{
-							"name": "herdr-tab-smart-rename",
-							"desc": "会話の内容からタブ名を付ける。LLM を呼ぶので API キーが要り、ChatGPT / Claude のサブスクでは使えない",
-							"expand": "→ herdr-automatic-rename"
-						},
-						{
-							"name": "herdr file-viewer",
-							"desc": "ペイン内のファイルビューア。diff を読む用途では reviewr が上位互換だった",
-							"expand": "→ herdr-reviewr"
-						}
-					]
-				}
-			]
-		}
-	]
+  "tabs": [
+    {
+      "id": "use",
+      "label": "用途から引く",
+      "lede": "日常的に効くものを用途別に。まず何ができるかを掴むためのページ。",
+      "sections": [
+        {
+          "title": "移動する",
+          "note": "ディレクトリ間を最短で移動する。<b>cd をほぼ打たなくなる</b>のがこの環境の前提。",
+          "items": [
+            {
+              "name": "z <部分文字列>",
+              "desc": "よく行くディレクトリへ一発で飛ぶ（zoxide）。履歴から学習するので打つほど当たる",
+              "expand": "z dotfiles → ~/ghq/github.com/11gather11/dotfiles"
+            },
+            {
+              "name": "zi",
+              "desc": "飛び先を fzf で一覧から選ぶ"
+            },
+            {
+              "name": "cdr",
+              "desc": "今いる git リポジトリのルートへ戻る",
+              "expand": "cd -- (git root)"
+            },
+            {
+              "name": "cdf",
+              "desc": "fzf でディレクトリを選んで移動"
+            },
+            {
+              "name": "gg <repo>",
+              "desc": "GitHub リポジトリを clone して ~/ghq 配下に整理（ghq get）"
+            },
+            {
+              "name": "gh-q",
+              "desc": "自分のリポジトリを fzf で選んで clone＋移動"
+            },
+            {
+              "name": "mkcd <dir>",
+              "desc": "ディレクトリを作ってそのまま入る"
+            }
+          ]
+        },
+        {
+          "title": "見る・探す",
+          "note": "ls / cat / grep / find は、すべて中身が置き換わっている。",
+          "items": [
+            {
+              "name": "ls",
+              "desc": "eza。git 状態つきの一覧（実体は eza のエイリアス）"
+            },
+            {
+              "name": "ll / la / lt",
+              "desc": "詳細 / 隠しファイル込み / ツリー表示",
+              "expand": "ls -hl / ls -hlA / ls --tree"
+            },
+            {
+              "name": "bat <file>",
+              "desc": "cat の代わり。シンタックスハイライトと行番号つき"
+            },
+            {
+              "name": "rg <pattern>",
+              "desc": "ripgrep。.gitignore を尊重した高速全文検索（VS Code の Search 相当）"
+            },
+            {
+              "name": "fd <name>",
+              "desc": "find の代わり。ファイル名検索"
+            },
+            {
+              "name": "fzf",
+              "desc": "あらゆる一覧を絞り込む土台。他のコマンドと繋いで使う"
+            },
+            {
+              "name": "ast-grep",
+              "desc": "構文木ベースの検索・一括置換。文字列置換で壊れるコード改変に使う",
+              "tag": {
+                "kind": "t-new",
+                "text": "skill あり"
+              }
+            },
+            {
+              "name": "jq <filter>",
+              "desc": "JSON の抽出・加工"
+            },
+            {
+              "name": "dust",
+              "desc": "du の代わり。どのディレクトリが容量を食っているか可視化"
+            },
+            {
+              "name": "tree",
+              "desc": "ツリー表示（tre があればそちらを使う）"
+            },
+            {
+              "name": "yazi",
+              "desc": "ファイルを見て回る・一括リネーム・場所どうしの移動。<code>?</code> でキー一覧"
+            }
+          ]
+        },
+        {
+          "title": "Git を操作する",
+          "note": "2 系統ある。<b>lazygit</b> は画面で操作、<b>略語</b> は打鍵で操作。",
+          "items": [
+            {
+              "name": "lzg",
+              "desc": "lazygit。差分・ステージング・履歴・rebase を画面で（VS Code の Source Control 相当）。<b>a キーで全ブランチのグラフ</b>"
+            },
+            {
+              "name": "g",
+              "desc": "git 本体。以下はすべて g の後に続く短縮形"
+            },
+            {
+              "name": "ga / ga. / gaa",
+              "desc": "add / add . / add --all"
+            },
+            {
+              "name": "gc / gcm / gcam",
+              "desc": "commit / commit -m / amend -m"
+            },
+            {
+              "name": "gsw / gsm / gswf",
+              "desc": "switch / main へ戻る / feature ブランチを作る"
+            },
+            {
+              "name": "gp / gpf / gpl",
+              "desc": "push / push --force-with-lease / pull"
+            },
+            {
+              "name": "gwt / gwtpr",
+              "desc": "worktree を作って移動、PR の worktree を開く（<code>wt switch</code> / <code>wt switch pr:123</code>）",
+              "tag": {
+                "kind": "t-new",
+                "text": "skill あり"
+              }
+            },
+            {
+              "name": "git sts / git st",
+              "desc": "短い status / stash（git 自体のエイリアス。g を付けずに git で打つ）"
+            },
+            {
+              "name": "delta",
+              "desc": "git の差分表示エンジン。自動で効いている（設定不要）"
+            },
+            {
+              "name": "ghp",
+              "desc": "マージ済みローカルブランチを掃除（gh poi）"
+            },
+            {
+              "name": "gh pcr / pco",
+              "desc": "PR を作る / PR をチェックアウト"
+            },
+            {
+              "name": "hunk",
+              "desc": "差分を読む場所。<code>hunk diff</code> で作業ツリー、<code>hunk show</code> で直前のコミット、<code>hunk diff main</code> で比較。<code>t</code> でテーマ、<code>?</code> でキー一覧",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            }
+          ]
+        },
+        {
+          "title": "AI エージェント",
+          "note": "この環境の主目的。すべて nix（llm-agents）で管理され、日次で更新される。",
+          "items": [
+            {
+              "name": "cl / clc",
+              "desc": "Claude Code を起動 / 直前の会話を継続"
+            },
+            {
+              "name": "clo / cls / clh",
+              "desc": "モデル指定で起動（opus / sonnet / haiku）"
+            },
+            {
+              "name": "cx",
+              "desc": "Codex。別視点のレビューや調査に使う（今日この画面の右で動いていたもの）"
+            },
+            {
+              "name": "herdr",
+              "desc": "エージェント多重化。ペインを分けて複数のエージェントを走らせ、detach しても動き続ける",
+              "tag": {
+                "kind": "t-new",
+                "text": "今日導入"
+              }
+            },
+            {
+              "name": "grok",
+              "desc": "xAI のエージェント CLI"
+            }
+          ]
+        },
+        {
+          "title": "編集する",
+          "items": [
+            {
+              "name": "v / nv",
+              "desc": "Neovim（LazyVim 構成）。VS Code の編集を置き換える本体"
+            },
+            {
+              "name": "vc",
+              "desc": "今のディレクトリを VS Code で開く（移行中の逃げ道）"
+            },
+            {
+              "name": "nvim の LSP",
+              "desc": "現在は lua と TypeScript(tsgo) のみ手動設定。<b>LazyVim extras が空</b>なので言語サポートは最小限",
+              "tag": {
+                "kind": "t-warn",
+                "text": "要設定"
+              }
+            }
+          ]
+        },
+        {
+          "title": "Nix を回す",
+          "note": "この dotfiles 自体を操作する系統。",
+          "items": [
+            {
+              "name": "nix run .#switch",
+              "desc": "設定を適用する。<b>編集しただけでは反映されない</b>"
+            },
+            {
+              "name": "nix run .#build",
+              "desc": "適用せずビルドだけ試す"
+            },
+            {
+              "name": "nix run .#update",
+              "desc": "flake.lock を更新"
+            },
+            {
+              "name": "gnix <cmd>",
+              "desc": "GitHub のレート制限を避けて nix を実行（gh のトークンを渡す）",
+              "tag": {
+                "kind": "t-new",
+                "text": "今日導入"
+              }
+            },
+            {
+              "name": "nx <pkg> -- <cmd>",
+              "desc": "パッケージを一時的に引いてコマンドを実行"
+            },
+            {
+              "name": ", <cmd>",
+              "desc": "未インストールのコマンドをその場で実行（comma）",
+              "tag": {
+                "kind": "t-new",
+                "text": "skill あり"
+              }
+            },
+            {
+              "name": "nh clean",
+              "desc": "古い世代を掃除。週次で自動実行される",
+              "tag": {
+                "kind": "t-new",
+                "text": "今日導入"
+              }
+            },
+            {
+              "name": "ngc",
+              "desc": "nix-collect-garbage"
+            },
+            {
+              "name": "devenv / dv",
+              "desc": "プロジェクト単位の開発環境"
+            }
+          ]
+        },
+        {
+          "title": "音声・入力",
+          "items": [
+            {
+              "name": "TypeWhisper",
+              "desc": "端末内で完結する音声入力。ホットキーで話すと文字が入る",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "辞書の同期",
+              "desc": "誤認識した語を dictionary.json に足して同期する",
+              "expand": "cd typewhisper && ./dict-sync.ts"
+            },
+            {
+              "name": "Karabiner",
+              "desc": "キー配列の改変。設定は TypeScript で書かれている",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            }
+          ]
+        },
+        {
+          "title": "その他の便利もの",
+          "items": [
+            {
+              "name": "ss",
+              "desc": "直前のコマンドを sudo で打ち直す"
+            },
+            {
+              "name": "fkill",
+              "desc": "プロセスを fzf で選んで kill"
+            },
+            {
+              "name": "gip / lip",
+              "desc": "グローバル IP / ローカル IP を表示"
+            },
+            {
+              "name": "gheye <repo>",
+              "desc": "GitHub リポジトリの README を端末で読む"
+            },
+            {
+              "name": "npkill",
+              "desc": "散らばった node_modules を探して消す"
+            },
+            {
+              "name": "clean",
+              "desc": "aqua / brew / mise などのキャッシュを一括掃除"
+            },
+            {
+              "name": "trash",
+              "desc": "rm の代わりにゴミ箱へ（git の削除にも設定済み）"
+            },
+            {
+              "name": "tirith",
+              "desc": "危険なコマンドを実行前に検査するフック。裏で常時動いている",
+              "tag": {
+                "kind": "t-new",
+                "text": "今日導入"
+              }
+            },
+            {
+              "name": "caf",
+              "desc": "スリープさせない（caffeinate -d）"
+            }
+          ]
+        },
+        {
+          "title": "GUI アプリ",
+          "note": "Homebrew cask で管理。<code>nix run .#switch</code> で入る／消える。",
+          "items": [
+            {
+              "name": "Ghostty",
+              "desc": "端末。watchlist の 12 人中 7 人が使う最多派",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "Raycast / AltTab",
+              "desc": "ランチャー / ウィンドウ切替",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "Bruno",
+              "desc": "API クライアント（Postman 代替）",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "OrbStack",
+              "desc": "Docker / Linux VM。do・dc 系の略語がこれに繋がる",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "Shottr / Stats",
+              "desc": "スクリーンショット / メニューバーの状態表示",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            },
+            {
+              "name": "1Password",
+              "desc": "パスワード管理。<b>git の署名鍵もここ</b>（ロックすると commit が失敗する）",
+              "tag": {
+                "kind": "t-gui",
+                "text": "GUI"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "todo",
+      "label": "未活用・要設定",
+      "lede": "設定が空のもの、入っているのに存在を忘れやすいもの。ここが次にやることの候補。",
+      "sections": [
+        {
+          "title": "設定が要る",
+          "note": "入っているのに、設定が空か最小限で本来の力が出ていないもの。",
+          "items": [
+            {
+              "name": "LazyVim extras",
+              "desc": "<b>空</b>。言語ごとの LSP・フォーマッタ・リンタが一つも有効になっていない。<code>v</code> → <code>:LazyExtras</code> で選ぶだけ",
+              "expand": "nvim/lazyvim.json",
+              "tag": {
+                "kind": "t-warn",
+                "text": "最優先"
+              }
+            }
+          ]
+        },
+        {
+          "title": "知られていない可能性が高い",
+          "note": "入っていて動くが、存在を忘れやすいもの。",
+          "items": [
+            {
+              "name": "git ap",
+              "desc": "hunk 単位で add。部分コミットに効く"
+            },
+            {
+              "name": "git difff",
+              "desc": "単語単位の差分。文章の変更が読みやすい"
+            },
+            {
+              "name": "forgit",
+              "desc": "git 操作を fzf で。<code>ga</code> や <code>glo</code> が対話的になる"
+            },
+            {
+              "name": "puffer-fish",
+              "desc": "<code>...</code> と打つと <code>../..</code> に展開される"
+            },
+            {
+              "name": "fish-abbreviation-tips",
+              "desc": "長く打つと「略語があるよ」と教えてくれる"
+            },
+            {
+              "name": "ss",
+              "desc": "直前のコマンドを sudo で打ち直す"
+            },
+            {
+              "name": "gheye <repo>",
+              "desc": "GitHub の README を端末で読む"
+            },
+            {
+              "name": "nx <pkg> -- <cmd>",
+              "desc": "パッケージを一時的に引いて実行。入れずに試せる"
+            },
+            {
+              "name": ", <cmd>",
+              "desc": "未インストールのコマンドをその場で実行（comma）"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "map",
+      "label": "設定の地図",
+      "lede": "何かを変えたいときに、どのファイルを開けばいいか。",
+      "sections": [
+        {
+          "title": "どこを直せばいいか",
+          "note": "変えたいものから、編集するファイルを引く。編集後は <code>nix run .#switch</code>。",
+          "items": [
+            {
+              "name": "CLI を足す・消す",
+              "desc": "nix/modules/home/packages.nix"
+            },
+            {
+              "name": "GUI アプリを足す・消す",
+              "desc": "nix/modules/darwin-system/homebrew.nix"
+            },
+            {
+              "name": "AI エージェントを足す",
+              "desc": "nix/modules/home/programs/ai-tools.nix"
+            },
+            {
+              "name": "モジュールを足す",
+              "desc": "nix/modules/<code>home</code> / <code>home-darwin</code> / <code>home-linux</code> / <code>darwin-system</code> のどれかに <code>.nix</code> を置くだけ。import-tree が拾うので一覧の編集は要らない"
+            },
+            {
+              "name": "略語・エイリアス",
+              "desc": "fish/config/abbrs_aliases.fish"
+            },
+            {
+              "name": "自作コマンド",
+              "desc": "fish/functions/&lt;名前&gt;.fish（ファイル名がコマンド名になる）"
+            },
+            {
+              "name": "シェルの起動処理",
+              "desc": "fish/config.fish（PATH・環境変数・各種 init）"
+            },
+            {
+              "name": "macOS の挙動",
+              "desc": "nix/modules/darwin-system/defaults.nix（Dock・トラックパッド・Finder）"
+            },
+            {
+              "name": "Neovim",
+              "desc": "nvim/lua/plugins/*.lua と nvim/lazyvim.json"
+            },
+            {
+              "name": "Claude Code の設定",
+              "desc": "nix/modules/home/programs/claude-code/default.nix（モデル・フック・statusline）"
+            },
+            {
+              "name": "Claude への指示",
+              "desc": "claude/CLAUDE.md（全プロジェクト）／ CLAUDE.md（このリポジトリ）／ agents/shared/*.md（両エージェント共通）"
+            },
+            {
+              "name": "エージェントスキル",
+              "desc": "agents/skills/&lt;名前&gt;/SKILL.md（追加すれば自動で有効）"
+            },
+            {
+              "name": "Codex の設定",
+              "desc": "nix/modules/home/programs/codex.nix ／ codex/AGENTS.md"
+            },
+            {
+              "name": "herdr の設定",
+              "desc": "nix/modules/home/programs/herdr/default.nix"
+            },
+            {
+              "name": "git の設定・エイリアス",
+              "desc": "nix/modules/home/programs/git/default.nix と同 aliases"
+            },
+            {
+              "name": "端末の見た目",
+              "desc": "nix/modules/home/programs/ghostty.nix ／ fish/themes/catppuccin-mocha.fish"
+            },
+            {
+              "name": "キー配列",
+              "desc": "karabiner/karabiner.ts（TypeScript で書いて生成）"
+            },
+            {
+              "name": "音声入力の辞書",
+              "desc": "typewhisper/dictionary.json（同期は ./dict-sync.ts）"
+            },
+            {
+              "name": "監視する dotfiles",
+              "desc": ".claude/skills/check-dotfiles-updates/watchlist.json"
+            },
+            {
+              "name": "外部スキル・入力の追加",
+              "desc": "flake.nix の <code>inputs</code> ＋ nix/modules/home/agent-skills.nix"
+            }
+          ]
+        },
+        {
+          "title": "反映のしかた",
+          "items": [
+            {
+              "name": "nix run .#switch",
+              "desc": "設定を適用。<b>編集しただけでは反映されない</b>。git commit 時にも自動で走る"
+            },
+            {
+              "name": "nix run .#build",
+              "desc": "適用せずビルドだけ試す"
+            },
+            {
+              "name": "nix run .#update",
+              "desc": "flake.lock を更新（依存の更新）"
+            },
+            {
+              "name": "nix run .#fmt",
+              "desc": "treefmt で整形（nix・lua・sh・ts・fish・nu）"
+            },
+            {
+              "name": "gnix <cmd>",
+              "desc": "GitHub のレート制限に当たったらこれで包む"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "keys",
+      "label": "ショートカット",
+      "lede": "キーを忘れたとき用。すべて実機から取得したもので、推測は含まない。",
+      "sections": [
+        {
+          "title": "キーボードの土台",
+          "src": "karabiner/karabiner.ts",
+          "note": "Karabiner による物理キーの入れ替え。<b>他のすべてのショートカットはこの上に乗る</b>ので、まずここ。",
+          "items": [
+            {
+              "name": "Caps Lock",
+              "desc": "<b>Control</b> になる"
+            },
+            {
+              "name": "Ctrl 単押し",
+              "desc": "英数 ＋ Esc（IME を確実に抜ける）"
+            },
+            {
+              "name": "Esc 単押し",
+              "desc": "英数 ＋ Esc"
+            },
+            {
+              "name": "Cmd 単押し",
+              "desc": "かな / 英数 を切り替え（左右で別々）"
+            },
+            {
+              "name": "Tab 長押し",
+              "desc": "<b>Cmd</b> として働く。単押しは Tab のまま"
+            },
+            {
+              "name": "右 Option",
+              "desc": "<b>Cmd</b> として働く"
+            },
+            {
+              "name": "fn + h j k l",
+              "desc": "← ↓ ↑ →"
+            },
+            {
+              "name": "Cmd+Q 長押し",
+              "desc": "長押しでのみアプリ終了（誤爆防止）"
+            }
+          ]
+        },
+        {
+          "title": "Ghostty — ウィンドウとタブ",
+          "src": "ghostty +list-keybinds",
+          "note": "<code>Cmd</code> は Karabiner により <b>Tab 長押し</b>・<b>右 Option</b> でも代用できる。",
+          "items": [
+            {
+              "name": "Cmd+T",
+              "desc": "新しいタブ"
+            },
+            {
+              "name": "Cmd+1〜8",
+              "desc": "タブを番号で選ぶ"
+            },
+            {
+              "name": "Cmd+9",
+              "desc": "最後のタブ"
+            },
+            {
+              "name": "Cmd+D",
+              "desc": "右に分割"
+            },
+            {
+              "name": "Cmd+Shift+D",
+              "desc": "下に分割"
+            },
+            {
+              "name": "Cmd+[ / ]",
+              "desc": "前 / 次のペインへ"
+            },
+            {
+              "name": "Cmd+Option+↑↓←→",
+              "desc": "方向でペインを選ぶ"
+            },
+            {
+              "name": "Cmd+Shift+Enter",
+              "desc": "ペインをズーム"
+            },
+            {
+              "name": "Cmd+Enter",
+              "desc": "フルスクリーン"
+            },
+            {
+              "name": "Cmd+W",
+              "desc": "ペインを閉じる"
+            },
+            {
+              "name": "Cmd+Option+W",
+              "desc": "タブを閉じる"
+            },
+            {
+              "name": "Cmd+Shift+P",
+              "desc": "コマンドパレット"
+            },
+            {
+              "name": "Cmd+K",
+              "desc": "画面を消す"
+            },
+            {
+              "name": "Cmd+= / -",
+              "desc": "文字サイズ"
+            },
+            {
+              "name": "Cmd+0",
+              "desc": "文字サイズを戻す"
+            },
+            {
+              "name": "Cmd+Shift+,",
+              "desc": "設定を再読み込み"
+            }
+          ]
+        },
+        {
+          "title": "herdr — prefix モード",
+          "src": "herdr 既定 ＋ nix/modules/home/programs/herdr/",
+          "note": "まず <code>Ctrl+B</code>（prefix）を押してから、下のキー。tmux と同じ作法。",
+          "items": [
+            {
+              "name": "Ctrl+B",
+              "desc": "prefix。ここから下のキーが効く"
+            },
+            {
+              "name": "prefix → n",
+              "desc": "ワークスペース作成"
+            },
+            {
+              "name": "prefix → Shift+N",
+              "desc": "名前変更"
+            },
+            {
+              "name": "prefix → Shift+D",
+              "desc": "閉じる"
+            },
+            {
+              "name": "prefix → c",
+              "desc": "タブ作成"
+            },
+            {
+              "name": "prefix → v",
+              "desc": "左右に分割"
+            },
+            {
+              "name": "prefix → -",
+              "desc": "上下に分割"
+            },
+            {
+              "name": "prefix → x",
+              "desc": "ペインを閉じる"
+            },
+            {
+              "name": "prefix → f",
+              "desc": "ペインをズーム"
+            },
+            {
+              "name": "prefix → r",
+              "desc": "リサイズモード"
+            },
+            {
+              "name": "prefix → b",
+              "desc": "サイドバー開閉"
+            },
+            {
+              "name": "prefix → e",
+              "desc": "<b>未割り当て</b>。reviewr と一緒に外した。hunk のプラグインはアクションを持つが、キーは <code>hunk: install default keybindings</code> を一度実行するまで付かない"
+            },
+            {
+              "name": "タブ名 [1] [2]",
+              "desc": "先頭の番号は <code>1</code>〜<code>9</code> のジャンプ先。名前はそのタブで動いているプロセス"
+            }
+          ]
+        },
+        {
+          "title": "hunk — 差分をレビューする",
+          "src": "hunk docs/keybindings.md",
+          "note": "エージェントが書いた差分を読み、行にコメントを書いて<b>書いた本人へ返す</b>。ワークツリーは書き換えない。herdr のアクションからも開ける（<code>hunk: review changes</code>）。<code>?</code> で全キー。",
+          "items": [
+            {
+              "name": "j / k",
+              "desc": "1行ずつ移動"
+            },
+            {
+              "name": "d / u",
+              "desc": "半画面送り"
+            },
+            {
+              "name": "space / b",
+              "desc": "1画面送り"
+            },
+            {
+              "name": "g / G",
+              "desc": "先頭 / 末尾へ"
+            },
+            {
+              "name": "] / [",
+              "desc": "次 / 前の hunk へ"
+            },
+            {
+              "name": "} / {",
+              "desc": "次 / 前の<b>注釈のある</b> hunk へ"
+            },
+            {
+              "name": ". / ,",
+              "desc": "次 / 前のファイルへ"
+            },
+            {
+              "name": "c",
+              "desc": "その行にレビューコメントを書く"
+            },
+            {
+              "name": "a",
+              "desc": "エージェントの注釈を表示・非表示"
+            },
+            {
+              "name": "z",
+              "desc": "折りたたまれた文脈を開く・閉じる"
+            },
+            {
+              "name": "e",
+              "desc": "選択中のファイルをエディタで開く"
+            },
+            {
+              "name": "/",
+              "desc": "ファイル名で絞り込む"
+            },
+            {
+              "name": "0 / 1 / 2",
+              "desc": "レイアウト — 自動 / 分割 / 積み"
+            },
+            {
+              "name": "s / l / m",
+              "desc": "ファイル欄 / 行番号 / hunk 見出しの表示切替"
+            },
+            {
+              "name": "t",
+              "desc": "テーマを選ぶ"
+            },
+            {
+              "name": "r",
+              "desc": "読み直す（<code>watch</code> が有効なので通常は不要）"
+            },
+            {
+              "name": "q",
+              "desc": "閉じる"
+            }
+          ]
+        },
+        {
+          "title": "fish — 行編集",
+          "src": "fish -c bind",
+          "note": "プラグインが足したものだけ。標準の Emacs 系キー（Ctrl+A/E/U など）は省略。",
+          "items": [
+            {
+              "name": "Ctrl+R",
+              "desc": "履歴を fzf で検索"
+            },
+            {
+              "name": "Ctrl+O",
+              "desc": "ファイルを fzf で探して挿入"
+            },
+            {
+              "name": "Alt+C",
+              "desc": "ディレクトリを fzf で選んで cd"
+            },
+            {
+              "name": "Alt+Shift+C",
+              "desc": "隠しディレクトリも含める"
+            },
+            {
+              "name": "Alt+O",
+              "desc": "ファイルを開く"
+            },
+            {
+              "name": "Alt+Shift+O",
+              "desc": "エディタで開く"
+            },
+            {
+              "name": "Alt+Y",
+              "desc": "今いるパスをコピー"
+            },
+            {
+              "name": "Space",
+              "desc": "略語を展開（打った略語がその場で開く）"
+            },
+            {
+              "name": "Enter",
+              "desc": "tirith が危険なコマンドを事前チェック"
+            }
+          ]
+        },
+        {
+          "title": "lazygit",
+          "src": "lazygit --config",
+          "note": "<code>lzg</code> で起動。迷ったら <code>?</code>。",
+          "items": [
+            {
+              "name": "?",
+              "desc": "キー一覧を出す"
+            },
+            {
+              "name": "q",
+              "desc": "終了"
+            },
+            {
+              "name": "Tab",
+              "desc": "パネル移動"
+            },
+            {
+              "name": "← / →",
+              "desc": "前 / 次のパネル"
+            },
+            {
+              "name": "↑ / ↓",
+              "desc": "項目移動"
+            },
+            {
+              "name": "&lt; / &gt;",
+              "desc": "先頭 / 末尾へ"
+            },
+            {
+              "name": "Space",
+              "desc": "選択（ステージ / アンステージ）"
+            },
+            {
+              "name": "v",
+              "desc": "範囲選択モード"
+            },
+            {
+              "name": "/",
+              "desc": "検索"
+            },
+            {
+              "name": "n / Shift+N",
+              "desc": "次 / 前の一致"
+            },
+            {
+              "name": "Esc",
+              "desc": "戻る"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "all",
+      "label": "全量を見る",
+      "lede": "nix が管理している全量。定義元のファイルつきで、どこに書かれているかまで辿れる。",
+      "sections": [
+        {
+          "title": "CLI パッケージ",
+          "src": "nix/modules/home/packages.nix",
+          "note": "29 個。<code>home.packages</code> にあるもの。",
+          "items": [
+            {
+              "name": "curl",
+              "desc": "HTTP クライアント"
+            },
+            {
+              "name": "htop",
+              "desc": "プロセス監視"
+            },
+            {
+              "name": "fish",
+              "desc": "既定シェル"
+            },
+            {
+              "name": "git",
+              "desc": "バージョン管理"
+            },
+            {
+              "name": "git-lfs",
+              "desc": "大容量ファイルの管理"
+            },
+            {
+              "name": "ghq",
+              "desc": "リポジトリを ~/ghq 配下に整理して clone"
+            },
+            {
+              "name": "lazygit",
+              "desc": "git の TUI"
+            },
+            {
+              "name": "tirith",
+              "desc": "危険コマンドを実行前に検査",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "ripgrep",
+              "desc": "全文検索（rg）"
+            },
+            {
+              "name": "fd",
+              "desc": "ファイル名検索"
+            },
+            {
+              "name": "fzf",
+              "desc": "対話的絞り込み"
+            },
+            {
+              "name": "zoxide",
+              "desc": "学習するディレクトリ移動（z）"
+            },
+            {
+              "name": "bat",
+              "desc": "ハイライト付き cat"
+            },
+            {
+              "name": "eza",
+              "desc": "git 対応の ls"
+            },
+            {
+              "name": "jq",
+              "desc": "JSON 処理"
+            },
+            {
+              "name": "dust",
+              "desc": "ディスク使用量の可視化"
+            },
+            {
+              "name": "delta",
+              "desc": "git 差分の表示エンジン"
+            },
+            {
+              "name": "vivid",
+              "desc": "LS_COLORS 生成（gruvbox-dark）"
+            },
+            {
+              "name": "trash-cli",
+              "desc": "ゴミ箱へ送る rm"
+            },
+            {
+              "name": "devenv",
+              "desc": "プロジェクト単位の開発環境"
+            },
+            {
+              "name": "nodejs_24",
+              "desc": "Node.js"
+            },
+            {
+              "name": "bun",
+              "desc": "JS ランタイム／パッケージ管理"
+            },
+            {
+              "name": "pnpm",
+              "desc": "JS パッケージ管理"
+            },
+            {
+              "name": "uv",
+              "desc": "Python パッケージ管理"
+            },
+            {
+              "name": "fixjson",
+              "desc": "JSON 整形"
+            },
+            {
+              "name": "nixd",
+              "desc": "Nix の言語サーバ"
+            },
+            {
+              "name": "nh",
+              "desc": "Nix ヘルパー。週次で自動クリーン",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "worktrunk",
+              "desc": "git worktree 管理。<code>wt switch pr:123</code> で PR を開く",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "colima",
+              "desc": "Linux VM を立てて Docker を動かす。OrbStack の置き換え（macOS）"
+            },
+            {
+              "name": "docker-client",
+              "desc": "docker CLI。compose と buildx のプラグインを同梱している"
+            },
+            {
+              "name": "docker-credential-helpers",
+              "desc": "レジストリの認証情報を keychain に預ける"
+            },
+            {
+              "name": "_1password-cli",
+              "desc": "1Password の CLI（Linux のみ。macOS は nix-darwin の <code>programs._1password</code>）"
+            },
+            {
+              "name": "_1password-gui",
+              "desc": "1Password 本体（Linux のみ。macOS は cask）"
+            },
+            {
+              "name": "lazydocker",
+              "desc": "コンテナの TUI。ログ・シェル・再起動をキーで。<code>lzd</code>"
+            },
+            {
+              "name": "mas",
+              "desc": "App Store の CLI。<code>homebrew.masApps</code> の実行に使われる（macOS）"
+            }
+          ]
+        },
+        {
+          "title": "設定付きモジュール",
+          "src": "nix/modules/home/programs/",
+          "note": "単に入れるだけでなく、設定ファイルまで nix が書いているもの。",
+          "items": [
+            {
+              "name": "fish",
+              "desc": "シェル本体。プラグイン 15 個込み"
+            },
+            {
+              "name": "ghostty",
+              "desc": "端末。テーマとフォント設定"
+            },
+            {
+              "name": "neovim",
+              "desc": "エディタ。LazyVim 構成",
+              "expand": "同梱: lua-language-server / stylua / tree-sitter"
+            },
+            {
+              "name": "git",
+              "desc": "エイリアス多数、delta 連携、SSH 署名"
+            },
+            {
+              "name": "lazygit",
+              "desc": "グラフ表示のコマンドを設定済み"
+            },
+            {
+              "name": "gh",
+              "desc": "GitHub CLI＋拡張 5 個",
+              "expand": "gh-markdown-preview / gh-dash / gh-poi / gh-notify / gh-do"
+            },
+            {
+              "name": "gh-nix",
+              "desc": "gh のトークンを nix に渡してレート制限を回避",
+              "tag": {
+                "kind": "t-new",
+                "text": "自前"
+              }
+            },
+            {
+              "name": "claude-code",
+              "desc": "設定・フック・statusline"
+            },
+            {
+              "name": "codex",
+              "desc": "設定・AGENTS.md 生成"
+            },
+            {
+              "name": "herdr",
+              "desc": "エージェント多重化",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "ai-tools",
+              "desc": "その他 AI CLI をまとめて"
+            },
+            {
+              "name": "bat",
+              "desc": "テーマ設定"
+            },
+            {
+              "name": "direnv",
+              "desc": "ディレクトリ単位の環境変数"
+            },
+            {
+              "name": "nh",
+              "desc": "週次クリーンの設定"
+            },
+            {
+              "name": "starship",
+              "desc": "プロンプト。2行表示・git 状態・devshell 判定・パッケージマネージャ表示",
+              "expand": "nix/modules/home/programs/starship.nix"
+            },
+            {
+              "name": "hunk",
+              "desc": "エージェントが書いた差分をレビューする TUI。行にコメントを書き、書いた本人のエージェントへ返せる。テーマ・自動再読込・注釈表示を宣言済み",
+              "expand": "nix/modules/home/programs/hunk.nix",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            }
+          ]
+        },
+        {
+          "title": "AI エージェント",
+          "src": "programs/ai-tools.nix ・ codex.nix ・ claude-code/ ・ herdr/",
+          "items": [
+            {
+              "name": "claude",
+              "desc": "Claude Code",
+              "tag": {
+                "kind": "t-cfg",
+                "text": "既定 opus"
+              }
+            },
+            {
+              "name": "codex",
+              "desc": "Codex",
+              "tag": {
+                "kind": "t-cfg",
+                "text": "gpt-5.6-sol / effort medium"
+              }
+            },
+            {
+              "name": "herdr",
+              "desc": "エージェント多重化ランタイム",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "grok",
+              "desc": "xAI の CLI"
+            },
+            {
+              "name": "agent-browser",
+              "desc": "エージェント用ブラウザ操作"
+            },
+            {
+              "name": "tgrab",
+              "desc": "X / Bluesky / YouTube の本文と字幕を取得。使い方は <code>tgrab --help</code>",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            }
+          ]
+        },
+        {
+          "title": "herdr プラグイン",
+          "src": "nix/modules/home/programs/herdr/ ・ nix/overlays/herdr-plugins.nix",
+          "note": "<code>herdr plugin install</code> は使わず、nix が固定したディレクトリを <code>plugin link</code> で登録している。宣言から外すと次の switch で自動的に解除される。",
+          "items": [
+            {
+              "name": "herdr-browser",
+              "desc": "Chromium をペインに描画し CDP で操作。エージェントのブラウザ作業が見える",
+              "expand": "nix/overlays/herdr-plugins.nix",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "herdr-automatic-rename",
+              "desc": "タブをプロセス名で命名し、<code>[1] [2]</code> のジャンプ番号を付ける",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "herdr-window-title-sync",
+              "desc": "herdr の状態を Ghostty のウィンドウタイトルに反映",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "herdr-hunk-diff",
+              "desc": "herdr のペインで hunk を開き、書いたコメントを担当エージェントへ返す。npm ci と tsc を伴う唯一のプラグインなので、ビルドはこちらで固定している",
+              "expand": "nix/packages/herdr-hunk-diff",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            }
+          ]
+        },
+        {
+          "title": "fish プラグイン",
+          "src": "nix/modules/home/programs/fish/default.nix",
+          "items": [
+            {
+              "name": "fzf",
+              "desc": "fzf のキーバインド統合"
+            },
+            {
+              "name": "forgit",
+              "desc": "git 操作を fzf で",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "autopair-fish",
+              "desc": "括弧の自動補完"
+            },
+            {
+              "name": "puffer-fish",
+              "desc": "... を ../.. に展開など"
+            },
+            {
+              "name": "fish-abbreviation-tips",
+              "desc": "略語があることを教えてくれる"
+            },
+            {
+              "name": "fish-bd",
+              "desc": "親ディレクトリへ一気に戻る"
+            },
+            {
+              "name": "bass",
+              "desc": "bash スクリプトを fish で動かす"
+            },
+            {
+              "name": "spark",
+              "desc": "数値をスパークラインで表示"
+            },
+            {
+              "name": "ev-fish",
+              "desc": "環境変数の操作"
+            },
+            {
+              "name": "fish-na",
+              "desc": "パッケージマネージャ自動判別"
+            },
+            {
+              "name": "by-binds-yourself",
+              "desc": "キーバインド補助"
+            },
+            {
+              "name": "replay.fish",
+              "desc": "bash のコマンドを fish で実行し、環境変数の変更を取り込む"
+            },
+            {
+              "name": "bdf.fish",
+              "desc": "fzf で上位ディレクトリへ一気に cd"
+            },
+            {
+              "name": "pathed.fish",
+              "desc": "<code>$fish_user_paths</code> をエディタで編集する"
+            },
+            {
+              "name": "nix-env.fish",
+              "desc": "nix のプロファイルを fish の PATH に通す"
+            }
+          ]
+        },
+        {
+          "title": "自作 fish 関数",
+          "src": "fish/functions/",
+          "items": [
+            {
+              "name": "ss",
+              "desc": "直前のコマンドを sudo で打ち直す"
+            },
+            {
+              "name": "fkill",
+              "desc": "プロセスを fzf で選んで kill"
+            },
+            {
+              "name": "mkcd",
+              "desc": "作って入る"
+            },
+            {
+              "name": "gip",
+              "desc": "グローバル IP を表示"
+            },
+            {
+              "name": "lip",
+              "desc": "ローカル IP（en0）を表示"
+            },
+            {
+              "name": "gheye",
+              "desc": "GitHub の README を端末で読む"
+            },
+            {
+              "name": "gh-q",
+              "desc": "自分のリポジトリを fzf で選んで clone"
+            },
+            {
+              "name": "ghq-work",
+              "desc": "仕事用の ghq。ルートは <code>~/ghq-work</code>。ここに置いたものが仕事の身元になる"
+            },
+            {
+              "name": "nx",
+              "desc": "nix shell でパッケージを一時的に引く"
+            },
+            {
+              "name": "npkill",
+              "desc": "node_modules を探して消す"
+            },
+            {
+              "name": "clean",
+              "desc": "aqua / brew / mise のキャッシュ掃除"
+            },
+            {
+              "name": "tree",
+              "desc": "tre か tree を使い分け"
+            },
+            {
+              "name": "git_switch_branch",
+              "desc": "ブランチを fzf で選んで switch"
+            },
+            {
+              "name": "pathclean",
+              "desc": "PATH の重複を除去"
+            },
+            {
+              "name": "source_venv_py",
+              "desc": "Python の venv を有効化"
+            },
+            {
+              "name": "ensure_installed",
+              "desc": "未導入なら黙ってスキップ（config 用）"
+            },
+            {
+              "name": "is_vim_shell",
+              "desc": "Neovim 内かを判定"
+            },
+            {
+              "name": "fish_greeting",
+              "desc": "起動時メッセージ（空）"
+            },
+            {
+              "name": "dlmv",
+              "desc": "ダウンロードを選んで、置き先を選んで移す。fzf が 2 回。<code>cd</code> は要らない"
+            },
+            {
+              "name": "gh",
+              "desc": "<code>gh</code> のラッパ。<code>~/ghq-work/</code> 配下では仕事アカウントのトークンに切り替える"
+            },
+            {
+              "name": "rm",
+              "desc": "<code>trash</code> があればそちらに差し替える。消さずにゴミ箱へ"
+            }
+          ]
+        },
+        {
+          "title": "GUI アプリ",
+          "src": "nix/modules/darwin/system.nix ・ homebrew.casks",
+          "note": "26 個（cask 25 ＋ Mac App Store 1）。<code>cleanup = \"uninstall\"</code> なので、ここに無いものは switch で消える。",
+          "items": [
+            {
+              "name": "Ghostty",
+              "desc": "端末"
+            },
+            {
+              "name": "Visual Studio Code",
+              "desc": "エディタ（CLI 移行中）"
+            },
+            {
+              "name": "1Password",
+              "desc": "パスワード管理＋SSH 署名鍵"
+            },
+            {
+              "name": "Raycast",
+              "desc": "ランチャー"
+            },
+            {
+              "name": "AltTab",
+              "desc": "ウィンドウ切替"
+            },
+            {
+              "name": "Karabiner-Elements",
+              "desc": "キー配列改変"
+            },
+            {
+              "name": "TypeWhisper",
+              "desc": "オンデバイス音声入力",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "Shottr",
+              "desc": "スクリーンショット"
+            },
+            {
+              "name": "Stats",
+              "desc": "メニューバーの状態表示"
+            },
+            {
+              "name": "Bruno",
+              "desc": "API クライアント",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            },
+            {
+              "name": "Google Chrome",
+              "desc": "ブラウザ"
+            },
+            {
+              "name": "Claude",
+              "desc": "Claude デスクトップ"
+            },
+            {
+              "name": "ChatGPT",
+              "desc": "ChatGPT デスクトップ"
+            },
+            {
+              "name": "Slack / Discord / Microsoft Teams",
+              "desc": "チャット"
+            },
+            {
+              "name": "Tailscale",
+              "desc": "VPN"
+            },
+            {
+              "name": "HHKB",
+              "desc": "キーボード設定"
+            },
+            {
+              "name": "Autodesk Fusion",
+              "desc": "CAD"
+            },
+            {
+              "name": "Bambu Studio",
+              "desc": "3D プリンタ"
+            },
+            {
+              "name": "Steam",
+              "desc": "ゲーム"
+            },
+            {
+              "name": "VLC",
+              "desc": "動画再生"
+            },
+            {
+              "name": "AppCleaner",
+              "desc": "アプリ削除"
+            },
+            {
+              "name": "Klack",
+              "desc": "打鍵音（Mac App Store）"
+            }
+          ]
+        },
+        {
+          "title": "略語 — git 系",
+          "src": "fish/config/abbrs_aliases.fish",
+          "note": "g で始まるものは fish の略語。<code>git xx</code> 形式は git 自身のエイリアス。",
+          "items": [
+            {
+              "name": "g",
+              "desc": "git"
+            },
+            {
+              "name": "ga / ga. / gaa",
+              "desc": "add / add . / add --all"
+            },
+            {
+              "name": "gc / gcn",
+              "desc": "commit / commit -n"
+            },
+            {
+              "name": "gcm / gcnm / gcam / gcem",
+              "desc": "commit -m / -n -m / amend -m / allow-empty -m"
+            },
+            {
+              "name": "gco / gsw / gswc",
+              "desc": "checkout / switch / switch -c"
+            },
+            {
+              "name": "gsm",
+              "desc": "main か master に戻る"
+            },
+            {
+              "name": "gswf",
+              "desc": "feature/ ブランチを作る"
+            },
+            {
+              "name": "gp / gpo / gpl / gf",
+              "desc": "push / push origin / pull / fetch"
+            },
+            {
+              "name": "gpf / gpff",
+              "desc": "force-with-lease / force"
+            },
+            {
+              "name": "gr / gcl / gpt",
+              "desc": "rebase / clone / push --tags"
+            },
+            {
+              "name": "gwt / gwtpr",
+              "desc": "worktree / PR worktree"
+            },
+            {
+              "name": "git sts",
+              "desc": "status -s -uno（短い状態表示）"
+            },
+            {
+              "name": "git st",
+              "desc": "stash"
+            },
+            {
+              "name": "git ap",
+              "desc": "add -p（hunk 単位）"
+            },
+            {
+              "name": "git rbm",
+              "desc": "rebase origin/main"
+            },
+            {
+              "name": "git cp / cpn",
+              "desc": "cherry-pick / -n"
+            },
+            {
+              "name": "git bv / bu",
+              "desc": "branch -vv / upstream 名を表示"
+            },
+            {
+              "name": "git br / pbr",
+              "desc": "ブラウザで開く / PR を開く"
+            },
+            {
+              "name": "git sha / id / cid",
+              "desc": "HEAD の SHA / 直近コミットの SHA"
+            },
+            {
+              "name": "git difff",
+              "desc": "diff --word-diff"
+            },
+            {
+              "name": "git clb",
+              "desc": "マージ済みローカルブランチを掃除"
+            },
+            {
+              "name": "git smu",
+              "desc": "submodule を再帰更新"
+            },
+            {
+              "name": "git wtd",
+              "desc": "worktree を強制削除"
+            },
+            {
+              "name": "ghp",
+              "desc": "gh poi（ブランチ掃除）"
+            },
+            {
+              "name": "gh pcr / pco",
+              "desc": "PR を作る / チェックアウト"
+            },
+            {
+              "name": "gh-fork-sync",
+              "desc": "fork を一括同期"
+            },
+            {
+              "name": "gg",
+              "desc": "ghq get"
+            }
+          ]
+        },
+        {
+          "title": "略語 — その他",
+          "src": "fish/config/abbrs_aliases.fish",
+          "items": [
+            {
+              "name": "v / nv",
+              "desc": "nvim"
+            },
+            {
+              "name": "vc",
+              "desc": "今のディレクトリを VS Code で開く"
+            },
+            {
+              "name": "ll / la / lt / lg",
+              "desc": "詳細 / 隠し込み / ツリー / グループ表示"
+            },
+            {
+              "name": "cdr / cdf",
+              "desc": "リポジトリのルートへ / fzf で移動"
+            },
+            {
+              "name": "lzg / lzd",
+              "desc": "lazygit / lazydocker"
+            },
+            {
+              "name": "cl / clc",
+              "desc": "claude / --continue"
+            },
+            {
+              "name": "clo / cls / clh / cls1",
+              "desc": "opus / sonnet / haiku / sonnet[1m]"
+            },
+            {
+              "name": "cx",
+              "desc": "codex"
+            },
+            {
+              "name": "do / dop / dor / dox",
+              "desc": "docker container / ps / run --rm / exec -it"
+            },
+            {
+              "name": "dc / dcu / dcub / dcd / dcr",
+              "desc": "compose / up / up --build / down / restart"
+            },
+            {
+              "name": "ns / ngc / nrn",
+              "desc": "nix-shell / gc / nix run nixpkgs#"
+            },
+            {
+              "name": "gnix",
+              "desc": "gh-nix（レート制限回避）"
+            },
+            {
+              "name": "dv",
+              "desc": "devenv"
+            },
+            {
+              "name": "br / bri",
+              "desc": "brew / brew install"
+            },
+            {
+              "name": "bunb / bunbx",
+              "desc": "bun --bun / bunx --bun"
+            },
+            {
+              "name": "py / pbc / pbp",
+              "desc": "python / pbcopy / pbpaste"
+            },
+            {
+              "name": "mkd / rr / rf",
+              "desc": "mkdir -p / rm -r / rm -rf"
+            },
+            {
+              "name": "caf",
+              "desc": "スリープさせない"
+            },
+            {
+              "name": "sc / src / clr / o",
+              "desc": "設定再読込 / source / clear / open"
+            }
+          ]
+        },
+        {
+          "title": "基盤 — flake 入力",
+          "src": "flake.nix ・ flake.lock",
+          "note": "この構成そのものを組み立てているもの。ツールではなく<b>土台</b>で、更新は <code>nix run .#update</code> がまとめて行う。",
+          "items": [
+            {
+              "name": "nixpkgs",
+              "desc": "パッケージ集合。ここのツールのほとんどが由来する（<code>nixos/nixpkgs</code>）"
+            },
+            {
+              "name": "home-manager",
+              "desc": "ユーザー環境（dotfiles・パッケージ・サービス）を宣言的に構成（<code>nix-community/home-manager</code>）"
+            },
+            {
+              "name": "nix-darwin",
+              "desc": "macOS 本体の設定（Homebrew・システム設定・フォント）（<code>LnL7/nix-darwin</code>）"
+            },
+            {
+              "name": "flake-parts",
+              "desc": "flake をモジュールに分割する枠組み（<code>hercules-ci/flake-parts</code>）"
+            },
+            {
+              "name": "treefmt-nix",
+              "desc": "<code>nix run .#fmt</code> の整形器。コミット時にも走る（<code>numtide/treefmt-nix</code>）"
+            },
+            {
+              "name": "git-hooks",
+              "desc": "pre-commit / pre-push の実体（<code>cachix/git-hooks.nix</code>）"
+            },
+            {
+              "name": "agent-skills",
+              "desc": "skill を Claude / Codex 両方に配る仕組み（<code>Kyure-A/agent-skills-nix</code>）"
+            },
+            {
+              "name": "llm-agents",
+              "desc": "grok などエージェント CLI の供給元（<code>numtide/llm-agents.nix</code>）"
+            },
+            {
+              "name": "nix-claude-code",
+              "desc": "claude-code パッケージ（<code>ryoppippi/nix-claude-code</code>）"
+            },
+            {
+              "name": "nix-bun",
+              "desc": "bun パッケージ（<code>ryoppippi/nix-bun</code>）"
+            },
+            {
+              "name": "nix-index-database",
+              "desc": "<code>command-not-found</code> と <code>,</code> の索引（<code>nix-community/nix-index-database</code>）"
+            },
+            {
+              "name": "import-tree",
+              "desc": "ディレクトリ配下の <code>.nix</code> を全部モジュールとして読み込む。<code>nix/modules/</code> に一覧ファイルが要らないのはこれのため（<code>denful/import-tree</code>）"
+            },
+            {
+              "name": "mattpocock-skills",
+              "desc": "エージェントスキル集。25 件のうち 8 件を <code>explicit</code> で選択。ソースには <code>idPrefix</code> を付けてある —— 登録するだけで全件が見えるので、upstream の <code>tdd</code> がローカルのものと衝突する（<code>mattpocock/skills</code>）"
+            },
+            {
+              "name": "cloudflare-skills",
+              "desc": "Cloudflare 公式のエージェントスキル集。13 件のうち wrangler を選択（<code>cloudflare/skills</code>）"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "label": "スキル",
+      "lede": "エージェントに読ませる手順書。<b>呼ぶのではなく、状況が合えば向こうが読む</b> —— description が引き金なので、いつ使うものかが書いてある。<code>/名前</code> で明示的にも呼べる。出どころ順、その中は名前順。",
+      "sections": [
+        {
+          "title": "自作",
+          "src": "agents/skills/",
+          "note": "このリポジトリで書いたもの。<code>enableAll</code> なので、ディレクトリを置けば入る。",
+          "items": [
+            {
+              "name": "ask-codex",
+              "desc": "実装方針やレビューについて Codex に第二意見を求める"
+            },
+            {
+              "name": "codex-review",
+              "desc": "Codex CLI でコードレビューを走らせる"
+            },
+            {
+              "name": "commit",
+              "desc": "変更を revert 可能な単位に割って Conventional Commits にする"
+            },
+            {
+              "name": "council",
+              "desc": "並列エージェントでコードベースの一領域を多角的に調べる"
+            },
+            {
+              "name": "create-commits-and-push",
+              "desc": "コミットして push まで。PR は作らない"
+            },
+            {
+              "name": "create-pr",
+              "desc": "ブランチを切ってコミット・push・PR 作成まで通す"
+            },
+            {
+              "name": "empirical-prompt-tuning",
+              "desc": "指示文をバイアス無しの実行者に回して、両面から測って改善する"
+            },
+            {
+              "name": "fix-ci",
+              "desc": "CI が赤いとき、gh でログを取って原因を追い、直す"
+            },
+            {
+              "name": "merge-main",
+              "desc": "main を今のブランチに取り込む"
+            },
+            {
+              "name": "missing-tools",
+              "desc": "コマンドが無いときに、入れずに動かす道を探す"
+            },
+            {
+              "name": "nushell",
+              "desc": "このリポジトリの既定スクリプト言語。新しいスクリプトを書くとき"
+            },
+            {
+              "name": "pr-apply-review",
+              "desc": "PR のレビューコメントを取ってきて適用する"
+            },
+            {
+              "name": "react-server-components",
+              "desc": "<code>'use client'</code> の位置を Next.js / React の文書に照らして監査"
+            },
+            {
+              "name": "session-summary-japanese",
+              "desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
+            },
+            {
+              "name": "skill-creator",
+              "desc": "スキルを新規作成・改訂する。SKILL.md の作法に沿わせる"
+            },
+            {
+              "name": "skill-maintenance",
+              "desc": "スキル全体を監査する。重複・説明の質・長さ"
+            },
+            {
+              "name": "tdd",
+              "desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
+            },
+            {
+              "name": "you-might-not-need-an-effect",
+              "desc": "不要な useEffect を react.dev の基準で洗う"
+            }
+          ]
+        },
+        {
+          "title": "このリポジトリ限定",
+          "src": ".claude/skills/",
+          "note": "dotfiles の中でしか読まれない。他のリポジトリでは出てこない。",
+          "items": [
+            {
+              "name": "check-dotfiles-updates",
+              "desc": "監視している 19 の dotfiles の新着を見て、動向とツールを拾う"
+            },
+            {
+              "name": "toolbelt",
+              "desc": "このページを作り直す。設定と突き合わせて記載漏れを報告する"
+            }
+          ]
+        },
+        {
+          "title": "mattpocock/skills",
+          "src": "flake input",
+          "note": "25 件のうち 9 件を選択。<b>上流のファイルは無改変</b>。<code>tdd</code> は自作と名前が衝突するので <code>mattpocock-tdd</code> で入れてある。",
+          "items": [
+            {
+              "name": "codebase-design",
+              "desc": "深いモジュール・境界・seam を語るための共通語彙"
+            },
+            {
+              "name": "diagnosing-bugs",
+              "desc": "難しいバグと性能変化の診断ループ"
+            },
+            {
+              "name": "domain-modeling",
+              "desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
+            },
+            {
+              "name": "grill-me",
+              "desc": "計画や設計を執拗に問い詰めて穴を出す"
+            },
+            {
+              "name": "grill-with-docs",
+              "desc": "問い詰めながら ADR と用語集を残す"
+            },
+            {
+              "name": "grilling",
+              "desc": "同じことを、ユーザーを問い詰める側から"
+            },
+            {
+              "name": "mattpocock-tdd",
+              "desc": "良いテストとは何か、seam をどこに置くか、避けるべき3つのアンチパターン。<b>回す前に読む参照</b>"
+            },
+            {
+              "name": "research",
+              "desc": "一次情報に当たって調べ、Markdown に残す"
+            },
+            {
+              "name": "wayfinder",
+              "desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
+            }
+          ]
+        },
+        {
+          "title": "cloudflare/skills",
+          "src": "flake input",
+          "note": "13 件のうち 1 件。Workers 関係は wrangler CLI 経由なのでそれだけ。",
+          "items": [
+            {
+              "name": "wrangler",
+              "desc": "Workers / KV / R2 / D1 / Queues などの CLI。<b>事前学習より Cloudflare のドキュメント参照を優先する</b>と明記されている"
+            }
+          ]
+        },
+        {
+          "title": "ツール同梱",
+          "src": "各パッケージの source",
+          "note": "ツール本体と<b>バージョンが必ず一致</b>する。herdr のものは herdr のパッケージから取っているので、herdr が上がればスキルも一緒に上がる。",
+          "items": [
+            {
+              "name": "agent-browser",
+              "desc": "ブラウザ操作。フォーム・スクショ・スクレイピング・Electron アプリ"
+            },
+            {
+              "name": "ast-grep",
+              "desc": "構文木でコードを検索する。素の grep より構造に強い"
+            },
+            {
+              "name": "herdr",
+              "desc": "herdr のペイン・タブ・エージェントを操作する"
+            },
+            {
+              "name": "hunk-review",
+              "desc": "開いている hunk のセッションを <code>hunk session</code> 経由で操作する。エージェントが自分で差分を開くのではなく、ユーザーが見ている画面に相乗りする",
+              "tag": {
+                "kind": "t-new",
+                "text": "新"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gone",
+      "label": "外したもの",
+      "historical": true,
+      "lede": "一度は入れて、外したもの。「なぜ無いのか」を毎回調べ直さないための記録で、ここに載っているものは検討済みという意味になる。同じ役割の代わりがあるものは、その名前を添えてある。",
+      "sections": [
+        {
+          "title": "AI エージェント",
+          "note": "どれも動きはした。外した理由は品質ではなく、<b>Claude Code と Codex の 2 つで足りていて、3 つ目を開く手が無かった</b>こと。",
+          "items": [
+            {
+              "name": "opencode",
+              "desc": "OSS のコーディングエージェント。使っていない",
+              "expand": "→ claude / codex"
+            },
+            {
+              "name": "cursor-agent",
+              "desc": "Cursor の CLI 版。使っていない",
+              "expand": "→ claude / codex"
+            },
+            {
+              "name": "copilot-cli",
+              "desc": "GitHub Copilot の CLI。使っていない",
+              "expand": "→ claude / codex"
+            },
+            {
+              "name": "coderabbit-cli",
+              "desc": "AI コードレビュー。使っていない",
+              "expand": "→ codex-review スキル"
+            },
+            {
+              "name": "rtk",
+              "desc": "エージェント向けのリポジトリ要約ツール。使っていない",
+              "expand": "→ claude / codex"
+            }
+          ]
+        },
+        {
+          "title": "Git・端末まわり",
+          "note": "自作を 2 つ捨てている。<b>同じことができる OSS があるなら、保守する分だけこちらが損をする</b>という判断。",
+          "items": [
+            {
+              "name": "git-wt",
+              "desc": "worktree を作る自作コマンド",
+              "expand": "→ wt switch"
+            },
+            {
+              "name": "git-wtpr",
+              "desc": "PR を worktree で開く自作コマンド。fish のフックが壊れていて、実は一度も動いていなかった",
+              "expand": "→ wt switch pr:&lt;番号&gt;"
+            },
+            {
+              "name": "tmux",
+              "desc": "端末多重化。ペインとタブの管理を herdr に寄せたので役割が重複した",
+              "expand": "→ herdr"
+            },
+            {
+              "name": "jj",
+              "desc": "Git 互換の VCS。使っていない",
+              "expand": "→ git"
+            },
+            {
+              "name": "bit",
+              "desc": "対話的な git ラッパ。使っていない",
+              "expand": "→ git / lazygit"
+            },
+            {
+              "name": "aqua",
+              "desc": "宣言的な CLI バージョン管理。Nix と役割が完全に重複していた",
+              "expand": "→ Nix"
+            },
+            {
+              "name": "serie",
+              "desc": "コミットグラフを画像で描く。lazygit のコミット欄が <code>+</code> で広げると同じものを描くと分かり、役割が重複した"
+            },
+            {
+              "name": "git-now",
+              "desc": "軽量な一時コミットを作る。上流の最終コミットが 2022-04-06 で、エージェントが本物のコミットを書く今は出番が無い"
+            },
+            {
+              "name": "terminal-notifier",
+              "desc": "通知センターに通知を出す。現行 macOS でクリックが効かず、廃止済み API のまま。ここでは誰も呼んでいなかった"
+            }
+          ]
+        },
+        {
+          "title": "スキル・プラグイン",
+          "items": [
+            {
+              "name": "tgrab（スキル）",
+              "desc": "upstream が 2026-08-04 にスキルを廃止し、契約を <code>--help</code> に移した。こちらはスキルだけを取り込んでいたので、参照先が存在しない状態だった",
+              "expand": "→ tgrab CLI"
+            },
+            {
+              "name": "remaining-todo",
+              "desc": "残作業の引き継ぎ。session-summary-japanese が内容を完全に含んでいた",
+              "expand": "→ session-summary-japanese"
+            },
+            {
+              "name": "herdr-tab-smart-rename",
+              "desc": "会話の内容からタブ名を付ける。LLM を呼ぶので API キーが要り、ChatGPT / Claude のサブスクでは使えない",
+              "expand": "→ herdr-automatic-rename"
+            },
+            {
+              "name": "herdr file-viewer",
+              "desc": "ペイン内のファイルビューア。diff を読む用途では reviewr が上位互換だった",
+              "expand": "→ herdr-reviewr"
+            },
+            {
+              "name": "herdr-reviewr",
+              "desc": "エージェントの差分をレビューし、行コメントを送り返す（<code>prefix+e</code>）。hunk が同じ仕事を、プレビルドバイナリの固定なしで引き受けた"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

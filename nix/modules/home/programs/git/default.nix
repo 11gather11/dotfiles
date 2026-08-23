@@ -39,6 +39,13 @@ in
       format = "ssh";
     };
 
+    # macOS's own ssh-keygen, not the one in nixpkgs. The key lives in
+    # 1Password's agent, and after openssh went to 10.5 the Nix build stopped
+    # being able to talk to it — "communication with agent failed" on every
+    # commit, while /usr/bin/ssh-keygen signed the same data with the same key.
+    # home-manager otherwise points this at the openssh it installs.
+    extraConfig.gpg.ssh.program = "/usr/bin/ssh-keygen";
+
     lfs.enable = true;
 
     settings = {

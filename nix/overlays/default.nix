@@ -4,7 +4,6 @@ let
   overlayFiles = [
     ./claude-code.nix
     ./git-now.nix
-    ./herdr-reviewr.nix
     ./yazi-eza-preview.nix
     ./yazi-faster-piper.nix
     ./herdr-plugins.nix

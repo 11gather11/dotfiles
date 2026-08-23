@@ -14,13 +14,6 @@ let
 
   tomlFormat = pkgs.formats.toml { };
 
-  # herdr-reviewr installs a prebuilt release binary and upstream publishes one
-  # for aarch64-darwin only, so naming it anywhere else fails the whole
-  # configuration at eval. The other plugins are source trees that link on any
-  # platform. Gate the plugin and its binding together — a key bound to a plugin
-  # that was never linked is a binding that silently does nothing.
-  hasReviewr = pkgs.stdenv.hostPlatform.system == "aarch64-darwin";
-
   settings = {
     onboarding = false;
 
@@ -37,35 +30,16 @@ let
     # protocol, which herdr keeps behind this flag. Ghostty speaks it.
     experimental.kitty_graphics = true;
 
-    # The plugin ships its actions and registers them on link; only the key is
-    # left to the user, so it belongs here rather than in the package.
-    #
-    # e for "explorer". Not the f these plugins tend to suggest: f is herdr's
-    # own default for zoom and the documentation states no precedence between a
-    # command binding and a core one, so taking it would quietly cost a binding
-    # without saying which won. herdr's defaults are n, shift+n, shift+d, c, v,
-    # -, x, f, r and b; e is unclaimed. The prefix+ form is required — a bare
-    # "e", which the configuration reference's own example uses, fails
-    # `herdr config check`.
-    keys.command = lib.optionals hasReviewr [
-      {
-        key = "prefix+e";
-        type = "plugin_action";
-        command = "persiyanov.reviewr.toggle";
-        description = "review the agent's diff";
-      }
-    ];
   };
 
   # Plugin roots to keep registered. Each is a directory laid out the way a
   # plugin repository is, with anything the manifest's [[build]] step would have
-  # produced already in place — see nix/packages/herdr-reviewr.
+  # produced already in place.
   plugins = [
     pkgs.herdr-browser
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
-  ]
-  ++ lib.optional hasReviewr pkgs.herdr-reviewr;
+  ];
 
   # Agents whose official integration should be installed. Without one, herdr
   # reads an agent's state from what its TUI draws, and a pane restored after a

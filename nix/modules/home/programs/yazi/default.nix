@@ -1,32 +1,7 @@
 # TUI file manager, for the two things the shell here does not cover: renaming
 # a batch of files, and moving between two directories that are not ~/Downloads
 # (which dlmv handles).
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  # The plugin written here is linked into place rather than copied into the
-  # store, so that editing it takes effect on the next yazi rather than on the
-  # next switch — a forty-second build to see whether a number is right is a
-  # build nobody runs.
-  #
-  # It costs reproducibility — the link is dead on a machine without this
-  # checkout — so set this false once they settle, and they go back to being
-  # copied like every other plugin.
-  developing = true;
-
-  localPlugins = {
-    gitstat = ./gitstat;
-  };
-
-  # The path as it is on this machine, which is what a link out of the store
-  # has to name. `./gitstat` would be the store copy this is avoiding.
-  checkout = "${config.home.homeDirectory}/ghq/github.com/11gather11/dotfiles/nix/modules/home/programs/yazi";
-
-in
+{ pkgs, ... }:
 {
   programs.yazi = {
     enable = true;
@@ -55,8 +30,7 @@ in
         ;
       # Not in nixpkgs; see nix/packages/.
       eza-preview = pkgs.yazi-eza-preview;
-    }
-    // lib.optionalAttrs (!developing) localPlugins;
+    };
 
     # Installing a plugin only places it. Each of these also has to be turned
     # on — a setup call, a fetcher, or a key — and until that is written here
@@ -65,8 +39,6 @@ in
       require("full-border"):setup()
       require("githead"):setup()
       require("git"):setup()
-      require("gitstat"):setup()
-
 
       -- The tree keeps its own idea of what to show, separate from the file
       -- list's, so hiding dotfiles has to be turned off in both places.
@@ -181,16 +153,4 @@ in
       }
     ];
   };
-
-  # While `developing`, the two local plugins are links to the checkout rather
-  # than copies in the store. home-manager writes the same path either way, so
-  # only one of the two definitions may exist at a time.
-  xdg.configFile = lib.optionalAttrs developing (
-    lib.mapAttrs' (
-      name: _:
-      lib.nameValuePair "yazi/plugins/${name}.yazi" {
-        source = config.lib.file.mkOutOfStoreSymlink "${checkout}/${name}";
-      }
-    ) localPlugins
-  );
 }

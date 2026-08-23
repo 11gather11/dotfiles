@@ -5,7 +5,6 @@ let
     ./claude-code.nix
     ./git-now.nix
     ./yazi-eza-preview.nix
-    ./yazi-faster-piper.nix
     ./herdr-plugins.nix
   ];
 

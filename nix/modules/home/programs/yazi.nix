@@ -29,17 +29,76 @@
       eza-preview = pkgs.yazi-eza-preview;
     };
 
-    settings.plugin.prepend_previewers = [
-      {
-        # A directory previewed as a tree rather than one level. What is being
-        # looked for here is the shape of a repository, and one level does not
-        # show it.
-        url = "*/";
-        run = "eza-preview";
+    # Installing a plugin only places it. Each of these also has to be turned
+    # on — a setup call, a fetcher, or a key — and until that is written here
+    # they sit in the plugins directory doing nothing.
+    initLua = ''
+      require("full-border"):setup()
+      require("githead"):setup()
+      require("git"):setup()
+
+      -- The tree keeps its own idea of what to show, separate from the file
+      -- list's, so hiding dotfiles has to be turned off in both places.
+      require("eza-preview"):setup {
+        default_tree = true,
+        all = true,
+        git_status = true,
       }
-    ];
+    '';
+
+    settings = {
+      # Dotfiles shown. What is browsed here is repositories, where .github,
+      # .claude and .works carry as much as anything without a dot — hiding
+      # them makes the listing a wrong picture of the directory. `.` still
+      # toggles it per session.
+      mgr.show_hidden = true;
+
+      plugin = {
+        prepend_previewers = [
+          {
+            # A directory previewed as a tree rather than one level. What is
+            # being looked for here is the shape of a repository, and one level
+            # does not show it.
+            url = "*/";
+            run = "eza-preview";
+          }
+        ];
+
+        # Both entries are needed: files and directories are fetched separately.
+        prepend_fetchers = [
+          {
+            url = "*";
+            run = "git";
+            group = "git";
+          }
+          {
+            url = "*/";
+            run = "git";
+            group = "git";
+          }
+        ];
+      };
+    };
 
     keymap.mgr.prepend_keymap = [
+      {
+        on = "l";
+        run = "plugin smart-enter";
+        desc = "Enter the directory, or open the file";
+      }
+      {
+        on = "f";
+        run = "plugin jump-to-char";
+        desc = "Jump to char";
+      }
+      {
+        on = [
+          "g"
+          "i"
+        ];
+        run = "plugin lazygit";
+        desc = "Run lazygit here";
+      }
       {
         on = [
           "e"

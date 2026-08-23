@@ -4,18 +4,18 @@ gui:
   nerdFontsVersion: '3'
   skipRewordInEditorWarning: true
 git:
+  # Every field is a fixed width and the subject is truncated, because a
+  # commit that wraps onto a second line breaks the graph's rails in half and
+  # the shape of the history is the only reason to be in this view. Press
+  # enter on a commit to read the message it cut off.
   allBranchesLogCmds:
-    - 'git log --pretty=format:"%Cgreen%h %Creset%cd %Cblue[%cn] %Creset%s%C(yellow)%d%C(reset)" --graph --date=relative --decorate --all'
-  branchLogCmd: 'git log --pretty=format:"%Cgreen%h %Creset%cd %Cblue[%cn] %Creset%s%C(yellow)%d%C(reset)" --graph --date=relative --decorate {{branchName}} --'
+    - 'git log --graph --all --date=relative --pretty=format:"%C(auto)%h %C(dim white)%<(13,trunc)%cd%C(reset) %C(blue)%<(11,trunc)%cn%C(reset)%<(46,trunc)%s%C(auto)%d"'
+  branchLogCmd: 'git log --graph --date=relative --pretty=format:"%C(auto)%h %C(dim white)%<(13,trunc)%cd%C(reset) %C(blue)%<(11,trunc)%cn%C(reset)%<(46,trunc)%s%C(auto)%d" {{branchName}} --'
   overrideGpg: true
   diffRenderers:
     - colorArg: always
       command: delta --color-only --paging=never
 customCommands:
-  - key: n
-    context: files
-    description: git now
-    command: git now
   - key: I
     context: localBranches
     description: gh poi

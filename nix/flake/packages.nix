@@ -3,10 +3,11 @@
     { config, localPkgs, ... }:
     {
       # Expose custom overlay packages as flake outputs so nix-update --flake
-      # can target them (e.g. `nix-update --flake git-now`).
+      # can target them (e.g. `nix-update --flake yazi-eza-preview`).
       packages = {
         inherit (localPkgs)
-          git-now
+          herdr-hunk-diff
+          yazi-eza-preview
           ;
       };
 

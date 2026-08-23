@@ -3,7 +3,6 @@ let
   # Import all overlay files in this directory
   overlayFiles = [
     ./claude-code.nix
-    ./git-now.nix
     ./yazi-eza-preview.nix
     ./herdr-plugins.nix
   ];

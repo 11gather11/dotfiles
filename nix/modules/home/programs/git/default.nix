@@ -44,7 +44,7 @@ in
     # being able to talk to it — "communication with agent failed" on every
     # commit, while /usr/bin/ssh-keygen signed the same data with the same key.
     # home-manager otherwise points this at the openssh it installs.
-    extraConfig.gpg.ssh.program = "/usr/bin/ssh-keygen";
+    settings.gpg.ssh.program = "/usr/bin/ssh-keygen";
 
     lfs.enable = true;
 

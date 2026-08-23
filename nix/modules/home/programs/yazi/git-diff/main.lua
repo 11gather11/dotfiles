@@ -8,8 +8,10 @@
 --- it is the difference between a diff and a file with its changes marked, and
 --- it is why the pane still reads as source rather than as a patch.
 ---
---- A file with no changes is handed to yazi's own previewer, so the two look
---- alike and nothing is lost by having this one in the way.
+--- A file with no changes goes through the same rendering, as a diff that says
+--- nothing changed, so that every file in a repository is drawn by one thing
+--- and the gutter does not move as the cursor passes over it. Outside a
+--- repository there is no diff to speak of, and yazi's own previewer takes it.
 
 local M = {}
 
@@ -216,12 +218,32 @@ local function render(job, dir, cfg)
 		git=%s
 		"$git" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 		base=$("$git" rev-parse --verify -q HEAD >/dev/null 2>&1 && echo HEAD || true)
+
 		if "$git" ls-files --error-unmatch -- "$name" >/dev/null 2>&1; then
-			"$git" diff -U%d ${base:+"$base"} -- "$name"
+			diff=$("$git" diff -U%d ${base:+"$base"} -- "$name")
 		else
-			"$git" diff -U%d --no-index --src-prefix=a/ --dst-prefix=b/ \
-				-- /dev/null "$name" || true
-		fi | %s %s
+			diff=$("$git" diff -U%d --no-index --src-prefix=a/ --dst-prefix=b/ \
+				-- /dev/null "$name" || true)
+		fi
+
+		if [ -z "$diff" ]; then
+			# A file with no changes still has to reach delta, or it would be the
+			# one file in a repository drawn by something else — a different
+			# gutter, and a column that moves as the cursor passes over it. delta
+			# draws what a diff says, so it is handed one that says nothing
+			# changed: every line context. NR rather than `wc -l` counts a last
+			# line that ends without a newline, and ./ rather than -- guards a
+			# name starting with a dash, which BSD sed will not take.
+			lines=$(awk "END { print NR }" "./$name")
+			[ "$lines" -gt 0 ] || exit 0
+			diff=$(
+				printf "diff --git a/%%s b/%%s\n--- a/%%s\n+++ b/%%s\n@@ -1,%%s +1,%%s @@\n" \
+					"$name" "$name" "$name" "$name" "$lines" "$lines"
+				sed "s/^/ /" "./$name"
+			)
+		fi
+
+		printf "%%s\n" "$diff" | %s %s
 	]],
 		ya.quote(cfg.git),
 		cfg.context,
@@ -249,6 +271,13 @@ local function render(job, dir, cfg)
 	if lines[#lines] == "" then
 		lines[#lines] = nil
 	end
+
+	-- delta opens with a blank line where the file header would have been. The
+	-- pane has few enough rows to spend one on nothing.
+	while lines[1] and lines[1]:gsub("\27%[[%d;]*%a", "") == "" do
+		table.remove(lines, 1)
+	end
+
 	return lines
 end
 
@@ -264,7 +293,7 @@ function M:peek(job)
 		hit, window, total = cache_read(key, job.skip, job.area.h)
 	end
 
-	-- No changes: yazi's own previewer, rather than a worse copy of it.
+	-- Outside a repository, or a file with nothing in it at all.
 	if not window then
 		return require("code"):peek(job)
 	end

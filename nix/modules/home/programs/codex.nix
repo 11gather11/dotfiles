@@ -34,14 +34,23 @@ let
     features.hooks = true;
 
     # Codex here is mostly a reviewer, and review is input-heavy and
-    # output-light — the shape Luna is cheapest at. Max effort is affordable
-    # for the same reason: it grows only the small half of a request. Sol
-    # stays one /model away for the work that needs the extra depth.
+    # output-light — the shape Luna is cheapest at.
     model = "gpt-5.6-luna";
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
-    model_reasoning_effort = "max";
+    # Measured from this machine's own session logs, reasoning tokens per turn:
+    # max 50,282, xhigh about half of that, high 1,953. The comment above used
+    # to say max was affordable because it only grew the small half of a
+    # request; reasoning is 62% of output at max, so it grows the half that
+    # matters and the weekly meter moved when the default changed to it.
+    #
+    # Below xhigh the published DeepSWE numbers fall off a cliff — 57% at
+    # xhigh against 44% at high, for eighteen cents — and a failed agent run
+    # is paid for twice. So the floor sits here, and the depth that max buys
+    # is one /model away for the work that needs it, which is what this file
+    # said the arrangement was before the default contradicted it.
+    model_reasoning_effort = "xhigh";
     service_tier = "fast";
     personality = "pragmatic";
     web_search_request = true;

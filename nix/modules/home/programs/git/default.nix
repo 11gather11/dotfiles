@@ -8,7 +8,7 @@ let
   user = helpers.mkUser config;
 
   # Delta settings (shared with lazygit pager configuration)
-  deltaSettings = {
+  deltaSettings = helpers.theme.delta // {
     dark = true;
     syntax-theme = helpers.theme.bat;
     diff-so-fancy = true;

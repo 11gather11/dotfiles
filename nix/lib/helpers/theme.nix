@@ -26,4 +26,28 @@ _: {
   # bat's sublime-syntax theme. delta reads syntax highlighting through bat, so
   # it takes the same value.
   bat = "Catppuccin Mocha";
+
+  # The colours delta paints an added and a removed line with, taken from
+  # catppuccin/delta rather than left at delta's own — which are a saturated
+  # green and red mixed with nothing, and read as a warning next to a scheme
+  # this muted. Each background here is the accent colour at 20% over the
+  # scheme's base, 35% for the emphasised span inside a changed line.
+  #
+  # Written as delta style strings: an optional foreground word (`syntax` keeps
+  # the syntax highlighting), then the background, then attributes.
+  #
+  # Both the gitconfig and yazi's preview read this. The preview passes them as
+  # arguments because it runs delta with --no-gitconfig, so a value changed
+  # here has to reach it some other way.
+  delta = {
+    minus-style = "syntax \"#493447\"";
+    minus-emph-style = "bold syntax \"#694559\"";
+    plus-style = "syntax \"#394545\"";
+    plus-emph-style = "bold syntax \"#4e6356\"";
+    line-numbers-minus-style = "bold \"#f38ba8\"";
+    line-numbers-plus-style = "bold \"#a6e3a1\"";
+    line-numbers-left-style = "\"#6c7086\"";
+    line-numbers-right-style = "\"#6c7086\"";
+    line-numbers-zero-style = "\"#6c7086\"";
+  };
 }

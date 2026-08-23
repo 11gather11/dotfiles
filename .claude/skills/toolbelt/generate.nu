@@ -69,6 +69,26 @@ def installed [root: string] {
     let skills = (
         (ls $"($root)/agents/skills" | where type == dir | get name | path basename)
         | append (
+            # Skills that live with this repository's own tooling rather than
+            # in agents/skills — the toolbelt generator is itself one of them.
+            ls $"($root)/.claude/skills" | where type == dir | get name | path basename
+        )
+        | append (
+            # The mattpocock selection is written as lists inside a helper call,
+            # not as `name = { ... }` entries, so the parse below never saw any
+            # of the eight. They were documented, which is why drift stayed
+            # quiet; had one been added upstream and taken, nothing would have
+            # said so either.
+            open --raw $"($root)/nix/modules/home/agent-skills.nix"
+            | parse --regex '(?s)mattpocockSelect\s*\{(?<body>.*?)\n      \}'
+            | get -o body
+            | default []
+            | str join "\n"
+            | parse --regex '"(?<name>[a-z0-9][a-z0-9-]*)"'
+            | get -o name
+            | default []
+        )
+        | append (
             open --raw $"($root)/nix/modules/home/agent-skills.nix"
             | parse --regex '(?s)explicit\s*=\s*\{(?<body>.*)'
             | get -o body
@@ -119,6 +139,13 @@ def installed [root: string] {
         | flatten
         | get -o name
         | default []
+        # The page's module section names the file, not the option: claude-code
+        # and codex configure their tools without a `programs.<name>` of their
+        # own, so nothing here saw them and they belonged to no set at all.
+        | append (
+            glob $"($root)/nix/modules/home*/programs/*"
+            | each {|f| $f | path basename | str replace --regex '\.nix$' '' }
+        )
         | uniq
     )
     # fish plugins, which live in their own module and were invisible to every
@@ -272,6 +299,63 @@ def stale [root: string, content: record] {
     | where {|i| ($i | get -o expand | default "") =~ '^[a-zA-Z0-9._/-]+/[a-zA-Z0-9._-]+$' }
     | where {|i| not ([$root, $i.expand] | path join | path exists) }
     | each {|i| {name: $i.name, path: $i.expand} }
+}
+
+# Rows describing something that is no longer installed.
+#
+# The mirror of the drift check, which only looks the other way: it finds an
+# installed name with no row, and cannot see a row whose tool has been removed.
+# The stale check above catches some of them, but only rows whose `expand`
+# names a path in this repository — a plain package row has none, so serie,
+# git-now and terminal-notifier all kept their rows after being removed and
+# nothing said so.
+#
+# Read against every installed set at once rather than per section: the page
+# groups by what a thing is for, the sets by how it is declared, and the two do
+# not line up — nh is a programs.* module sitting under CLI packages, and the
+# module section names files rather than option names. Checking section against
+# set reported thirty-three rows that were all installed.
+#
+# Three sections are left out because their names cannot be matched exactly,
+# and a loose match here would be worse than no check: the abbreviation
+# sections have no name list to compare against — only a count is collected —
+# and the GUI section names applications the way a person does while Homebrew
+# names them by cask id, so "Visual Studio Code" would have to be guessed onto
+# visual-studio-code. Rather than guess, they are declared unchecked.
+def orphaned [content: record, installed: record] {
+    let unchecked = ["略語 — git 系", "略語 — その他", "GUI アプリ"]
+
+    let known = (
+        [
+            $installed.packages
+            $installed.casks
+            $installed.ai
+            $installed.modules
+            $installed.fish_plugins
+            $installed.herdr_plugins
+            $installed.flake_inputs
+            $installed.skills
+            $installed.functions
+        ]
+        | flatten
+        | each {|n| $n | str downcase }
+        | uniq
+    )
+
+    $content.tabs
+    | where {|t| ($t | get -o id) in ["all", "skills"] }
+    | each {|t|
+        $t.sections
+        | where {|s| $s.title not-in $unchecked }
+        | each {|s|
+            $s.items
+            | each {|i| $i.name | split row " " | first | str downcase }
+            | where {|n| $n not-in $known }
+            | each {|n| {name: $n, section: $s.title} }
+        }
+    }
+    | flatten
+    | flatten
 }
 
 # What an external skill source offers that this configuration has not taken.
@@ -448,6 +532,12 @@ def main [--check, --root: string = ""] {
     if ($gone | is-not-empty) {
         print $"stale: ($gone | length) row\(s\) point at a file that no longer exists"
         $gone | each {|g| print $"  ($g.name)  →  ($g.path)" }
+    }
+
+    let orphans = (orphaned $content (installed $root))
+    if ($orphans | is-not-empty) {
+        print $"orphaned: ($orphans | length) row\(s\) describe something no longer installed"
+        $orphans | each {|o| print $"  ($o.section)  ($o.name)" }
     }
 
     # Which installed commands were never typed. This is a starting point for

@@ -31,7 +31,17 @@ description: Rebuild and republish the dotfiles reference page — what is insta
    nix shell nixpkgs#nushell --command nu generate.nu --check
    ```
 
-   `installed:` に実際の数、`drift:` に未記載のものが出る。
+   出るのは4つ。
+
+   - `installed:` 実際の数
+   - `drift:` 入っているのに書いていないもの
+   - `stale:` リポジトリ内のパスを指す行のうち、その先が消えたもの
+   - `orphaned:` 書いてあるのに入っていないもの
+
+   `orphaned` は `drift` の逆向き。ツールを Nix 側から消しても行は残るので、
+   これが無い間は `serie` や `git-now` が消えた後もページに載り続けていた。
+   照合できない 3 つの節（略語 2 つと GUI アプリ）は対象外で、理由は
+   `generate.nu` の `orphaned` に書いてある。
 
 2. 未記載があれば `content.json` に追記する。構造は次のとおり:
 

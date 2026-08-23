@@ -1746,6 +1746,10 @@
 						{
 							"name": "mattpocock-skills",
 							"desc": "エージェントスキル集。25 件のうち 8 件を <code>explicit</code> で選択。ソースには <code>idPrefix</code> を付けてある —— 登録するだけで全件が見えるので、upstream の <code>tdd</code> がローカルのものと衝突する（<code>mattpocock/skills</code>）"
+						},
+						{
+							"name": "cloudflare-skills",
+							"desc": "Cloudflare 公式のエージェントスキル集。13 件のうち wrangler を選択（<code>cloudflare/skills</code>）"
 						}
 					]
 				}
@@ -1890,6 +1894,17 @@
 						{
 							"name": "wayfinder",
 							"desc": "1 セッションに収まらない作業を決定チケットの地図として計画"
+						}
+					]
+				},
+				{
+					"title": "cloudflare/skills",
+					"src": "flake input",
+					"note": "13 件のうち 1 件。Workers 関係は wrangler CLI 経由なのでそれだけ。",
+					"items": [
+						{
+							"name": "wrangler",
+							"desc": "Workers / KV / R2 / D1 / Queues などの CLI。<b>事前学習より Cloudflare のドキュメント参照を優先する</b>と明記されている"
 						}
 					]
 				},

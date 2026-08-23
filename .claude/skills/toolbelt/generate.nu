@@ -297,27 +297,40 @@ def unselected [root: string] {
     # `open --raw` then `from json`: opening flake.lock directly yields a byte
     # stream, which has no cell paths, and the failure is a parse error rather
     # than an empty result.
-    let rev = (
-        open --raw $"($root)/flake.lock"
-        | from json
-        | get nodes
-        | get -o "mattpocock-skills"
-        | default {}
-        | get -o locked.rev
-    )
-    if ($rev | is-empty) { return [] }
-    let fetched = (^nix flake prefetch --json $"github:mattpocock/skills/($rev)" | complete)
-    if $fetched.exit_code != 0 { return [] }
-    let base = $fetched.stdout | from json | get storePath
-    ["engineering" "productivity"]
-    | each {|g|
-        let dir = $"($base)/skills/($g)"
-        if ($dir | path exists) {
-            ls $dir | where type == dir | get name | path basename
-            | where {|n| $n not-in $selected }
-            | each {|n| $"($g)/($n)" }
-        } else { [] }
+    let lock = open --raw $"($root)/flake.lock" | from json | get nodes
+
+    # One row per external skill source. Written as data because the report was
+    # hardcoded to the first one, so a second source could be added and its
+    # unselected skills would go unmentioned — the same silence this report
+    # exists to break.
+    [
+        {
+            input: "mattpocock-skills"
+            repo: "mattpocock/skills"
+            dirs: ["engineering" "productivity"]
+        }
+        {
+            input: "cloudflare-skills"
+            repo: "cloudflare/skills"
+            dirs: [""]
+        }
+    ]
+    | each {|src|
+        let rev = $lock | get -o $src.input | default {} | get -o locked.rev
+        if ($rev | is-empty) { return [] }
+        let fetched = (^nix flake prefetch --json $"github:($src.repo)/($rev)" | complete)
+        if $fetched.exit_code != 0 { return [] }
+        let base = $fetched.stdout | from json | get storePath
+        $src.dirs | each {|g|
+            let dir = if ($g | is-empty) { $"($base)/skills" } else { $"($base)/skills/($g)" }
+            if ($dir | path exists) {
+                ls $dir | where type == dir | get name | path basename
+                | where {|n| $n not-in $selected }
+                | each {|n| if ($g | is-empty) { $"($src.repo)/($n)" } else { $"($src.repo)/($g)/($n)" } }
+            } else { [] }
+        }
     }
+    | flatten
     | flatten
     | sort
 }
@@ -460,7 +473,7 @@ def main [--check, --root: string = ""] {
 
     let spare = (unselected $root)
     if ($spare | is-not-empty) {
-        print $"unselected: ($spare | length) skill\(s\) in mattpocock/skills not taken"
+        print $"unselected: ($spare | length) skill\(s\) offered by the external sources and not taken"
         print $"  ($spare | str join ', ')"
     }
 

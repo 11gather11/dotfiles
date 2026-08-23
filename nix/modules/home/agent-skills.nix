@@ -60,6 +60,12 @@ in
         # it visible and this one ships a tdd that collides with the local one.
         idPrefix = "mattpocock";
       };
+      # External: cloudflare/skills. Thirteen of them; wrangler is the one
+      # taken, since Workers work here goes through that CLI.
+      cloudflare = {
+        path = inputs.cloudflare-skills;
+        subdir = "skills";
+      };
       # Local: skills from this dotfiles repo
       local = {
         path = local-skills;
@@ -105,6 +111,11 @@ in
         ];
       }
       // {
+        wrangler = {
+          from = "cloudflare";
+          path = "wrangler";
+        };
+
         # The one that cannot keep upstream's name: the local tdd holds it.
         mattpocock-tdd = {
           from = "mattpocock-engineering";

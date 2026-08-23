@@ -109,6 +109,22 @@
         "type": "github"
       }
     },
+    "cloudflare-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1786124673,
+        "narHash": "sha256-r8HeH9XWV9qhbMq3fPASNfT5Y1mrfsgBI5STiUi/LVA=",
+        "owner": "cloudflare",
+        "repo": "skills",
+        "rev": "f96bff754e428838818017f75817f0f9428acd48",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cloudflare",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1775839657,
@@ -536,6 +552,7 @@
         "agent-browser-skill": "agent-browser-skill",
         "agent-skills": "agent-skills",
         "ast-grep-skill": "ast-grep-skill",
+        "cloudflare-skills": "cloudflare-skills",
         "fish-na": "fish-na",
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",

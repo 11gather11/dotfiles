@@ -93,6 +93,14 @@
 						{
 							"name": "yazi",
 							"desc": "ファイルを見て回る・一括リネーム・場所どうしの移動。<code>?</code> でキー一覧"
+						},
+						{
+							"name": "br",
+							"desc": "ツリーを歩いて深いファイルを直接開く。yazi のプレビュー内ツリーは絵なので触れないが、こちらは行そのもの。<code>alt+enter</code> でそこへ cd、<code>ctrl+q</code> で終了",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
 						}
 					]
 				},
@@ -1161,6 +1169,15 @@
 							"name": "hunk",
 							"desc": "エージェントが書いた差分をレビューする TUI。行にコメントを書き、書いた本人のエージェントへ返せる。テーマ・自動再読込・注釈表示を宣言済み",
 							"expand": "nix/modules/home/programs/hunk.nix",
+							"tag": {
+								"kind": "t-new",
+								"text": "新"
+							}
+						},
+						{
+							"name": "broot",
+							"desc": "ツリーそのものが一覧のエクスプローラー。数文字打つと階層を保ったまま絞れる。Catppuccin Mocha は同梱スキン、起動時からプレビューを開く設定",
+							"expand": "nix/modules/home/programs/broot.nix",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"

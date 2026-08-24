@@ -139,13 +139,6 @@ def installed [root: string] {
         | flatten
         | get -o name
         | default []
-        # The page's module section names the file, not the option: claude-code
-        # and codex configure their tools without a `programs.<name>` of their
-        # own, so nothing here saw them and they belonged to no set at all.
-        | append (
-            glob $"($root)/nix/modules/home*/programs/*"
-            | each {|f| $f | path basename | str replace --regex '\.nix$' '' }
-        )
         | uniq
     )
     # fish plugins, which live in their own module and were invisible to every
@@ -173,6 +166,13 @@ def installed [root: string] {
         | flatten
         | get -o name
         | default []
+        # The page's module section names the file, not the option: claude-code
+        # and codex configure their tools without a `programs.<name>` of their
+        # own, so nothing here saw them and they belonged to no set at all.
+        | append (
+            glob $"($root)/nix/modules/home*/programs/*"
+            | each {|f| $f | path basename | str replace --regex '\.nix$' '' }
+        )
         | uniq
     )
     {

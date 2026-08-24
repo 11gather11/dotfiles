@@ -11,6 +11,17 @@ git:
   allBranchesLogCmds:
     - 'git log --graph --all --date=relative --pretty=format:"%C(auto)%h %C(dim white)%<(13,trunc)%cd%C(reset) %C(blue)%<(11,trunc)%cn%C(reset)%<(46,trunc)%s%C(auto)%d"'
   branchLogCmd: 'git log --graph --date=relative --pretty=format:"%C(auto)%h %C(dim white)%<(13,trunc)%cd%C(reset) %C(blue)%<(11,trunc)%cn%C(reset)%<(46,trunc)%s%C(auto)%d" {{branchName}} --'
+  # lazygit fetches every sixty seconds, in every open instance, whether or
+  # not anyone is looking at it. Four of the repositories here have an ssh
+  # remote, and each of those fetches asks 1Password to authorise the key — so
+  # a pane left open in the background interrupts whatever is happening in the
+  # foreground, for a repository nobody is touching.
+  #
+  # `f` fetches when a fetch is actually wanted. The commit-signing prompt is
+  # separate and stays: that one is asked once per commit, by the person making
+  # it.
+  autoFetch: false
+
   overrideGpg: true
   diffRenderers:
     - colorArg: always

@@ -24,6 +24,12 @@ let
       # nothing for it to do, and worse: a name typed into that prompt counts as
       # a hand rename, which opts the tab out of automatic naming for good.
       prompt_new_tab_name = false;
+
+      # Which agent is in which pane, written on the pane's own border. Tab
+      # names cannot carry it — several agents share a tab here, which is the
+      # reason naming a tab after its foreground process was turned off above.
+      # The border is per pane, so it says what the tab cannot.
+      show_agent_labels_on_pane_borders = true;
     };
 
     # herdr-browser draws Chromium into a pane through the Kitty graphics
@@ -60,10 +66,15 @@ in
   home = {
     packages = [ pkgs.llm-agents.herdr ];
 
-    # Written as a regular file rather than a symlink: herdr edits config.toml
-    # itself from the Settings TUI, and the rest of this directory is runtime
-    # state it owns outright (session.json, sockets, logs, plugins.json — the
-    # last written by `herdr plugin install`). Only this one file is managed.
+    # Written as a regular file rather than a symlink, because herdr opens
+    # config.toml for writing when the Settings TUI applies a change — a
+    # symlink into the store fails there. It is still overwritten on every
+    # switch, so a setting changed in that TUI lasts until the next one and
+    # then goes. Anything worth keeping belongs in this file; the TUI is for
+    # finding out what a setting does.
+    #
+    # The rest of the directory is runtime state herdr owns outright —
+    # session.json, sockets, logs, plugins.json — and none of it is touched.
     # herdr-automatic-rename reads its settings from
     # $XDG_CONFIG_HOME/herdr-automatic-rename/config.sh — its own directory, not
     # the per-plugin one under herdr's config. Put here first, it was silently

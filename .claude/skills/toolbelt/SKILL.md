@@ -40,8 +40,13 @@ description: Rebuild and republish the dotfiles reference page — what is insta
 
    `orphaned` は `drift` の逆向き。ツールを Nix 側から消しても行は残るので、
    これが無い間は `serie` や `git-now` が消えた後もページに載り続けていた。
-   照合できない 3 つの節（略語 2 つと GUI アプリ）は対象外で、理由は
-   `generate.nu` の `orphaned` に書いてある。
+
+   ただし **「用途から引く」タブは検査されない**。あそこは打つ名前（`rg`、
+   `nvim`、`z`）を並べ、集合はパッケージ名（ripgrep、neovim、zoxide）を持つ
+   ので、突き合わせると 32 件が誤検出になる。yazi を消したときその行が残った
+   のはこれが理由。**ツールを消したら、このタブは目で見ること。**
+   照合できない節（略語 2 つと GUI アプリ）も同様で、理由は `generate.nu` の
+   `orphaned` に書いてある。
 
 2. 未記載があれば `content.json` に追記する。構造は次のとおり:
 

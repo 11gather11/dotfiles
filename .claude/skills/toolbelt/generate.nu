@@ -62,6 +62,18 @@ def installed [root: string] {
 		| where {|l| $l =~ '^abbr ' }
 		| length
 	)
+    # The names themselves, not just how many. The by-purpose tab lists how a
+    # tool is invoked — `ll`, `lzg`, `z` — rather than what is installed, so
+    # without these every row there reads as describing something absent.
+    let abbr_names = (
+		open $"($root)/fish/config/abbrs_aliases.fish"
+		| lines
+		| each {|l| $l | parse --regex '^(?:abbr -a|alias) (?<name>[a-zA-Z0-9_-]+)' }
+		| flatten
+		| get -o name
+		| default []
+		| uniq
+	)
     # Local skills, plus the ones selected from external sources. Only the
     # local directory used to be read, so a skill taken from a flake input was
     # installed without the page having to mention it — which is how eight
@@ -186,6 +198,7 @@ def installed [root: string] {
         skills: $skills
         functions: $functions
         abbr_count: $abbrs
+        abbr_names: $abbr_names
     }
 }
 
@@ -323,7 +336,15 @@ def stale [root: string, content: record] {
 # names them by cask id, so "Visual Studio Code" would have to be guessed onto
 # visual-studio-code. Rather than guess, they are declared unchecked.
 def orphaned [content: record, installed: record] {
-    let unchecked = ["略語 — git 系", "略語 — その他", "GUI アプリ"]
+    let unchecked = [
+        # No name list is collected for either — only a count.
+        "略語 — git 系"
+        "略語 — その他"
+        # The page names applications the way a person does; Homebrew names
+        # them by cask id, and "Visual Studio Code" would have to be guessed
+        # onto visual-studio-code.
+        "GUI アプリ"
+    ]
 
     let known = (
         [
@@ -336,6 +357,7 @@ def orphaned [content: record, installed: record] {
             $installed.flake_inputs
             $installed.skills
             $installed.functions
+            $installed.abbr_names
         ]
         | flatten
         | each {|n| $n | str downcase }

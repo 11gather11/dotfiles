@@ -91,12 +91,8 @@
 							"desc": "ツリー表示（tre があればそちらを使う）"
 						},
 						{
-							"name": "yazi",
-							"desc": "ファイルを見て回る・一括リネーム・場所どうしの移動。<code>?</code> でキー一覧"
-						},
-						{
 							"name": "br",
-							"desc": "ツリーを歩いて深いファイルを直接開く。yazi のプレビュー内ツリーは絵なので触れないが、こちらは行そのもの。<code>alt+enter</code> でそこへ cd、<code>ctrl+q</code> で終了",
+							"desc": "ツリーそのものが一覧。深い行を直接選んで開ける。数文字打てば階層を保ったまま絞れる。<code>alt+enter</code> でそこへ cd、<code>ctrl+q</code> で終了、<code>:toggle_preview</code> でプレビュー（起動時から開く設定済み）",
 							"tag": {
 								"kind": "t-new",
 								"text": "新"
@@ -2061,6 +2057,10 @@
 						{
 							"name": "terminal-notifier",
 							"desc": "通知センターに通知を出す。現行 macOS でクリックが効かず、廃止済み API のまま。ここでは誰も呼んでいなかった"
+						},
+						{
+							"name": "yazi",
+							"desc": "ミラーカラムのファイルマネージャ。ツリーはプレビュー欄に描いた絵で、深い行を選べなかった。broot（ツリーが一覧そのもの）と nvim の snacks（開閉するツリー）が同じ仕事をより直接やる。自前パッケージの eza-preview も一緒に退役"
 						}
 					]
 				},

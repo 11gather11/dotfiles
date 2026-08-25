@@ -25,6 +25,12 @@ let
     mouse-hide-while-typing = true;
 
     working-directory = "inherit";
+
+    # Option sends Alt rather than composing a character. Terminal programs
+    # put real bindings there — snacks' explorer hides dotfiles behind alt+h,
+    # which on the default setting types ˙ and reaches nothing — and the
+    # characters it gives up (å, ø, ¬) are not ones typed here.
+    macos-option-as-alt = true;
   };
 in
 {

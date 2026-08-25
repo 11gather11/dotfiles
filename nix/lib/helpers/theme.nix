@@ -39,9 +39,9 @@ _: {
   # Written as delta style strings: an optional foreground word (`syntax` keeps
   # the syntax highlighting), then the background, then attributes.
   #
-  # Both the gitconfig and yazi's preview read this. The preview passes them as
-  # arguments because it runs delta with --no-gitconfig, so a value changed
-  # here has to reach it some other way.
+  # The gitconfig reads this; a second reader existed while a file manager
+  # rendered diffs in its preview, and passed the same values as arguments
+  # because it ran delta with --no-gitconfig.
   delta = {
     minus-style = "syntax \"#493447\"";
     minus-emph-style = "bold syntax \"#694559\"";

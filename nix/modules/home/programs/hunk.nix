@@ -1,6 +1,6 @@
 # Review-first diff viewer, for reading what an agent changed. It took the job
-# reviewr had and the one yazi's preview briefly grew: this is where a diff gets
-# read here, and delta stays the pager for `git diff` and lazygit.
+# reviewr had, and the one a file manager's preview briefly grew: this is where
+# a diff gets read here, and delta stays the pager for `git diff` and lazygit.
 { pkgs, helpers, ... }:
 let
   tomlFormat = pkgs.formats.toml { };

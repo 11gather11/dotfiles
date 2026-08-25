@@ -1,16 +1,18 @@
-# Tree-as-listing explorer, alongside yazi rather than instead of it. yazi
-# shows one directory with a preview beside it; here the tree itself is the
-# listing, so a file four levels down can be selected without walking to it,
-# and typing a few letters filters the hierarchy without flattening it.
+# The explorer for a terminal pane. The tree is the listing, so a file four
+# levels down can be selected where it is shown, and typing a few letters
+# filters the hierarchy without flattening it.
 #
-# That was the gap: yazi's tree is drawn into the preview pane as text, which
-# is not a list and cannot be clicked.
+# It replaced yazi, which showed one directory at a time and drew its tree
+# into the preview pane as text — something to look at rather than a list to
+# act on. The editor's own explorer covers the same ground from inside nvim;
+# this is the one that does not need nvim open.
 _: {
   programs.broot = {
     enable = true;
 
     # `br` rather than `broot`: the wrapper writes the last directory out and
-    # the shell follows it, the same arrangement yazi has here.
+    # the shell follows it, so quitting leaves the shell where the browsing
+    # ended rather than where it started.
     enableFishIntegration = true;
 
     settings = {
@@ -19,8 +21,8 @@ _: {
       #
       # --cmd runs a command at startup, and the preview panel is wanted from
       # the first frame rather than after a keystroke. Once open it follows the
-      # selection, which is the arrangement yazi has and the reason this is
-      # here at all.
+      # selection, which is the arrangement worth having and the reason this is
+      # configured at all.
       default_flags = "-gh --cmd :toggle_preview";
 
       # Ghostty is already running a Nerd Font for the other tools.

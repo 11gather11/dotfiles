@@ -8,4 +8,7 @@
 
   # User configuration (requires config to be passed)
   mkUser = config: import ./user.nix { inherit config; };
+
+  # The codex-review gate (requires pkgs to be passed)
+  codexReviewGate = pkgs: import ./codex-review-gate.nix { inherit pkgs; };
 }

@@ -3,6 +3,7 @@
   lib,
   config,
   dotfilesDir,
+  helpers,
   ...
 }:
 let
@@ -12,6 +13,8 @@ let
   bun = lib.getExe pkgs.bun;
   jq = lib.getExe pkgs.jq;
   statuslineScript = ./statusline.ts;
+
+  codexReviewGate = lib.getExe (helpers.codexReviewGate pkgs);
 
   jsonFormat = pkgs.formats.json { };
 
@@ -61,23 +64,18 @@ let
         }
       ];
 
+      # `gh pr create` stays shut until codex-review has run over the commit
+      # being proposed. The gate's own reasoning lives in the script; what
+      # matters here is that both halves are the same binary, because a mark
+      # written in one shape and read in another is how the previous one let an
+      # unreviewed PR through.
       PreToolUse = [
         {
           matcher = "Bash";
           hooks = [
             {
               type = "command";
-              command = builtins.concatStringsSep " " [
-                "input=$(cat);"
-                "cmd=$(echo \"$input\" | ${jq} -r '.tool_input.command // \"\"');"
-                "if echo \"$cmd\" | grep -q 'gh pr create'; then"
-                "if [ -f /tmp/.claude-codex-review-done ]; then"
-                "rm -f /tmp/.claude-codex-review-done; exit 0;"
-                "else"
-                "echo 'BLOCKED: You must run the codex-review skill first before creating a PR. Use Skill(codex-review) to review changes against the base branch.' >&2;"
-                "exit 2;"
-                "fi; fi; exit 0"
-              ];
+              command = "${codexReviewGate} check";
             }
           ];
         }
@@ -88,13 +86,7 @@ let
           hooks = [
             {
               type = "command";
-              command = builtins.concatStringsSep " " [
-                "input=$(cat);"
-                "skill=$(echo \"$input\" | ${jq} -r '.tool_input.skill // .tool_input.skillName // \"\"');"
-                "if [ \"$skill\" = \"codex-review\" ]; then"
-                "touch /tmp/.claude-codex-review-done;"
-                "fi; exit 0"
-              ];
+              command = "${codexReviewGate} mark";
             }
           ];
         }

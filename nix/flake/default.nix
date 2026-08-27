@@ -8,6 +8,7 @@
     ./configurations.nix
     ./treefmt.nix
     ./git-hooks.nix
+    ./checks.nix
     ./apps.nix
     ./packages.nix
   ];

@@ -44,6 +44,12 @@ check() {
   echo $?
 }
 
+# Feeds stdin verbatim, for payloads that are not valid JSON at all.
+check_raw() {
+  printf '%s' "$1" | bash "$gate" check >/dev/null 2>&1
+  echo $?
+}
+
 expect() {
   local label=$1 want=$2 got=$3
   if [ "$want" = "$got" ]; then
@@ -88,8 +94,21 @@ expect "an unrelated command is untouched" 0 "$(check "$work/repo_b" "git status
 # literally let every one of these through.
 expect "two spaces between the words is still seen" 2 "$(check "$work/repo_b" "gh  pr  create --base main")"
 
-# The JSON payload carries \t through to the gate as a real tab.
+# The JSON payload carries \t and \n through to the gate as real characters.
 expect "a tab between the words is still seen" 2 "$(check "$work/repo_b" 'gh\tpr\tcreate')"
+expect "a newline between the words is still seen" 2 "$(check "$work/repo_b" 'gh pr\ncreate --base main')"
+expect "a continued line is still seen" 2 "$(check "$work/repo_b" 'gh pr \\\ncreate --base main')"
+
+# A payload this hook cannot parse used to be a free pass: nothing was
+# extracted, nothing matched, and the command went through with no marker
+# anywhere. It is matched against its raw text now.
+expect "an unparsable payload naming the command is refused" 2 \
+  "$(check_raw "$(printf '{"cwd":"%s","tool_input":{"command":"gh\tpr\tcreate"}}' "$work/repo_b")")"
+
+# Deliberately still allowed: refusing every payload that fails to parse would
+# refuse every Bash command in the session, and one that never names the
+# command was never going to open a PR.
+expect "an unparsable payload naming nothing is allowed" 0 "$(check_raw "not json at all")"
 
 # Nothing above proves the suite is watching the gate rather than agreeing with
 # itself: every case so far would also pass against a gate that refuses

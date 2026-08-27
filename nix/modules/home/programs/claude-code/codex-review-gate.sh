@@ -19,8 +19,8 @@
 #
 #   - opening the PR through the API instead, `gh api .../pulls -f title=x`.
 #     Only the porcelain spelling is matched.
-#   - splitting the command across lines with a trailing backslash, which puts
-#     the words on separate lines where a line-oriented match cannot see them.
+#   - spelling the command so the words never appear literally — building it
+#     from variables, or decoding it. The text is all there is to go on.
 #   - invoking codex-review and then not reading it. `mark` runs when the Skill
 #     tool returns, and the tool returns "Launching skill: ..." at load time,
 #     not when a review has been carried out. Nothing here can tell those apart.
@@ -66,11 +66,26 @@ mark)
   ;;
 
 check)
-  cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
-  # Runs of whitespace rather than one literal space. A second space or a tab
-  # between the words is what reformatting produces, and matching the spelling
-  # exactly let that straight through.
-  printf '%s' "$cmd" | grep -qE 'gh[[:space:]]+pr[[:space:]]+create' || exit 0
+  # An unreadable payload used to be a free pass: jq printed nothing, nothing
+  # matched, and the command went through with no marker anywhere. Every other
+  # way of not knowing shuts the gate, so this one does too — but by matching
+  # the raw text rather than refusing outright, because refusing on a payload
+  # this hook cannot parse would refuse every Bash command in the session.
+  if ! cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null); then
+    cmd=$input
+  fi
+
+  # Join continued lines the way the shell does, before anything else: the
+  # backslash survives a whitespace squeeze and sits between the words, which
+  # is enough on its own to keep the spelling from matching.
+  cmd=${cmd//\\$'\n'/}
+
+  # Then squeeze every run of whitespace, newlines included, down to one
+  # space. grep works a line at a time and cannot see a match that straddles a
+  # newline however the pattern is written. Normalising first means the
+  # spelling is all that has to be matched afterwards.
+  norm=$(printf '%s' "$cmd" | tr -s '[:space:]' ' ')
+  printf '%s' "$norm" | grep -q 'gh pr create' || exit 0
 
   sha=$(head_sha)
   if [ -n "$sha" ] && [ -f "$marker_dir/$sha" ]; then

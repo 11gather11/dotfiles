@@ -74,6 +74,7 @@ expect "a commit added after the review shuts the gate" 2 "$(check "$work/repo_a
 
 # Fail closed rather than falling back to a marker every project shares.
 expect "a cwd that is not a repository is refused" 2 "$(check "$work/plain")"
+expect "an empty cwd is refused" 2 "$(check "")"
 
 # Only codex-review may open it.
 mkrepo repo_c
@@ -82,6 +83,24 @@ expect "another skill does not open the gate" 2 "$(check "$work/repo_c")"
 
 # The gate must stay out of the way of every other Bash command.
 expect "an unrelated command is untouched" 0 "$(check "$work/repo_b" "git status")"
+
+# Reformatting the command must not walk past the gate. Matching the spelling
+# literally let every one of these through.
+expect "two spaces between the words is still seen" 2 "$(check "$work/repo_b" "gh  pr  create --base main")"
+
+# The JSON payload carries \t through to the gate as a real tab.
+expect "a tab between the words is still seen" 2 "$(check "$work/repo_b" 'gh\tpr\tcreate')"
+
+# Nothing above proves the suite is watching the gate rather than agreeing with
+# itself: every case so far would also pass against a gate that refuses
+# everything. Remove the one thing that makes a refusal a refusal, and the
+# refusals have to stop — otherwise these cases are not reading the gate.
+broken="$work/broken-gate"
+sed 's/exit 2/exit 0/' "$gate" >"$broken"
+chmod +x "$broken"
+printf '{"cwd":"%s","tool_input":{"command":"gh pr create"}}' "$work/repo_b" |
+  bash "$broken" check >/dev/null 2>&1
+expect "a gate with its refusal removed stops refusing" 0 "$?"
 
 echo
 if [ "$failures" -eq 0 ]; then

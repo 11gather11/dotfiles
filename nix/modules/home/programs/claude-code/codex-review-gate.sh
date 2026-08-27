@@ -12,6 +12,25 @@
 #
 # Keying on HEAD also shuts the gate again once commits are added after the
 # review: those commits are exactly the ones nobody has looked at.
+#
+# What this does not stop, so that the gate is not mistaken for more than it
+# is. Each of these takes knowing the gate is there and going around it, which
+# is a different thing from forgetting to review:
+#
+#   - opening the PR through the API instead, `gh api .../pulls -f title=x`.
+#     Only the porcelain spelling is matched.
+#   - splitting the command across lines with a trailing backslash, which puts
+#     the words on separate lines where a line-oriented match cannot see them.
+#   - invoking codex-review and then not reading it. `mark` runs when the Skill
+#     tool returns, and the tool returns "Launching skill: ..." at load time,
+#     not when a review has been carried out. Nothing here can tell those apart.
+#
+# So the gate makes skipping the review deliberate rather than impossible.
+#
+# In the other direction, one way of reviewing does not open it: typing
+# `/codex-review` never reaches the Skill tool, so `mark` never runs and the
+# gate stays shut. Ask for the skill rather than typing the command, or expect
+# to be refused after a review that did happen.
 
 set -uo pipefail
 
@@ -48,7 +67,10 @@ mark)
 
 check)
   cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
-  printf '%s' "$cmd" | grep -q 'gh pr create' || exit 0
+  # Runs of whitespace rather than one literal space. A second space or a tab
+  # between the words is what reformatting produces, and matching the spelling
+  # exactly let that straight through.
+  printf '%s' "$cmd" | grep -qE 'gh[[:space:]]+pr[[:space:]]+create' || exit 0
 
   sha=$(head_sha)
   if [ -n "$sha" ] && [ -f "$marker_dir/$sha" ]; then

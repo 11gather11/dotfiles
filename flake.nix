@@ -100,6 +100,19 @@
     # 48 KB used, because upstream keeps them beside the application rather
     # than in a repository of their own. It is paid on `nix run .#update` and
     # on a cold CI runner; a switch never touches it.
+    #
+    # Deliberately the default branch and not the tag matching the installed
+    # app, which means Orca's own "update skills" reports these as skipped:
+    # "this copy does not match the official version". That warning is correct
+    # and expected. The app compares against the skills its release shipped,
+    # and this follows the repository instead, so the two differ whenever
+    # upstream has moved — which for a project releasing daily is always.
+    #
+    # Nothing is broken by it. Orca skips rather than overwrites, and skipping
+    # is what should happen: these skills are updated by `nix run .#update`,
+    # not by the app reaching into a directory Nix owns. Pinning to the tag
+    # would quiet the warning at the cost of tracking the cask's version by
+    # hand in two places, to hand update duty to the tool that must not have it.
     orca-skills = {
       url = "github:stablyai/orca";
       flake = false;

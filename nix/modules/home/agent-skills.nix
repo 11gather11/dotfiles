@@ -131,10 +131,10 @@ in
           path = "wrangler";
         };
 
-        # Two of the eight Orca ships. The Linear pair, both emulators,
-        # computer-use and per-workspace-env are left behind: every skill's
-        # description sits in the context window whether or not it is ever
-        # used, and none of those have a use here.
+        # Three of the eight Orca ships. The Linear pair, both emulators and
+        # per-workspace-env are left behind: every skill's description sits in
+        # the context window whether or not it is ever used, and none of those
+        # have a use here.
         #
         # orca-cli drives worktrees, terminals and the embedded browser through
         # the `orca` CLI, and says to prefer that over raw `git worktree` and
@@ -150,6 +150,21 @@ in
         orchestration = {
           from = "orca";
           path = "orchestration";
+        };
+        # computer-use reads accessibility trees and drives windows at the OS
+        # level — focus, menus, dialogs, coordinates, screenshots. It is the
+        # third here that can claim to "operate a desktop app", after
+        # agent-browser and the claude-in-chrome MCP, and the narrowest: those
+        # two reach into a page or an Electron app's contents, and this one is
+        # for the Mac applications neither can open. Its own siblings say so —
+        # orca-cli sends OS/window-level control here and keeps the rest.
+        #
+        # The macOS side of it is not declarable: Accessibility and Screen
+        # Recording are TCC grants, which need the user to agree in System
+        # Settings and live in a database no configuration reaches.
+        computer-use = {
+          from = "orca";
+          path = "computer-use";
         };
 
         # The one that cannot keep upstream's name: the local tdd holds it.

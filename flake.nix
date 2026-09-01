@@ -96,6 +96,15 @@
       flake = false;
     };
 
+    # The Orca app's own repository, for the skills in it. 249 MB fetched for
+    # 48 KB used, because upstream keeps them beside the application rather
+    # than in a repository of their own. It is paid on `nix run .#update` and
+    # on a cold CI runner; a switch never touches it.
+    orca-skills = {
+      url = "github:stablyai/orca";
+      flake = false;
+    };
+
     # A flake now, not a source tree: the skill it used to ship was dropped
     # upstream and the CLI is what is consumed instead.
     tgrab = {

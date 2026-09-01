@@ -74,6 +74,13 @@ in
         path = inputs.cloudflare-skills;
         subdir = "skills";
       };
+      # External: Orca's own skills, eight of them shipped inside the app's
+      # repository. Registering the source makes all eight visible, so the one
+      # that is wanted is named in `explicit` below rather than enabled here.
+      orca = {
+        path = inputs.orca-skills;
+        subdir = "skills";
+      };
       # Local: skills from this dotfiles repo
       local = {
         path = local-skills;
@@ -122,6 +129,17 @@ in
         wrangler = {
           from = "cloudflare";
           path = "wrangler";
+        };
+
+        # The one Orca skill worth carrying: driving worktrees, terminals and
+        # the embedded browser through the `orca` CLI. The Linear pair, the two
+        # emulators, computer-use and per-workspace-env are left behind — every
+        # skill's description sits in the context window whether or not it is
+        # ever used, and none of those have a use here. orchestration belongs
+        # with actually running a fleet, not before.
+        orca-cli = {
+          from = "orca";
+          path = "orca-cli";
         };
 
         # The one that cannot keep upstream's name: the local tdd holds it.

@@ -547,6 +547,22 @@
         "type": "github"
       }
     },
+    "orca-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788266219,
+        "narHash": "sha256-bc0xuCeVx4g16hKuo7sK8m/lq7aVB5dgdK7F/ldn+Yc=",
+        "owner": "stablyai",
+        "repo": "orca",
+        "rev": "5aa02ead59a4f34a186c3e8814558b5795260ee9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "stablyai",
+        "repo": "orca",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agent-browser-skill": "agent-browser-skill",
@@ -565,6 +581,7 @@
         "nix-darwin": "nix-darwin",
         "nix-index-database": "nix-index-database",
         "nixpkgs": "nixpkgs_2",
+        "orca-skills": "orca-skills",
         "tgrab": "tgrab",
         "treefmt-nix": "treefmt-nix_3"
       }

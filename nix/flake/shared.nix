@@ -37,7 +37,17 @@ let
         (_final: _prev: {
           _nix-claude-code = inputs.nix-claude-code;
         })
-        inputs.nix-bun.overlays.default
+        # Added beside nixpkgs' bun rather than over it. nix-bun's overlay
+        # replaces `bun` outright, and `bun` is a build tool: every nixpkgs
+        # package that compiles with it is then built against a bun nixpkgs
+        # never tested, misses the binary cache, and is rebuilt here. hunk is
+        # one of those, and its Linux build has failed ever since — upstream's
+        # own x86_64-linux build of the same version is in cache.nixos.org and
+        # works. Nothing here needs bun as a build input; the two places that
+        # want the newer one want it to run, and ask for it by this name.
+        (_final: prev: {
+          bun-upstream = inputs.nix-bun.packages.${prev.stdenv.hostPlatform.system}.bun;
+        })
         (import ../overlays)
       ];
     };

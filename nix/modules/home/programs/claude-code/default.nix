@@ -10,7 +10,7 @@ let
   claudeConfigDir = "${config.xdg.configHome}/claude";
   claudeDotfilesDir = "${dotfilesDir}/claude";
 
-  bun = lib.getExe pkgs.bun;
+  bun = lib.getExe pkgs.bun-upstream;
   jq = lib.getExe pkgs.jq;
   statuslineScript = ./statusline.ts;
 

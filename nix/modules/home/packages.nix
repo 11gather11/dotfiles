@@ -35,7 +35,9 @@
     # Development languages & package managers
     devenv
     nodejs_24
-    bun
+    # Upstream's own build, not nixpkgs'. See nix/flake/shared.nix for why the
+    # newer bun is added under its own name instead of replacing nixpkgs'.
+    bun-upstream
     pnpm
     uv
     # Misc utilities

@@ -131,15 +131,25 @@ in
           path = "wrangler";
         };
 
-        # The one Orca skill worth carrying: driving worktrees, terminals and
-        # the embedded browser through the `orca` CLI. The Linear pair, the two
-        # emulators, computer-use and per-workspace-env are left behind — every
-        # skill's description sits in the context window whether or not it is
-        # ever used, and none of those have a use here. orchestration belongs
-        # with actually running a fleet, not before.
+        # Two of the eight Orca ships. The Linear pair, both emulators,
+        # computer-use and per-workspace-env are left behind: every skill's
+        # description sits in the context window whether or not it is ever
+        # used, and none of those have a use here.
+        #
+        # orca-cli drives worktrees, terminals and the embedded browser through
+        # the `orca` CLI, and says to prefer that over raw `git worktree` and
+        # ad hoc PTYs whenever the task touches state Orca already owns.
         orca-cli = {
           from = "orca";
           path = "orca-cli";
+        };
+        # orchestration is the other half: a coordinator dispatching workers,
+        # with threaded messages, blocking ask/reply, task DAGs and decision
+        # gates. It draws the line at handoffs — passing ownership on is
+        # orca-cli's, and this one is for work that stays supervised.
+        orchestration = {
+          from = "orca";
+          path = "orchestration";
         };
 
         # The one that cannot keep upstream's name: the local tdd holds it.

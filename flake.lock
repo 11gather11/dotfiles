@@ -649,11 +649,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1785842349,
-        "narHash": "sha256-2erc0rrJmULkFts2NRsxbDZHo5x6MctsVI727qkf4fo=",
+        "lastModified": 1787840208,
+        "narHash": "sha256-N5zZ6QgdDDIO7KlZsU6I7r+cgLXYKjfgYqBCzUJjXpQ=",
         "owner": "ryoppippi",
         "repo": "tgrab",
-        "rev": "dfbbc214d09d814552a222450039a5ed6ef9d65b",
+        "rev": "d6d0f5e427e15384d4b2086f929b40d2573719db",
         "type": "github"
       },
       "original": {

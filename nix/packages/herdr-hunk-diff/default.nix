@@ -55,6 +55,29 @@ buildNpmPackage {
 
   npmDepsHash = "sha256-sIpydwQQ3F1RB2uCEbVxnvcklCVyn8zNYxvO9HI+GLQ=";
 
+  # hunkdiff pulls npm's `bun`, whose optional dependencies are one prebuilt
+  # binary per platform. Only the host's is ever wanted, and the lockfile
+  # records the others without a tarball URL, so on Linux `npm ci` stops at
+  # "Failed to find package @oven/bun-linux-aarch64".
+  #
+  # Pinning those URLs does not help, and it is worth writing down why: the
+  # dependency fetcher skips entries that do not match the platform it runs
+  # on, so a darwin machine never downloads them — and the fetched cache is a
+  # fixed-output derivation, whose path is its hash and therefore identical
+  # everywhere, so Linux substitutes the one darwin built and finds them
+  # missing however many are listed.
+  #
+  # None of it is needed. hunkdiff is never imported; the plugin runs under
+  # node and spawns `hunk` as an external binary, which this configuration
+  # installs from nixpkgs. Dropping optional dependencies leaves the build
+  # platform-independent and the output smaller.
+  npmFlags = [ "--omit=optional" ];
+
+  # `npm ci` already runs with --ignore-scripts; `npm rebuild` afterwards does
+  # not, and that is where bun's install.js runs and refuses to continue
+  # without the platform package. Nothing here has a native module to rebuild.
+  npmRebuildFlags = [ "--ignore-scripts" ];
+
   # The plugin is a directory herdr reads, not a program on PATH, so the usual
   # install of bin/ and lib/node_modules is replaced by the layout above.
   # Pruning first drops typescript and eslint, which only the build needed.

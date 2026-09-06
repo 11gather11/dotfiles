@@ -551,11 +551,11 @@
     "orca-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1788342549,
-        "narHash": "sha256-B6lF0WB4Nk3YY3QslLYYY8tDX4XkM8vWEL7seCh7SqQ=",
+        "lastModified": 1788428868,
+        "narHash": "sha256-JdUXPDT2x8LFEcnYtb91csC8zj9OFOSZt25YikCToWQ=",
         "owner": "stablyai",
         "repo": "orca",
-        "rev": "34999e328e03e42edd8f0ed2b78dde82edac221f",
+        "rev": "f70f58062765242665d8e5cca1f84b38f0294f5c",
         "type": "github"
       },
       "original": {

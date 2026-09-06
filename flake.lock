@@ -113,11 +113,11 @@
     "cloudflare-skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1786124673,
-        "narHash": "sha256-r8HeH9XWV9qhbMq3fPASNfT5Y1mrfsgBI5STiUi/LVA=",
+        "lastModified": 1788364253,
+        "narHash": "sha256-WFgtwZyu2dxx51Drq1xW7WLUHJo12M45FiATin2i2d4=",
         "owner": "cloudflare",
         "repo": "skills",
-        "rev": "f96bff754e428838818017f75817f0f9428acd48",
+        "rev": "9177f9a0bafc1ab61a0dae8dca57a8eb4d9f636d",
         "type": "github"
       },
       "original": {

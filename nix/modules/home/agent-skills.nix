@@ -22,6 +22,32 @@ let
         path = name;
       })
     ) groups;
+  # Orca keeps its skills inside the application's own repository, and that
+  # repository is 261 MB — second only to nixpkgs among this flake's inputs,
+  # for two files totalling 8 KB. As an input it was re-fetched on the first
+  # evaluation after every bump, which is a switch, not just `nix run .#update`.
+  #
+  # So the two files are fetched on their own, pinned by revision and hash.
+  # Bumping means changing the revision and taking the hashes the failure
+  # reports. That is rare by design: each file is a discovery stub whose text
+  # says the real reference is served by the `orca` binary, version-matched, so
+  # what changes with a release is on the other side of that line.
+  orcaRev = "637dc30a3211ec0667c55118a4d17edbee5cff80";
+  orcaSkill =
+    name: hash:
+    pkgs.fetchurl {
+      url = "https://raw.githubusercontent.com/stablyai/orca/${orcaRev}/skills/${name}/SKILL.md";
+      inherit hash;
+    };
+  orca-skills = pkgs.runCommand "orca-skills" { } ''
+    mkdir -p "$out/skills/orca-cli" "$out/skills/orchestration" "$out/skills/computer-use"
+    cp ${orcaSkill "orca-cli" "sha256-bcvWkEXHR4e+M4UZh1DGciNwnF+mOiujz7vgQD4SGfU="} \
+      "$out/skills/orca-cli/SKILL.md"
+    cp ${orcaSkill "orchestration" "sha256-p+M1DwN2mOu842soGNg4PsbpbCpIJVN8qrOag7T7S38="} \
+      "$out/skills/orchestration/SKILL.md"
+    cp ${orcaSkill "computer-use" "sha256-o/zKBodeNUpHDn2u9WGRcqNhX7v4KQD/PgplY2/GlMY="} \
+      "$out/skills/computer-use/SKILL.md"
+  '';
 in
 {
   programs.agent-skills = {
@@ -74,11 +100,11 @@ in
         path = inputs.cloudflare-skills;
         subdir = "skills";
       };
-      # External: Orca's own skills, eight of them shipped inside the app's
-      # repository. Registering the source makes all eight visible, so the one
-      # that is wanted is named in `explicit` below rather than enabled here.
+      # External: Orca's own skills, fetched one file at a time above. Only the
+      # three named in `explicit` below exist in this source at all; the other
+      # five upstream ships are simply never fetched.
       orca = {
-        path = inputs.orca-skills;
+        path = orca-skills;
         subdir = "skills";
       };
       # Local: skills from this dotfiles repo

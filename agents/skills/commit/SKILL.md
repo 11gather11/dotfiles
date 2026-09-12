@@ -49,9 +49,13 @@ For concrete good and bad examples, read `references/revertable-commits.md`.
 
 **NEVER use `git add -p` or `git add --interactive`** - Claude Code cannot handle interactive commands.
 
+**NEVER stage with `git add -A`, `git add --all`, `git add .`, or `git add -u`** - they sweep unrelated working-tree changes into the commit. When a whole file belongs to the unit, name it: `git add <path>`. `git commit -a`/`-am` carries the same hazard, so commit from the index only.
+
 ## Patch Staging
 
 Use `git apply --cached -v` to stage precise non-interactive patches. Read `references/git-apply.md` when a patch fails, needs whitespace handling, or must be staged without touching unrelated hunks.
+
+The index may already hold changes someone staged earlier — a new file staged so `nix run .#switch` could see it, for instance. Treat a pre-populated index as untrusted: read `git diff --cached --stat` and unstage anything outside the current unit with `git restore --staged <path>` before committing.
 
 ## History Inspection
 

@@ -19,6 +19,7 @@ let
     ../../../../codex/AGENTS.md
     ../../../../agents/shared/code-comments.md
     ../../../../agents/shared/command-privacy.md
+    ../../../../agents/shared/git-staging.md
     ../../../../agents/shared/git-worktrees.md
   ];
 

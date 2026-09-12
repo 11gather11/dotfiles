@@ -2,10 +2,6 @@
 
 11gather11's personal dotfiles, managed via **Nix Flake** (nix-darwin + home-manager).
 
-## Quick Reference
-
-See @README.md for full documentation.
-
 ## Core Commands
 
 ```bash
@@ -15,46 +11,25 @@ nix run .#update  # Update flake.lock inputs
 nix run .#fmt     # Format the tree with treefmt
 ```
 
-These wrap `nh`, which is also usable directly once the configuration has been
-applied once — `programs.nh.flake` points it at this repository, so it works
-from any directory:
+These wrap `nh`. `programs.nh.flake` points it at this repository, so
+`nh darwin switch` and `nh darwin build` work from any directory once the
+configuration has been applied once.
 
-```bash
-nh darwin switch   # same as nix run .#switch
-nh darwin build    # same as nix run .#build
-nh darwin switch --ask --no-nom
-```
+## Layout Notes
 
-## Command Privacy and Secret Handling
-
-- Before running any command, make sure the command text, shell history, process list, terminal output, and agent transcript will not contain raw secrets.
-- Never put raw secrets, tokens, API keys, passwords, private keys, or credential-bearing environment variable values directly in command strings.
-- Use command substitution or existing credential helpers instead, e.g. `$(gh auth token)` or `$GITHUB_TOKEN`, so history and transcripts do not capture the value.
-- Do not echo, print, log, summarise, commit, or paste secret values. If a raw secret is accidentally exposed, rotate or revoke it; deleting shell history is not sufficient.
-
-## Project Structure
-
-```
-.
-├── flake.nix        # Nix entry point
-├── nix/
-│   ├── flake/       # flake-parts modules (apps, treefmt, configurations, …)
-│   ├── lib/         # mk-system.nix and helpers — not modules
-│   └── modules/     # auto-imported by import-tree; one class per directory
-│       ├── home/          # home-manager, both platforms
-│       ├── home-darwin/   # home-manager, macOS only
-│       ├── home-linux/    # home-manager, Linux only
-│       └── darwin-system/ # nix-darwin system modules（core / defaults / homebrew …）
-├── fish/            # Fish shell config
-├── bash/            # Bash config
-├── zsh/             # Zsh config
-├── nvim/            # Neovim config (Lua, Lazy.nvim)
-├── karabiner/       # Karabiner-Elements config (TypeScript)
-├── agents/skills/   # Shared AI agent skills (Claude, Codex)
-├── claude/          # Claude Code config (user memory, rules)
-├── codex/           # Codex config
-└── .claude/         # Path-specific rules & local skills
-```
+- Every `.nix` under `nix/modules/` is imported automatically by `import-tree`, so
+  adding a module is placing the file — and a half-written or scratch file left
+  there becomes part of the configuration. Prefix the filename with `_` to have it
+  skipped, or keep it outside `nix/modules/`.
+- One class of module per directory (`home/`, `home-darwin/`, `home-linux/`,
+  `darwin-system/`). A module in the wrong one is applied to the wrong
+  configuration: `home.*` and `programs.*` under `home*/`, anything nix-darwin owns
+  under `darwin-system/`. `nix/lib/` is not modules.
+- `agents/shared/` fragments are imported by `claude/CLAUDE.md` and concatenated
+  into Codex's `AGENTS.md` at switch time. Edit them once; never copy text between
+  the two.
+- `claude/` is symlinked to `~/.config/claude`, so edits there apply to the running
+  Claude Code without a switch.
 
 ## Scripting Language Choice
 
@@ -65,10 +40,8 @@ nh darwin switch --ask --no-nom
 
 ## Git Workflow
 
-- **Main branch**: `main`
 - This is a personal dotfiles repo — **committing and pushing directly to `main` is fine**. Do NOT open a pull request unless explicitly asked.
 - Use **Conventional Commits** for commit messages.
-- Commits are **SSH-signed** (`user.signingkey` / `gpg.format = ssh`, `commit.gpgSign = true`).
 
 ### This repository is public
 
@@ -95,6 +68,7 @@ ten commit messages were rewritten without losing any of their reasoning.
 
 ## Applying Changes
 
-Editing a Nix file does not change the system until you switch. After modifying
-configuration under `nix/modules/`, run `nix run .#switch` to build and activate
-it. A git commit hook also runs treefmt and applies the switch automatically.
+Editing a Nix file does not change the system until you switch. The pre-commit
+hook runs treefmt and the Nix linters; the post-commit hook runs `nix run .#switch`
+when `flake.nix`, `flake.lock`, `nix/`, `agents/` or `codex/AGENTS.md` changed. Run
+`nix run .#switch` by hand when you need the change active before committing.

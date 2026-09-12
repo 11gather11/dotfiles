@@ -21,9 +21,11 @@ If a bash command fails, try: `fish -c <command>`
 
 If `bunx <command>` fails, try: `bun x <command>`
 
-## Missing Tools
+## Code Search
 
-Use the `missing-tools` skill when a command is unavailable, a shell reports `command not found`, or a tool must be run without installing it globally.
+Prefer the `ast-grep` skill over `rg` for code pattern searches — finding code
+constructs, analysing structure, matching language syntax. Use `rg` for plain
+text.
 
 ## Tips
 

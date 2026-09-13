@@ -16,6 +16,12 @@ let
 
   codexReviewGate = lib.getExe (helpers.codexReviewGate pkgs);
 
+  # The name agents type to review. It is the same binary as the gate, so the
+  # record a review writes and the record the gate reads cannot drift apart.
+  codexReviewRun = pkgs.writeShellScriptBin "codex-review-run" ''
+    exec ${codexReviewGate} run "$@"
+  '';
+
   jsonFormat = pkgs.formats.json { };
 
   baseSettings = {
@@ -64,11 +70,11 @@ let
         }
       ];
 
-      # `gh pr create` stays shut until codex-review has run over the commit
-      # being proposed. The gate's own reasoning lives in the script; what
-      # matters here is that both halves are the same binary, because a mark
-      # written in one shape and read in another is how the previous one let an
-      # unreviewed PR through.
+      # `gh pr create` stays shut until a Codex review has run to completion
+      # over the commit being proposed. The gate's own reasoning lives in the
+      # script. The record is written by codex-review-run when the review ends,
+      # not by a hook: the Skill tool returns when the skill loads, so a hook on
+      # it marked the commit before anything had been read.
       PreToolUse = [
         {
           matcher = "Bash";
@@ -76,17 +82,6 @@ let
             {
               type = "command";
               command = "${codexReviewGate} check";
-            }
-          ];
-        }
-      ];
-      PostToolUse = [
-        {
-          matcher = "Skill";
-          hooks = [
-            {
-              type = "command";
-              command = "${codexReviewGate} mark";
             }
           ];
         }
@@ -100,6 +95,7 @@ let
       allow = [
         "Bash(jq -r:*)"
         "Bash(codex exec:*)"
+        "Bash(codex-review-run:*)"
         "Bash(codex debug:*)"
       ];
     };
@@ -122,7 +118,10 @@ in
 {
   home = {
     # Claude Code package from overlay
-    packages = [ pkgs.claude-code ];
+    packages = [
+      pkgs.claude-code
+      codexReviewRun
+    ];
 
     # Set CLAUDE_CONFIG_DIR environment variable (sourced via hm-session-vars.sh in fish)
     sessionVariables = {

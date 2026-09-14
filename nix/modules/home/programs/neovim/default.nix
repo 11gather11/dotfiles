@@ -28,6 +28,10 @@ in
 
       # tree-sitter CLI: required by :TSInstall / :TSUpdate to build parsers
       tree-sitter
+
+      # snacks.nvim's image viewer converts every format but PNG — webp, jpg,
+      # gif, pdf — with `magick` before handing it to the terminal
+      imagemagick
     ];
   };
 

@@ -9,6 +9,10 @@ return {
     "snacks.nvim",
     ---@type snacks.Config
     opts = {
+      -- Opening an image file shows the image, and images referenced from
+      -- markdown render in place. Everything but PNG goes through ImageMagick,
+      -- which the neovim module puts on PATH.
+      image = {},
       picker = {
         sources = {
           explorer = { hidden = true },

@@ -88,7 +88,13 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     # Append (and keep) Xcode's bin at the end of fish_user_paths so its
     # bundled tools (git, etc.) never shadow the Nix/home-manager ones
     echo "fish_add_path --append --move $(ensure_installed xcode-select -p)/usr/bin" >>$CONFIG_CACHE_TMP
-    echo "set -gx SDKROOT $(ensure_installed xcrun --sdk macosx --show-sdk-path)" >>$CONFIG_CACHE_TMP
+    # Apple's xcrun by absolute path: a Nix apple-sdk puts its own xcrun on
+    # PATH ahead of it, which prints its failure on stdout, and that message
+    # became SDKROOT for every shell — breaking any C compile against the SDK.
+    # A lookup that fails leaves SDKROOT unset rather than set to garbage.
+    if set -l sdk_path (/usr/bin/xcrun --sdk macosx --show-sdk-path 2>/dev/null)
+        echo "set -gx SDKROOT $sdk_path" >>$CONFIG_CACHE_TMP
+    end
 
     # ruby
     echo "fish_add_path $(ensure_installed brew --prefix)/opt/ruby/bin" >>$CONFIG_CACHE_TMP

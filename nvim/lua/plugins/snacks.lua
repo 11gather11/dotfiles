@@ -7,6 +7,29 @@
 return {
   {
     "snacks.nvim",
+    init = function()
+      -- snacks hides an image viewer's placement when its buffer leaves every
+      -- window and never unhides it, so returning to the buffer shows a blank.
+      -- Unmerged upstream: https://github.com/folke/snacks.nvim/pull/2793
+      -- Patched on state(), which each update looks up afresh, so it also
+      -- reaches placements created before this runs.
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "VeryLazy",
+        once = true,
+        callback = function()
+          local Placement = require("snacks.image.placement")
+          local state = Placement.state
+          function Placement:state()
+            -- auto_resize marks the image viewer; inline placements in
+            -- documents show and hide themselves.
+            if self.hidden and self.opts.auto_resize and #self:wins() > 0 then
+              self.hidden = false
+            end
+            return state(self)
+          end
+        end,
+      })
+    end,
     ---@type snacks.Config
     opts = {
       -- Opening an image file shows the image, and images referenced from

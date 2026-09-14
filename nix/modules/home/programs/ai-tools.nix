@@ -6,8 +6,5 @@
     # here, so the rule pointing agents at it named a binary that was never
     # installed — the whole path had been dead. Take the executable instead.
     inputs.tgrab.packages.${pkgs.stdenv.hostPlatform.system}.default
-  ]
-  ++ (with pkgs.llm-agents; [
-    grok
-  ]);
+  ];
 }

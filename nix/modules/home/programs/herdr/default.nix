@@ -130,6 +130,14 @@ in
             "writeHerdrConfig"
           ]
           ''
+            # herdr finds each agent's config directory the way the agent does,
+            # through these variables, and activation does not run with the
+            # session's environment. Without them the Claude integration went to
+            # ~/.claude, which nothing here reads, while the copy Claude Code
+            # actually runs stayed at an old version.
+            export CLAUDE_CONFIG_DIR=${lib.escapeShellArg config.home.sessionVariables.CLAUDE_CONFIG_DIR}
+            export CODEX_HOME=${lib.escapeShellArg config.home.sessionVariables.CODEX_HOME}
+
             ${lib.concatMapStringsSep "\n" (a: ''
               # Fail the activation. Swallowing this let a switch report success
               # while the declared integration was not installed — and there is

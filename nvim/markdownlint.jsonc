@@ -1,0 +1,8 @@
+// Base markdownlint configuration for Neovim's linter and formatter; see
+// lua/plugins/markdown.lua. A repository with its own .markdownlint* config
+// uses that instead: markdownlint-cli2 replaces this base rather than merging.
+{
+	// Japanese prose is written one paragraph per line, so every paragraph
+	// passes 80 characters and the rule reports nothing worth fixing.
+	"MD013": false,
+}

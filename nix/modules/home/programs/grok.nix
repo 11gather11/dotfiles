@@ -19,6 +19,11 @@ let
       # it does behind a shell; colours come from the terminal's own palette.
       theme = "terminal";
     };
+
+    # The terminal theme is still rolling out per account. Until it reaches
+    # this one, theme = "terminal" does not parse and silently falls back to
+    # the default theme; this reveals it ahead of the rollout.
+    features.terminal_theme = true;
   };
 
   # config.toml cannot be generated whole the way herdr's is: grok writes its

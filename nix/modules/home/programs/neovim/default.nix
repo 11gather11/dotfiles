@@ -23,8 +23,25 @@ in
       lua-language-server
       typescript-go # TypeScript LSP (`tsgo` binary, Go-rewritten tsserver)
 
-      # Formatters
+      # Tools the enabled LazyVim extras (nvim/lazyvim.json) expect. Each extra
+      # would have Mason fetch them, and Mason is disabled here.
+      marksman # lang.markdown
+      markdownlint-cli2 # lang.markdown: linter, and formatter when it reports
+      markdown-toc # lang.markdown: formatter, only in files with a toc marker
+      vscode-langservers-extracted # lang.json: jsonls
+      yaml-language-server # lang.yaml
+      taplo # lang.toml
+      bash-language-server # util.dot
+      shellcheck # util.dot, through bashls
+      nushell # lang.nushell: the server is `nu --lsp`
+      statix # lang.nix: linter
+
+      # Formatters. The ones treefmt also runs are the same packages, so
+      # formatting on save and the pre-commit hook agree.
       stylua
+      nixfmt
+      oxfmt # markdown, in place of the markdown extra's prettier
+      shfmt # LazyVim formats sh with it by default
 
       # tree-sitter CLI: required by :TSInstall / :TSUpdate to build parsers
       tree-sitter

@@ -4,6 +4,8 @@ return {
     opts = {
       servers = {
         nixd = {},
+        -- The nix extra brings nil_ls; nixd already covers the same files.
+        nil_ls = { enabled = false },
         lua_ls = {},
         tsgo = {
           single_file_support = false,

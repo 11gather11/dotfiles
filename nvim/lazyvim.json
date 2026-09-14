@@ -1,5 +1,18 @@
 {
-	"extras": [],
+	"extras": [
+		"lazyvim.plugins.extras.coding.mini-surround",
+		"lazyvim.plugins.extras.editor.dial",
+		"lazyvim.plugins.extras.editor.inc-rename",
+		"lazyvim.plugins.extras.lang.json",
+		"lazyvim.plugins.extras.lang.markdown",
+		"lazyvim.plugins.extras.lang.nix",
+		"lazyvim.plugins.extras.lang.nushell",
+		"lazyvim.plugins.extras.lang.toml",
+		"lazyvim.plugins.extras.lang.typescript",
+		"lazyvim.plugins.extras.lang.yaml",
+		"lazyvim.plugins.extras.ui.treesitter-context",
+		"lazyvim.plugins.extras.util.dot"
+	],
 	"install_version": 8,
 	"news": {
 		"NEWS.md": "11866"

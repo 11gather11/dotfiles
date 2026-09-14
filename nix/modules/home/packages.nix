@@ -10,7 +10,6 @@
     fish
     # VCS
     git
-    worktrunk
     git-lfs
     ghq
     lazygit

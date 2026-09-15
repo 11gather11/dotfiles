@@ -3,7 +3,12 @@
 #
 # docs
 # https://worktrunk.dev/hook/
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
   tomlFormat = pkgs.formats.toml { };
 
@@ -70,6 +75,36 @@ let
     '';
   };
   wtHerdr = lib.getExe wt-herdr;
+
+  # direnv records trust per path and content, so a new worktree's .envrc is
+  # blocked even when it is byte for byte the one already allowed in the
+  # primary checkout, and every shell opened there starts with an error. Trust
+  # is carried over only in exactly that case: direnv judges an .envrc by its
+  # content alone, so allowing the same content at another path trusts nothing
+  # new. An .envrc the branch has changed still needs `direnv allow` by hand.
+  wt-direnv = pkgs.writeShellApplication {
+    name = "wt-direnv";
+    runtimeInputs = [
+      config.programs.direnv.package
+      pkgs.jq
+      pkgs.diffutils
+    ];
+    text = ''
+      worktree="$1"
+      primary="$2"
+
+      [ -f "$worktree/.envrc" ] && [ -f "$primary/.envrc" ] || exit 0
+      cmp -s "$worktree/.envrc" "$primary/.envrc" || exit 0
+
+      # foundRC.allowed is 0 for allowed, 1 for not yet allowed, 2 for denied.
+      allowed="$(cd "$primary" && direnv status --json | jq '.state.foundRC.allowed')" || exit 0
+      [ "$allowed" = 0 ] || exit 0
+
+      # This runs as a pre- hook, where a failure would abort creating the
+      # worktree; a worktree whose .envrc stays blocked is still worth having.
+      direnv allow "$worktree" || true
+    '';
+  };
 in
 {
   home.packages = [ pkgs.worktrunk ];
@@ -79,6 +114,10 @@ in
     # is due to change to 2. Its suggested fix, `wt config update`, rewrites
     # this file, which is a read-only link into the store — so it is set here.
     list.json-schema = 2;
+
+    # pre-start, which blocks until it finishes, so the .envrc is trusted
+    # before post-start opens a herdr workspace and its shell loads direnv.
+    pre-start.direnv = "${lib.getExe wt-direnv} {{ worktree_path }} {{ primary_worktree_path }}";
 
     # post-start fires once, on creation — not on switching to an existing
     # checkout. The workspace opens without focus, so the pane that ran `wt`

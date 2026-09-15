@@ -1,22 +1,6 @@
-# Claude Code statusline: the model, and how much of the context window and
-# of the five-hour and seven-day rate limits has been used. Claude Code passes
-# the session state as JSON on stdin.
-
-const WIDTH = 10
-
-# The glyph for a cell filled by 0 to 7 eighths. An empty cell is the same
-# shade as the unfilled track; a blank there left a gap inside the bar
-# whenever the fill landed exactly on a cell boundary.
-const EIGHTHS = [
-    "░"
-    "▏"
-    "▎"
-    "▍"
-    "▌"
-    "▋"
-    "▊"
-    "▉"
-]
+# Claude Code statusline: the model with its effort level, how much of the
+# context window has been used, and how much of the five-hour and weekly rate
+# limits is left. Claude Code passes the session state as JSON on stdin.
 
 const RESET = "\e[0m"
 const DIM = "\e[2m"
@@ -31,31 +15,12 @@ def gradient [pct: number]: nothing -> string {
     }
 }
 
-# A WIDTH-cell bar filled to pct, with eighth-cell resolution.
-def bar [pct: number]: nothing -> string {
-    let clamped = [
-        ([$pct 0] | math max)
-        100
-    ] | math min
-    let filled = $clamped * $WIDTH / 100
-    # Whole cells, then the fraction of the next cell in eighths.
-    let full = $filled | math floor
-    let eighths = ($filled - $full) * 8 | math floor
-    let rest = match ($WIDTH - $full) {
-        0 => []
-        $empty => [
-            ($EIGHTHS | get $eighths)
-            ...(1..<$empty | each { "░" })
-        ]
-    }
-    [
-        ...(0..<$full | each { "█" })
-        ...$rest
-    ] | str join
-}
-
-def meter [label: string, pct: number]: nothing -> string {
-    $"($label) (gradient $pct)(bar $pct) ($pct | math round)%($RESET)"
+# "<label> <n>% used", or with --left "<label> <n>% left". The number is
+# coloured by how much is used either way, so a limit running out turns red.
+def meter [label: string, used: number, --left]: nothing -> string {
+    let shown = if $left { 100 - $used } else { $used }
+    let word = if $left { "left" } else { "used" }
+    $"($label) (gradient $used)($shown | math round)%($RESET) ($word)"
 }
 
 def main []: string -> nothing {
@@ -70,16 +35,16 @@ def main []: string -> nothing {
     | compact
     | str join " "
     let meters = [
-        [label, pct];
-        ["ctx", $state.context_window?.used_percentage?]
-        ["5h", $state.rate_limits?.five_hour?.used_percentage?]
-        ["7d", $state.rate_limits?.seven_day?.used_percentage?]
+        [label, used, left];
+        ["Context", $state.context_window?.used_percentage?, false]
+        ["5h", $state.rate_limits?.five_hour?.used_percentage?, true]
+        ["weekly", $state.rate_limits?.seven_day?.used_percentage?, true]
     ]
-    | where pct != null
-    | each {|m| meter $m.label $m.pct }
+    | where used != null
+    | each {|m| meter $m.label $m.used --left=$m.left }
 
     [$model ...$meters]
     | each { $" ($in) " }
-    | str join $"($DIM)│($RESET)"
+    | str join $"($DIM)·($RESET)"
     | print --no-newline
 }

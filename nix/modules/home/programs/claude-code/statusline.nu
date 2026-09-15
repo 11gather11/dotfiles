@@ -1,27 +1,15 @@
 # Claude Code statusline: the model with its effort level, how much of the
 # context window has been used, and how much of the five-hour and weekly rate
 # limits is left. Claude Code passes the session state as JSON on stdin.
+#
+# Laid out and coloured like Codex's own status line, so the two agents read
+# the same side by side. The colours are the ones Codex emits.
 
 const RESET = "\e[0m"
 const DIM = "\e[2m"
-
-# Truecolour foreground for a usage percentage: green shading to orange up to
-# 50%, then orange shading to red.
-def gradient [pct: number]: nothing -> string {
-    if $pct < 50 {
-        $"\e[38;2;($pct * 5.1 | math floor);200;80m"
-    } else {
-        $"\e[38;2;255;([(200 - ($pct - 50) * 4 | math floor) 0] | math max);60m"
-    }
-}
-
-# "<label> <n>% used", or with --left "<label> <n>% left". The number is
-# coloured by how much is used either way, so a limit running out turns red.
-def meter [label: string, used: number, --left]: nothing -> string {
-    let shown = if $left { 100 - $used } else { $used }
-    let word = if $left { "left" } else { "used" }
-    $"($label) (gradient $used)($shown | math round)%($RESET) ($word)"
-}
+const MODEL = "\e[38;2;246;226;183m"
+const CONTEXT = "\e[38;2;242;181;144m"
+const LIMIT = "\e[38;2;233;144;169m"
 
 def main []: string -> nothing {
     let state = $in | from json
@@ -34,16 +22,24 @@ def main []: string -> nothing {
     ]
     | compact
     | str join " "
-    let meters = [
-        [label, used, left];
-        ["Context", $state.context_window?.used_percentage?, false]
-        ["5h", $state.rate_limits?.five_hour?.used_percentage?, true]
-        ["weekly", $state.rate_limits?.seven_day?.used_percentage?, true]
-    ]
-    | where used != null
-    | each {|m| meter $m.label $m.used --left=$m.left }
+    let context = $state.context_window?.used_percentage?
+    let five_hour = $state.rate_limits?.five_hour?.used_percentage?
+    let weekly = $state.rate_limits?.seven_day?.used_percentage?
 
-    [$model ...$meters]
+    [
+        $"($MODEL)($model)($RESET)"
+        (
+            if $context != null { $"($CONTEXT)Context ($context | math round)% used($RESET)" }
+        )
+        # Rate limits arrive as the share used; shown as the share left.
+        (
+            if $five_hour != null { $"($LIMIT)5h (100 - $five_hour | math round)% left($RESET)" }
+        )
+        (
+            if $weekly != null { $"($LIMIT)weekly (100 - $weekly | math round)% left($RESET)" }
+        )
+    ]
+    | compact
     | each { $" ($in) " }
     | str join $"($DIM)·($RESET)"
     | print --no-newline

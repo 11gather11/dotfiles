@@ -38,7 +38,10 @@ return {
       image = {},
       picker = {
         sources = {
-          explorer = { hidden = true },
+          explorer = {
+            hidden = true,
+            layout = { layout = { position = "right" } },
+          },
           files = { hidden = true },
           grep = { hidden = true },
         },

@@ -98,6 +98,18 @@ return {
       -- focused.
       { "<leader>cp", toggle_preview, desc = "Markdown Preview" },
     },
+    -- live-preview has no theme option, so the theme is spliced into the
+    -- page it builds.
+    config = function()
+      local template = require("livepreview.template")
+      local theme = table.concat(vim.fn.readfile(vim.fn.stdpath("config") .. "/markdown-preview-theme.html"), "\n")
+      local md2html = template.md2html
+      template.md2html = function(md)
+        return (md2html(md):gsub("</head>", function()
+          return theme .. "</head>"
+        end, 1))
+      end
+    end,
   },
   -- The editor shows markdown as source; the preview pane is where it is read
   -- rendered. <leader>um still turns rendering on in the editor.

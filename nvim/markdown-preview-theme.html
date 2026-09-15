@@ -1,0 +1,146 @@
+<!--
+  Catppuccin Mocha for the live-preview.nvim page, inserted before </head> by
+  lua/plugins/markdown.lua. The page otherwise uses GitHub's stylesheet, whose
+  colours are CSS variables, so overriding the variables recolours it; heading
+  colours follow catppuccin's Neovim markdown ones.
+-->
+<style>
+	html,
+	body {
+		background: #1e1e2e;
+	}
+	.markdown-body {
+		color-scheme: dark;
+		--bgColor-default: #1e1e2e;
+		--bgColor-muted: #181825;
+		--bgColor-neutral-muted: #313244;
+		--bgColor-attention-muted: #45475a;
+		--fgColor-default: #cdd6f4;
+		--fgColor-muted: #a6adc8;
+		--fgColor-accent: #89b4fa;
+		--fgColor-success: #a6e3a1;
+		--fgColor-attention: #f9e2af;
+		--fgColor-danger: #f38ba8;
+		--fgColor-done: #cba6f7;
+		--borderColor-default: #45475a;
+		--borderColor-muted: #313244;
+		--borderColor-neutral-muted: #45475a;
+		--borderColor-accent-emphasis: #89b4fa;
+		--borderColor-success-emphasis: #a6e3a1;
+		--borderColor-attention-emphasis: #f9e2af;
+		--borderColor-danger-emphasis: #f38ba8;
+		--borderColor-done-emphasis: #cba6f7;
+		--focus-outlineColor: #b4befe;
+		background: #1e1e2e;
+	}
+	.markdown-body h1 {
+		color: #f38ba8;
+	}
+	.markdown-body h2 {
+		color: #fab387;
+	}
+	.markdown-body h3 {
+		color: #f9e2af;
+	}
+	.markdown-body h4 {
+		color: #a6e3a1;
+	}
+	.markdown-body h5 {
+		color: #74c7ec;
+	}
+	.markdown-body h6 {
+		color: #b4befe;
+	}
+	.markdown-body strong {
+		color: #f5e0dc;
+	}
+	.markdown-body blockquote {
+		border-left-color: #cba6f7;
+		color: #bac2de;
+	}
+	.markdown-body table tr {
+		background: #1e1e2e;
+	}
+	.markdown-body table tr:nth-child(2n) {
+		background: #181825;
+	}
+	.markdown-body table th {
+		background: #313244;
+	}
+	.markdown-body :not(pre) > code {
+		color: #fab387;
+		background: #313244;
+	}
+	.markdown-body pre,
+	.markdown-body pre code.hljs {
+		background: #181825;
+		color: #cdd6f4;
+	}
+	.hljs-comment,
+	.hljs-quote {
+		color: #6c7086;
+		font-style: italic;
+	}
+	.hljs-keyword,
+	.hljs-selector-tag,
+	.hljs-built_in {
+		color: #cba6f7;
+	}
+	.hljs-string,
+	.hljs-regexp,
+	.hljs-addition {
+		color: #a6e3a1;
+	}
+	.hljs-number,
+	.hljs-literal {
+		color: #fab387;
+	}
+	.hljs-title,
+	.hljs-title.function_,
+	.hljs-section {
+		color: #89b4fa;
+	}
+	.hljs-type,
+	.hljs-title.class_ {
+		color: #f9e2af;
+	}
+	.hljs-attr,
+	.hljs-variable,
+	.hljs-template-variable,
+	.hljs-params {
+		color: #f2cdcd;
+	}
+	.hljs-symbol,
+	.hljs-subst,
+	.hljs-meta {
+		color: #94e2d5;
+	}
+	.hljs-deletion {
+		color: #f38ba8;
+	}
+</style>
+<script>
+	// Mermaid is initialised later by live-preview with a stock theme; keep its
+	// options but swap in the base theme with catppuccin colours.
+	(() => {
+		const initialize = mermaid.initialize.bind(mermaid);
+		mermaid.initialize = (config) =>
+			initialize({
+				...config,
+				theme: 'base',
+				themeVariables: {
+					darkMode: true,
+					background: '#1e1e2e',
+					fontFamily: 'inherit',
+					primaryColor: '#313244',
+					primaryTextColor: '#cdd6f4',
+					primaryBorderColor: '#89b4fa',
+					secondaryColor: '#45475a',
+					tertiaryColor: '#181825',
+					lineColor: '#bac2de',
+					textColor: '#cdd6f4',
+					edgeLabelBackground: '#45475a',
+				},
+			});
+	})();
+</script>

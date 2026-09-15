@@ -10,9 +10,9 @@ let
   claudeConfigDir = "${config.xdg.configHome}/claude";
   claudeDotfilesDir = "${dotfilesDir}/claude";
 
-  bun = lib.getExe pkgs.bun-upstream;
   jq = lib.getExe pkgs.jq;
-  statuslineScript = ./statusline.ts;
+  nu = lib.getExe pkgs.nushell;
+  statuslineScript = ./statusline.nu;
 
   codexReviewGate = lib.getExe (helpers.codexReviewGate pkgs);
 
@@ -40,7 +40,10 @@ let
     includeCoAuthoredBy = false;
     statusLine = {
       type = "command";
-      command = "${bun} ${statuslineScript}";
+      # --stdin hands Claude Code's JSON to main as $in. --no-config-file,
+      # since this runs on every statusline refresh and uses nothing from
+      # the interactive config.
+      command = "${nu} --no-config-file --stdin ${statuslineScript}";
     };
     model = "opus";
     alwaysThinkingEnabled = true;

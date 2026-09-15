@@ -60,7 +60,15 @@ def meter [label: string, pct: number]: nothing -> string {
 
 def main []: string -> nothing {
     let state = $in | from json
-    let model = $state.model?.display_name? | default "Claude"
+    # The model, then its effort level and whether fast mode is on, each only
+    # when Claude Code reports it.
+    let model = [
+        ($state.model?.display_name? | default "Claude")
+        $state.effort?.level?
+        (if $state.fast_mode? == true { "fast" })
+    ]
+    | compact
+    | str join " "
     let meters = [
         [label, pct];
         ["ctx", $state.context_window?.used_percentage?]

@@ -40,6 +40,9 @@ return {
         sources = {
           explorer = {
             hidden = true,
+            -- Git-ignored entries too: .claude, .env and CLAUDE.local.md are
+            -- ignored by design and are among the files opened most here.
+            ignored = true,
             layout = { layout = { position = "right" } },
           },
           files = { hidden = true },

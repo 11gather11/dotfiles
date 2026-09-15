@@ -6,7 +6,6 @@
 
     # Vendors' own taps, for apps that are not in homebrew-core
     taps = [
-      "stablyai/orca"
       "typewhisper/tap"
     ];
 
@@ -29,7 +28,6 @@
       "raycast"
       "shottr"
       "slack"
-      "stablyai/orca/orca"
       "stats"
       "steam"
       "tailscale-app"

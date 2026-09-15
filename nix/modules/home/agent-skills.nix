@@ -22,32 +22,6 @@ let
         path = name;
       })
     ) groups;
-  # Orca keeps its skills inside the application's own repository, and that
-  # repository is 261 MB — second only to nixpkgs among this flake's inputs,
-  # for two files totalling 8 KB. As an input it was re-fetched on the first
-  # evaluation after every bump, which is a switch, not just `nix run .#update`.
-  #
-  # So the two files are fetched on their own, pinned by revision and hash.
-  # Bumping means changing the revision and taking the hashes the failure
-  # reports. That is rare by design: each file is a discovery stub whose text
-  # says the real reference is served by the `orca` binary, version-matched, so
-  # what changes with a release is on the other side of that line.
-  orcaRev = "637dc30a3211ec0667c55118a4d17edbee5cff80";
-  orcaSkill =
-    name: hash:
-    pkgs.fetchurl {
-      url = "https://raw.githubusercontent.com/stablyai/orca/${orcaRev}/skills/${name}/SKILL.md";
-      inherit hash;
-    };
-  orca-skills = pkgs.runCommand "orca-skills" { } ''
-    mkdir -p "$out/skills/orca-cli" "$out/skills/orchestration" "$out/skills/computer-use"
-    cp ${orcaSkill "orca-cli" "sha256-bcvWkEXHR4e+M4UZh1DGciNwnF+mOiujz7vgQD4SGfU="} \
-      "$out/skills/orca-cli/SKILL.md"
-    cp ${orcaSkill "orchestration" "sha256-p+M1DwN2mOu842soGNg4PsbpbCpIJVN8qrOag7T7S38="} \
-      "$out/skills/orchestration/SKILL.md"
-    cp ${orcaSkill "computer-use" "sha256-o/zKBodeNUpHDn2u9WGRcqNhX7v4KQD/PgplY2/GlMY="} \
-      "$out/skills/computer-use/SKILL.md"
-  '';
 in
 {
   programs.agent-skills = {
@@ -100,13 +74,6 @@ in
         path = inputs.cloudflare-skills;
         subdir = "skills";
       };
-      # External: Orca's own skills, fetched one file at a time above. Only the
-      # three named in `explicit` below exist in this source at all; the other
-      # five upstream ships are simply never fetched.
-      orca = {
-        path = orca-skills;
-        subdir = "skills";
-      };
       # Local: skills from this dotfiles repo
       local = {
         path = local-skills;
@@ -155,42 +122,6 @@ in
         wrangler = {
           from = "cloudflare";
           path = "wrangler";
-        };
-
-        # Three of the eight Orca ships. The Linear pair, both emulators and
-        # per-workspace-env are left behind: every skill's description sits in
-        # the context window whether or not it is ever used, and none of those
-        # have a use here.
-        #
-        # orca-cli drives worktrees, terminals and the embedded browser through
-        # the `orca` CLI, and says to prefer that over raw `git worktree` and
-        # ad hoc PTYs whenever the task touches state Orca already owns.
-        orca-cli = {
-          from = "orca";
-          path = "orca-cli";
-        };
-        # orchestration is the other half: a coordinator dispatching workers,
-        # with threaded messages, blocking ask/reply, task DAGs and decision
-        # gates. It draws the line at handoffs — passing ownership on is
-        # orca-cli's, and this one is for work that stays supervised.
-        orchestration = {
-          from = "orca";
-          path = "orchestration";
-        };
-        # computer-use reads accessibility trees and drives windows at the OS
-        # level — focus, menus, dialogs, coordinates, screenshots. It is the
-        # third here that can claim to "operate a desktop app", after
-        # agent-browser and the claude-in-chrome MCP, and the narrowest: those
-        # two reach into a page or an Electron app's contents, and this one is
-        # for the Mac applications neither can open. Its own siblings say so —
-        # orca-cli sends OS/window-level control here and keeps the rest.
-        #
-        # The macOS side of it is not declarable: Accessibility and Screen
-        # Recording are TCC grants, which need the user to agree in System
-        # Settings and live in a database no configuration reaches.
-        computer-use = {
-          from = "orca";
-          path = "computer-use";
         };
 
         # The one that cannot keep upstream's name: the local tdd holds it.

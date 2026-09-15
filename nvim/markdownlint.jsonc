@@ -5,4 +5,7 @@
 	// Japanese prose is written one paragraph per line, so every paragraph
 	// passes 80 characters and the rule reports nothing worth fixing.
 	"MD013": false,
+	// Table pipe spacing. It flags tables that read fine, and its message sat
+	// on top of the table header in the editor.
+	"MD060": false,
 }

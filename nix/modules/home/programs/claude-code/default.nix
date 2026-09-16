@@ -37,6 +37,10 @@ let
       DISABLE_ERROR_REPORTING = "1";
 
       CLAUDE_CODE_NO_FLICKER = "1";
+
+      # Subagents do the searching and reading that the answers are built on,
+      # and a cheaper model there is paid for in what the lead has to redo.
+      CLAUDE_CODE_SUBAGENT_MODEL = "opus";
     };
     includeCoAuthoredBy = false;
     statusLine = {

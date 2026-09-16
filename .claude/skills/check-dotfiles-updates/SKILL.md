@@ -1,6 +1,6 @@
 ---
 name: check-dotfiles-updates
-description: Show new commits on the watched dotfiles repositories since each one was last checked. Use when the user asks to check upstream dotfiles, catch up on what others changed, or look for new tools worth adopting.
+description: Show new commits on the watched dotfiles repositories since each one was last checked, then compare how they configure the tools this repository also uses. Use when the user asks to check upstream dotfiles, catch up on what others changed, or look for tools and settings worth adopting.
 ---
 
 # Check watched dotfiles updates
@@ -88,7 +88,26 @@ description: Show new commits on the watched dotfiles repositories since each on
    各提案には「**誰が使っているか（何/19）**」「**何を解決するか**」「**乗り換えコスト**」を添える。
    根拠なく流行りを勧めない。採用者が 1 人だけなら、そう明示する。
 
-7. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
+7. **同じツールの設定と仕組みを比べる。** 手順6が「何を入れているか」なら、ここは「同じものを
+   どう設定しているか」を見る。新しいツールより、こちらが毎日使っているツールの設定のほうが
+   効く場面は多い。
+
+   対象は**両者が持っているツール**に絞る。相手が持っていないものを比べても意味がない:
+
+   ```bash
+   # 例: Codex / Claude Code / herdr / Neovim のモジュールを持つ相手を探す
+   for p in <各 clone>; do fd -i '<tool>' "$p" -t f -t d -E .git | head -1 | rg -q . && echo "$p"; done
+   ```
+
+   見つかった相手について、次の3点を比べる。差分が出たものだけ報告する:
+   - **設定値** — こちらが宣言していないキー、値が違うキー（モデル、effort、機能フラグなど）
+   - **書き込み方** — 生成／コピー／マージのどれか。アプリ自身が書くファイルをどう守っているか
+   - **skill や指示文** — 同名の skill、`AGENTS.md`、共有断片があれば中身を比べる
+
+   報告は「相手の値 / こちらの値 / なぜ違うか」の形にする。**相手の値をそのまま勧めない。**
+   こちらの設定にコメントで理由が書いてあるなら、それを読んでから「その理由はまだ有効か」を問う。
+
+8. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
    再 fetch して、レビュー中に upstream が進んでいないか確かめる:
 
@@ -108,7 +127,9 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 ## 注意
 
-- 相手は相手の都合で構成を変えている。ファイル内容の差分比較はせず、「何を変えたか」だけを見せる
+- commit のレビュー（手順4〜6）では、相手は相手の都合で構成を変えているので、ファイル内容の
+  差分比較はせず「何を変えたか」だけを見せる。ファイルを読み込むのは手順7だけで、そこでも
+  対象は両者が使っているツールに限る
 - ツールの提案は積極的にする（手順6）。ただし提案するのは**ツール選定**であって、相手の設定を
   そのまま持ち込むことではない。ユーザーが指定した commit は `git -C <path> show <SHA>` で深掘りする
 - 取り込み候補として提示する前に、**その変更がこのリポジトリに該当するか**を確認する。

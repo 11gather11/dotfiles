@@ -2,9 +2,12 @@
   pkgs,
   lib,
   config,
+  helpers,
   ...
 }:
 let
+  mergeConfig = helpers.mergeConfig pkgs;
+
   # $CODEX_HOME is the canonical directory holding config.toml, AGENTS.md and
   # session state; the XDG path is kept as a symlink to it for compatibility.
   codexHomeDir = "${config.home.homeDirectory}/.codex";
@@ -127,38 +130,17 @@ in
       ln -sfn "${codexHomeDir}" "${codexXdgDir}"
     '';
 
-    # [hooks.state] is carried across the rewrite. It is not configuration —
-    # Codex writes it when a hook is trusted at the prompt, recording the hash
-    # of the hook file it agreed to run. Regenerating config.toml erased that,
-    # so every switch made Codex ask again.
+    # Merged rather than generated whole: Codex writes into this same file. It
+    # records [hooks.state] when a hook is trusted at the prompt — the hash of
+    # the file it agreed to run — and the desktop app stores its plugin and MCP
+    # wiring here too. Rewriting the file erased all of that, and the hook
+    # prompt came back on every switch.
     #
-    # Carried, not declared. Writing the hash from here would mean a hook is
-    # trusted because this file says so, and a changed hook would be trusted
-    # too — which is the whole thing the mechanism exists to prevent. Preserving
-    # what was already answered keeps that intact: if herdr updates the hook,
-    # the hash no longer matches and Codex asks again, as it should.
+    # Those keys are kept, not declared. Writing a hook's hash from here would
+    # mean a hook is trusted because this file says so, and a changed hook
+    # would be trusted too, which is what the mechanism exists to prevent.
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "linkCodexXdgDir" ] ''
-      mkdir -p "${codexHomeDir}"
-
-      # From the first [hooks.state...] header to the next section that is not
-      # one, which is how TOML delimits it — the subsection headers are
-      # [hooks.state."<file>:<event>:..."] and sort together.
-      state=""
-      if [ -f "${codexHomeDir}/config.toml" ]; then
-        # Leading whitespace is legal before a TOML header, so the anchors
-        # allow it — matching only at column zero swallowed an indented
-        # section that followed and carried it across every switch.
-        state="$(${pkgs.gawk}/bin/awk '
-          /^[[:space:]]*\[hooks\.state/ { keep = 1; print; next }
-          /^[[:space:]]*\[/ { keep = 0 }
-          keep { print }
-        ' "${codexHomeDir}/config.toml")"
-      fi
-
-      cp --no-preserve=mode,ownership ${tomlFormat.generate "codex-config" settings} "${codexHomeDir}/config.toml"
-      if [ -n "$state" ]; then
-        printf '\n%s\n' "$state" >> "${codexHomeDir}/config.toml"
-      fi
+      $DRY_RUN_CMD ${mergeConfig} "${codexHomeDir}/config.toml" ${tomlFormat.generate "codex-config" settings}
       chmod 644 "${codexHomeDir}/config.toml"
     '';
 

@@ -4,6 +4,7 @@
   pkgs,
   lib,
   config,
+  helpers,
   ...
 }:
 let
@@ -33,19 +34,9 @@ let
   # put these in: a project .grok/config.toml supplies only MCP servers,
   # plugins and permission rules, and everything else is read from this one.
   #
-  # So the owned keys are deep-merged in, and a key grok has changed since —
-  # say, through /theme — is set back at the next switch.
-  mergeGrokConfig = pkgs.writers.writeNu "merge-grok-config" ''
-    def main [target: path, owned: path] {
-      let current = if ($target | path exists) {
-        open --raw $target | from toml
-      } else {
-        {}
-      }
-      mkdir ($target | path dirname)
-      $current | merge deep (open --raw $owned | from toml) | to toml | save --force $target
-    }
-  '';
+  # So the owned keys are merged in, and a key grok has changed since — say,
+  # through /theme — is set back at the next switch.
+  mergeConfig = helpers.mergeConfig pkgs;
 in
 {
   home.packages = [ pkgs.llm-agents.grok ];
@@ -53,6 +44,6 @@ in
   # A config.toml that no longer parses fails the activation rather than being
   # replaced, since replacing it is exactly what the merge exists to avoid.
   home.activation.writeGrokConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    $DRY_RUN_CMD ${mergeGrokConfig} ${lib.escapeShellArg grokConfig} ${tomlFormat.generate "grok-config.toml" settings}
+    $DRY_RUN_CMD ${mergeConfig} ${lib.escapeShellArg grokConfig} ${tomlFormat.generate "grok-config.toml" settings}
   '';
 }

@@ -15,6 +15,7 @@ let
   statuslineScript = ./statusline.nu;
 
   codexReviewGate = lib.getExe (helpers.codexReviewGate pkgs);
+  mergeConfig = helpers.mergeConfig pkgs;
 
   # The name agents type to review. It is the same binary as the gate, so the
   # record a review writes and the record the gate reads cannot drift apart.
@@ -131,11 +132,13 @@ in
       CLAUDE_CONFIG_DIR = claudeConfigDir;
     };
 
-    # Write settings.json as a regular (non-symlink) file so Claude Code can
-    # update it (e.g. record permission decisions) without read-only errors.
+    # Merged rather than copied, and written as a regular file rather than a
+    # store symlink, because Claude Code writes into settings.json itself —
+    # `/config` stores UI preferences there, `/permissions` records decisions.
+    # Copying the generated file over it dropped all of that on every switch.
+    # The keys declared above still win; everything else is left alone.
     activation.writeClaudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      mkdir -p "${claudeConfigDir}"
-      cp --no-preserve=mode,ownership ${jsonFormat.generate "claude-settings.json" settings} "${claudeConfigDir}/settings.json"
+      $DRY_RUN_CMD ${mergeConfig} "${claudeConfigDir}/settings.json" ${jsonFormat.generate "claude-settings.json" settings}
       chmod 644 "${claudeConfigDir}/settings.json"
     '';
 

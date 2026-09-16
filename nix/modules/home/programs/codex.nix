@@ -50,8 +50,12 @@ let
 
     agents = {
       max_concurrent_threads_per_session = 100;
-      default_subagent_model = "gpt-5.6-luna";
-      default_subagent_reasoning_effort = "max";
+      # The same model and depth the lead runs: a subagent reads the code the
+      # review is built on, and what it misses the lead never sees. Sol carries
+      # the depth that max used to buy on a weaker model, and these run up to a
+      # hundred at a time.
+      default_subagent_model = "gpt-5.6-sol";
+      default_subagent_reasoning_effort = "high";
     };
 
     # The ChatGPT desktop app, installed as a cask here, reads these.
@@ -69,19 +73,20 @@ let
       ];
     };
 
-    # Codex here is mostly a reviewer, and review is input-heavy and
-    # output-light — the shape Luna is cheapest at.
-    model = "gpt-5.6-luna";
+    # Codex here is mostly a reviewer, and a review misses what the model
+    # cannot see. Luna is the cheap-and-fast tier, which the previous plan was
+    # the reason for; Sol is the workhorse tier above it, and the plan no
+    # longer makes that the deciding factor.
+    model = "gpt-5.6-sol";
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
     # Measured from this machine's own session logs, reasoning tokens per turn:
-    # max 50,282, xhigh about half of that, high 1,953. Reasoning is 62% of
-    # output at max, and on the previous plan the weekly meter moved when the
-    # default went there, which is why the floor used to sit at xhigh. The plan
-    # is now the larger one, so the depth is taken by default instead of being
-    # left one /model away.
-    model_reasoning_effort = "max";
+    # max 50,282, xhigh about half of that, high 1,953. The depth bought there
+    # is what a weaker model needs to keep up; on Sol the base model carries
+    # more of it, so the default starts back at high and `/model` raises it for
+    # the work that asks.
+    model_reasoning_effort = "high";
     # The fast tier buys 1.5x speed for higher usage. What Codex does here runs
     # in the background — reviews take minutes either way — so the usage goes
     # into reasoning above instead. fast_default_opt_out declines Codex's offer

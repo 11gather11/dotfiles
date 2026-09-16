@@ -32,7 +32,39 @@ let
     # in ~/.codex/hooks.json, which nothing here writes, so only this needed
     # declaring. The trust recorded under [hooks.state] is Codex's own state
     # and is not declared: trusting a hook is a decision to make at the prompt.
-    features.hooks = true;
+    # `codex features list` reports goals and multi_agent as already on and
+    # memories as off; all three are named here so the set does not change
+    # under this configuration when a default does.
+    features = {
+      hooks = true;
+      # Thread objectives, kept in ~/.codex/goals_1.sqlite.
+      goals = true;
+      # Notes carried between sessions, kept in ~/.codex/memories.
+      memories = true;
+      # Subagents, which the agents block below configures.
+      multi_agent = true;
+    };
+
+    agents = {
+      max_concurrent_threads_per_session = 100;
+      default_subagent_model = "gpt-5.6-luna";
+      default_subagent_reasoning_effort = "max";
+    };
+
+    # The ChatGPT desktop app, installed as a cask here, reads these.
+    desktop = {
+      preventSleepWhileRunning = true;
+      "show-context-window-usage" = true;
+      "hotkey-window-projectless-default-enabled" = false;
+      "enabled-reasoning-efforts" = [
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+        "ultra"
+        "max"
+      ];
+    };
 
     # Codex here is mostly a reviewer, and review is input-heavy and
     # output-light — the shape Luna is cheapest at.
@@ -41,18 +73,18 @@ let
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";
     # Measured from this machine's own session logs, reasoning tokens per turn:
-    # max 50,282, xhigh about half of that, high 1,953. The comment above used
-    # to say max was affordable because it only grew the small half of a
-    # request; reasoning is 62% of output at max, so it grows the half that
-    # matters and the weekly meter moved when the default changed to it.
-    #
-    # Below xhigh the published DeepSWE numbers fall off a cliff — 57% at
-    # xhigh against 44% at high, for eighteen cents — and a failed agent run
-    # is paid for twice. So the floor sits here, and the depth that max buys
-    # is one /model away for the work that needs it, which is what this file
-    # said the arrangement was before the default contradicted it.
-    model_reasoning_effort = "xhigh";
-    service_tier = "fast";
+    # max 50,282, xhigh about half of that, high 1,953. Reasoning is 62% of
+    # output at max, and on the previous plan the weekly meter moved when the
+    # default went there, which is why the floor used to sit at xhigh. The plan
+    # is now the larger one, so the depth is taken by default instead of being
+    # left one /model away.
+    model_reasoning_effort = "max";
+    # The fast tier buys 1.5x speed for higher usage. What Codex does here runs
+    # in the background — reviews take minutes either way — so the usage goes
+    # into reasoning above instead. fast_default_opt_out declines Codex's offer
+    # to make the fast tier the default again.
+    service_tier = "standard";
+    notice.fast_default_opt_out = true;
     personality = "pragmatic";
     web_search_request = true;
     project_doc_fallback_filenames = [ "CLAUDE.md" ];

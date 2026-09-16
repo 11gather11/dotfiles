@@ -9,6 +9,7 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 - 監視対象: `watchlist.json`（このディレクトリ、git 管理）
 - 最終確認日: `last-check.json`（このディレクトリ、git 管理外）。リポジトリごとに ISO 8601 で保持
+- 報告先: `artifact.json`（このディレクトリ、git 管理外）。毎回同じページを更新するための URL を保持
 
 ## 手順
 
@@ -107,7 +108,25 @@ description: Show new commits on the watched dotfiles repositories since each on
    報告は「相手の値 / こちらの値 / なぜ違うか」の形にする。**相手の値をそのまま勧めない。**
    こちらの設定にコメントで理由が書いてあるなら、それを読んでから「その理由はまだ有効か」を問う。
 
-8. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
+8. **結果を Artifact のページにまとめる。** チャットには要約（件数、目についた変更、提案の見出し）
+   だけを書き、詳細は毎回ページに置く。載せるのは手順4〜7の全部:
+   - リポジトリごとの新着 commit（除外前後の件数と一覧。30件超は領域別の表）
+   - ツールの採用状況（何/19、誰が使っているか、こちらの有無）
+   - 乗り換え commit
+   - 設定の比較（相手の値 / こちらの値）
+   - 提案（未導入・乗り換え候補・重複）
+
+   **ページは毎回作り直さず、同じものを更新する。** `artifact.json` に URL があればそれを
+   `Artifact` ツールの `url` に渡し、無ければ新規に作って返ってきた URL を書き込む:
+
+   ```json
+   { "url": "https://claude.ai/...", "updated": "2026-09-16T11:12:39Z" }
+   ```
+
+   日付ごとの節を上に積む形にして、前回までの内容は残す。ページを書く前に `artifact-design`
+   skill を読むこと（`Artifact` ツールの決まり）。
+
+9. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
    再 fetch して、レビュー中に upstream が進んでいないか確かめる:
 

@@ -6,7 +6,10 @@ let
   tomlFormat = pkgs.formats.toml { };
 in
 {
-  home.packages = [ pkgs.hunk ];
+  # llm-agents rather than nixpkgs: hunk bundles the Bun it was built with, and
+  # watch mode refuses to run under the 1.3.13 nixpkgs' 0.21.1 carries — it can
+  # deadlock closing filesystem watchers. Upstream moved to Bun 1.4.2 in 0.22.0.
+  home.packages = [ pkgs.llm-agents.hunk ];
 
   xdg.configFile."hunk/config.toml".source = tomlFormat.generate "hunk-config.toml" {
     theme = helpers.theme.hunk;

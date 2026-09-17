@@ -45,8 +45,10 @@
   理由は `f707faaf`（半年で `git wt` 1回、`git wtpr` 0回。維持されていたが使われていなかった）
 - **`codex/AGENTS.md` のシェルは Fish**（2026-09-18）— 向こうは Zsh。こちらに `programs.zsh` は無く、
   `rules/tools.md` も Fish 前提。ただし理由の記録は無いので、Zsh を整えるなら再検討の余地あり
-- **Browser Automation 節を採らない**（2026-09-18）— 向こうは Codex Desktop の Browser プラグインを
-  既定にするが、こちらは `plugins."github@openai-curated"` だけで宣言していない。入れたら再検討
+- **Codex の Browser プラグインは宣言できていない**（2026-09-18）— Browser Automation 節は採用済み。
+  ただし `codex.nix` が宣言しているのは `plugins."github@openai-curated"` だけで、Browser は
+  **Desktop アプリ側で手動インストールしたもの**。ryoppippi も同じ状態（向こうの宣言も github 1つ）。
+  つまり両方とも「指示文は Browser を前提にしているが、構成には現れない」。宣言する方法が分かれば埋めたい
 - **コミット本文に詳細を書く一文**（2026-09-18）— 向こうは「commit message に書け」だけ。こちらは
   「what changed and why を書く」まで残す。他にそれを求める場所が無いため
 - **`skill-creator` の模範として挙げる skill**（2026-09-18）— 向こうは `vitest-testing` を2か所で

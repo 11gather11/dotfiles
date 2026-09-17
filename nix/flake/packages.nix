@@ -6,8 +6,11 @@
       # can target them (e.g. `nix-update --flake herdr-hunk-diff`).
       packages = {
         inherit (localPkgs)
+          herdr-automatic-rename
+          herdr-browser
           herdr-hunk-diff
           herdr-pluck
+          herdr-window-title-sync
           ;
       };
 

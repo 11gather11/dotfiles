@@ -1,6 +1,6 @@
 ---
 name: ask-codex
-description: Consults Codex CLI for a second opinion on implementation plans, code reviews, or problem-solving. Use when an independent perspective from a different agent is needed before a significant decision.
+description: Gets a Codex second opinion or delegates bulky work to a Codex subagent. Use before a significant approach is settled, or instead of reading pages and long output here.
 ---
 
 <!--
@@ -9,44 +9,73 @@ Example prompts:
   /ask-codex Is this the right approach for error handling?
 -->
 
-You are a cross-agent consultation coordinator. When invoked, consult Codex CLI to get an independent second opinion.
+# Ask Codex
 
-## How to Consult
+This skill is shared by Codex Desktop, Codex CLI, and other agents. Choose the
+execution path that matches the current agent:
 
-Run Codex in non-interactive mode using the bundled binary:
+- **Inside Codex (Desktop or CLI):** delegate to a native subagent. Never run
+  `codex exec` from here; that starts a nested Codex process.
+- **Outside Codex:** use the Codex CLI path below for an independent agent.
 
-```bash
-codex exec "YOUR_PROMPT_HERE"
+Both paths take a self-contained prompt: the subagent sees none of this
+conversation, so whatever it cannot infer has to be in the prompt.
+
+## Native subagent path
+
+Use one native subagent for either job. Ask it to return the requested facts with
+citations (`URL` or `file:line`), and ask for verbatim quotes where exact spelling
+matters.
+
+For a second opinion, ask for an independent assessment, then compare it with
+your own reading and preserve disagreements in the response. For delegated grunt
+work, ask for the small conclusion rather than forwarding the whole transcript.
+
+Leave the model and effort alone. `nix/modules/home/programs/codex.nix` sets both
+for native subagents and explains the choice in a comment beside each value.
+
+## Codex CLI path
+
+Use this path only outside Codex:
+
+```sh
+codex exec "<question>"
 ```
 
-### Model Selection
+Leave the model alone — the reasoning effort in Codex's own config is what makes
+the answer worth having. Treat the reply as one data point: compare it against your
+own reading of the codebase, report both views to the user with the disagreements
+intact, and prefer established project patterns where they conflict.
 
-**By default, do NOT specify `-m` / `--model`.** Let Codex use the model configured in its config file (`codex/config.toml`). This keeps the consultation consistent with the user's preferred model settings.
+## Delegated grunt work
 
-Only specify `-m MODEL_ID` when the user explicitly requests a specific model:
-
-```bash
-codex exec -m MODEL_ID "YOUR_PROMPT_HERE"
+```sh
+codex exec --skip-git-repo-check --ephemeral "<task>"
 ```
 
-## Consultation Workflow
+For work whose output is bulky but whose conclusion is small: web search, page
+reading, codebase investigation, summarising long output, drafting a commit message
+from a diff. The subscription pays for it and only the answer costs tokens here.
+`codex exec --help` carries the rest; reach for `-o` to capture the final message
+alone, and `--sandbox`/`--add-dir` to widen what it may touch.
 
-1. **Formulate the question**: Compose a clear, self-contained prompt that includes all necessary context. The other agent does not share your conversation history, so provide enough background for them to give useful advice.
-2. **Execute the consultation**: Run `codex exec` with the formulated prompt.
-3. **Evaluate the response critically**: Do NOT blindly accept the advice. Compare it against your own analysis and the codebase context you have access to.
-4. **Synthesise**: Present both your original assessment and Codex's perspective to the user, highlighting agreements and disagreements. Let the user make the final decision.
+Measured, and not visible in the help output:
 
-## When to Consider Consulting
+- Keep `model_reasoning_effort` at `medium` or above. At `low` it answered a
+  "latest release version" search from stale knowledge.
+- Never `--disable multi_agent`. Native web search runs through it, so disabling it
+  makes a search task hang indefinitely with no tool call.
+- Shell commands only reach the network under `--sandbox workspace-write` with
+  `-c sandbox_workspace_write.network_access=true`. The native web search needs
+  neither.
+- `tgrab` lives in `~/.agents/skills/web-fetch/` — prepend that to PATH when the
+  task needs it.
 
-- Before committing to a significant architectural decision
-- When stuck on a problem and want a fresh perspective
-- When reviewing a complex plan and want validation
-- When the user explicitly asks for a second opinion
+Briefing it:
 
-## Important Guidelines
-
-- Always provide sufficient context in the prompt (the other agent cannot see your conversation)
-- Keep prompts focused and specific — avoid dumping entire codebases
-- Treat the response as one data point, not as authoritative truth
-- If Codex's advice conflicts with established project patterns, prefer the project patterns
-- Report both perspectives transparently to the user
+- Say which facts to return, and demand a citation for each — a URL, or a
+  `file:line`.
+- Ask for verbatim quotes wherever exact spelling matters: API options, flags,
+  version numbers. A digest paraphrases them away.
+- The `web-fetch` skill holds the fetch tool selection; name the choice rather
+  than leaving it open.

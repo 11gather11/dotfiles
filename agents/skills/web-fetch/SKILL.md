@@ -36,3 +36,6 @@ Fetching a page brings its whole text into this context. When the answer is smal
 reading is bulky — several pages, a long document, a search that needs following up — hand the
 task to a subagent instead; `agents/shared/delegate-work.md` is the policy and the `ask-codex`
 skill is one way to do it.
+
+Fetch it here when the wording is what you came for — an exact option name, a version string, a
+quote. A subagent returns a digest, and a digest rewrites the names.

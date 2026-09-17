@@ -19,7 +19,7 @@ Copy this checklist and work through it:
 
 ```
 Skill audit:
-- [ ] 1. Run scripts/audit.sh for the mechanical pass
+- [ ] 1. Run scripts/audit.nu for the mechanical pass (both skill directories)
 - [ ] 2. Audit each flagged skill against references/audit-checks.md
 - [ ] 3. Cross-skill duplication pass (link or merge)
 - [ ] 4. Documentation & repo-file references pass
@@ -31,8 +31,8 @@ line count, name/description lengths, and references/ + scripts/ presence,
 flagging hard violations with `!`:
 
 ```bash
-agents/skills/skill-maintenance/scripts/audit.sh              # agents/skills
-agents/skills/skill-maintenance/scripts/audit.sh .claude/skills
+agents/skills/skill-maintenance/scripts/audit.nu              # agents/skills
+agents/skills/skill-maintenance/scripts/audit.nu .claude/skills
 ```
 
 Both directories hold skills, and this skill audits all of them. `agents/skills/`
@@ -51,7 +51,7 @@ do. Compare skills that touch the same topic and decide, per the
 by name or **merge** them. Find candidates with:
 
 ```bash
-rg -N '^description:' agents/skills/*/SKILL.md .claude/skills/*/SKILL.md
+rg -N '^description:' agents/skills/*/SKILL.md .claude/skills/*/SKILL.md   # overlapping triggers
 ```
 
 **4. References pass.** Confirm each skill points at sources of truth — docs URLs,
@@ -60,7 +60,7 @@ local skills — instead of pasting copies. See the reference's "Documentation a
 repo-file references" section.
 
 **5. Report and fix.** Summarise findings as a per-skill list (issue → proposed
-fix). Apply fixes following `skill-creator`, then re-run `scripts/audit.sh` to
+fix). Apply fixes following `skill-creator`, then re-run `scripts/audit.nu` to
 confirm the mechanical flags clear. Deploy as `skill-creator` describes
 (stage only the skill dirs, then `nix run .#switch`).
 

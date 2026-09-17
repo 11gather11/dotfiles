@@ -50,6 +50,28 @@
         }
       '';
 
+      # sudo caches its authentication for five minutes; a rebuild that pulls in
+      # a new package outlasts that easily, and the activation nh runs at the
+      # very end then stops for a password with nobody watching. Refreshing the
+      # timestamp while the build runs keeps the end of a long switch unattended.
+      #
+      # The loop is a Nushell job — a thread inside this process — so it needs no
+      # exit trap the way a detached subshell would; it dies when this script
+      # does. It never prompts: `--non-interactive` fails instead, which is the
+      # signal to stop. The whole thing is skipped when stdin is not a terminal,
+      # because the post-commit hook runs this too and there is no one to ask.
+      sudoKeepAlive = lib.optionalString isDarwin ''
+        if (is-terminal --stdin) {
+            ^sudo --validate
+            job spawn {
+                loop {
+                    sleep 60sec
+                    try { ^sudo --non-interactive --validate } catch { break }
+                }
+            } | ignore
+        }
+      '';
+
       # `nh darwin` picks the configuration by hostname and `nh home` by
       # attribute name, and neither matches this machine's actual hostname —
       # both configurations are keyed on the username.
@@ -98,6 +120,7 @@
           writeNu (if isDarwin then "darwin-switch" else "home-manager-switch") ''
             def --wrapped main [...rest]: nothing -> nothing {
                 ${nomFlag}
+                ${sudoKeepAlive}
                 print "Building and switching to ${system} configuration..."
                 ^${nh} ${nhTarget} ...$nom ...$rest .
                 print "Clearing fish cache..."

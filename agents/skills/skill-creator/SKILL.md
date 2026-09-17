@@ -102,7 +102,7 @@ Find them with `fd README.md node_modules/<package-name>` or `fd -e md . node_mo
   Clone it with `ghq` instead of `git clone` into `/tmp`. See `ghq --help` for usage.
   ```
 
-- **Relevant repo files** (local skills only): if concrete files in this repo are the source of truth for the skill, list them by path so the agent reads the real thing instead of a stale copy. The `vitest-testing` skill's **Key Files** section is the model — it names `vitest.setup.ts`, `test-db.ts`, etc. by path.
+- **Relevant repo files** (local skills only): if concrete files in this repo are the source of truth for the skill, list them by path so the agent reads the real thing instead of a stale copy. `codex-review` is the model — rather than restating which model to use, it says the choice "is made and explained in `nix/modules/home/programs/codex.nix`".
 
 ## Overlap between skills
 
@@ -123,7 +123,7 @@ https://code.claude.com/docs/en/skills#inject-dynamic-context
 
 Two thresholds for `SKILL.md` length:
 
-- **~150 lines — consider splitting.** Once the body passes this, it is usually no longer a tight, scannable workflow. Move conditional or long-form detail into `references/*.md`. The `vitest-testing` skill is the model: a ~50-line `SKILL.md` that routes to ten focused `references/*.md` files.
+- **~150 lines — consider splitting.** Once the body passes this, it is usually no longer a tight, scannable workflow. Move conditional or long-form detail into `references/*.md`. The `tdd` skill is the model: its `SKILL.md` is the cycle and the rules, and everything conditional — what to test, what not to mock, one file per test runner — sits in `references/`.
 - **~500 lines — hard ceiling** (Anthropic guidance). Never exceed this; split aggressively before you get here.
 
 Reference files load only when the agent follows the link, so splitting keeps the always-loaded surface small without losing detail. When a skill passes the soft threshold, or when deciding whether a section earns its own file, read [`references/splitting.md`](references/splitting.md).

@@ -36,6 +36,19 @@
   デバッグ時だけ付けるのは `claude/rules/nix.md` の決め事。ryoppippi は常時付与
 - **fish キャッシュの削除先**（2026-09-17）— `/tmp` 固定。macOS の `$TMPDIR` は `/var/folders`
   配下で `FISH_CACHE_DIR` と一致せず何も消えない。理由は `nix/flake/apps.nix` のコメント
+- **Execution Safety を2ルールで持つ**（2026-09-18）— 向こうは1行に畳んでいる。こちらが分けている
+  のは2つ目（外部への効果は1回ずつ承認が要る／1回の承認は次に及ばない）が効くから。理由は `81103a04`
+- **`git-staging.md` の巻き込み禁止の理由**（2026-09-18）— 向こうは `codex.nix` を名指しするが、
+  こちらは「公開リポジトリでは commit は publish」と書く。具体ファイル名を書かない方針と整合。
+  flake の staging も「**新規**ファイルだけ必要、既存の編集は不要」とこちらが正確。理由は `f6192394`
+- **`git-worktrees.md` は worktrunk 前提**（2026-09-18）— 向こうは全項目が `git-wt`/`git-wtpr` 前提。
+  理由は `f707faaf`（半年で `git wt` 1回、`git wtpr` 0回。維持されていたが使われていなかった）
+- **`codex/AGENTS.md` のシェルは Fish**（2026-09-18）— 向こうは Zsh。こちらに `programs.zsh` は無く、
+  `rules/tools.md` も Fish 前提。ただし理由の記録は無いので、Zsh を整えるなら再検討の余地あり
+- **Browser Automation 節を採らない**（2026-09-18）— 向こうは Codex Desktop の Browser プラグインを
+  既定にするが、こちらは `plugins."github@openai-curated"` だけで宣言していない。入れたら再検討
+- **コミット本文に詳細を書く一文**（2026-09-18）— 向こうは「commit message に書け」だけ。こちらは
+  「what changed and why を書く」まで残す。他にそれを求める場所が無いため
 - **`skill-creator` の模範として挙げる skill**（2026-09-18）— 向こうは `vitest-testing` を2か所で
   挙げるが、その skill に `Key Files` 節も `references/` も**向こうでも**存在しない。こちらは
   実在する `codex-review` と `tdd` を指す。行数や本数は書かない（同じ腐り方をするため）。

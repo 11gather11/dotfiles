@@ -22,11 +22,20 @@
   スクリプトで「宣言したキーだけマージ」。ryoppippi は Codex だけ同じ方式、Claude Code は別
 - **skill の構成**（2026-09-16）— レビューは `codex-review` 1本と PR ゲートの組み合わせ。
   lambdalisue のような `-loop` 変種や `pr-address` は持たない
+- **flake の分割方針**（2026-09-17）— apps は `flake/apps.nix` 1枚、helpers は `nix/lib/` と
+  modules の外。ryoppippi は `flake/apps/` と `flake/hosts/` に分け helpers を `modules/lib/` に置く
+- **ビルドフラグ**（2026-09-17）— darwin でも `--print-build-logs --show-trace` を常時付けない。
+  デバッグ時だけ付けるのは `claude/rules/nix.md` の決め事。ryoppippi は常時付与
+- **fish キャッシュの削除先**（2026-09-17）— `/tmp` 固定。macOS の `$TMPDIR` は `/var/folders`
+  配下で `FISH_CACHE_DIR` と一致せず何も消えない。理由は `nix/flake/apps.nix` のコメント
 
 ## こちらが先行しているもの
 
 - **herdr**（2026-09-16）— 19リポジトリ中、実運用は Mic92 のみ。worktrunk との連携 hook はこちらだけ
 - **worktrunk**（2026-09-16）— 採用は kclejeune のみ。herdr の workspace と繋ぐ hook はこちらだけ
-- **hunk**（2026-09-16）— 採用ゼロ
+- **hunk**（2026-09-17 訂正）— 採用は ryoppippi のみ（1/19）。ただし `home.packages` に置くだけで、
+  git からも skill からも呼んでいない。こちらは herdr プラグイン（`herdr-hunk-diff`）として
+  ペインに出し、テーマを合わせ、`hunk-review` skill を配るところまでやっている。
+  前回「採用ゼロ」と書いたのは誤り
 - **Neovim の Markdown プレビュー**（2026-09-16）— live-preview.nvim を herdr のブラウザペインに
   出す構成は、どのリポジトリにもない

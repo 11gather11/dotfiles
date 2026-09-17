@@ -12,7 +12,15 @@
   # The codex-review gate (requires pkgs to be passed)
   codexReviewGate = pkgs: import ./codex-review-gate.nix { inherit pkgs; };
 
+  # writers.writeNu with the script checked at build time (requires pkgs)
+  writeNu = pkgs: import ./write-nu.nix { inherit pkgs; };
+
   # Merges declared keys into a config file an application also writes
   # (requires pkgs to be passed)
-  mergeConfig = pkgs: import ./merge-config.nix { inherit pkgs; };
+  mergeConfig =
+    pkgs:
+    import ./merge-config.nix {
+      inherit pkgs;
+      writeNu = import ./write-nu.nix { inherit pkgs; };
+    };
 }

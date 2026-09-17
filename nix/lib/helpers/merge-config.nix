@@ -1,4 +1,4 @@
-{ pkgs }:
+{ writeNu, ... }:
 # Overlay the keys this repository declares onto a config file the application
 # also writes itself, so a switch sets what it owns and leaves the rest alone.
 # Reach for it where generating the file whole would drop application state —
@@ -9,7 +9,7 @@
 # declares is the whole list.
 #
 # Usage: merge-config <target> <owned>
-pkgs.writers.writeNu "merge-config" ''
+writeNu "merge-config" ''
   # The target names the format for both files: what Nix generates is a store
   # path that may carry no extension at all.
   def read [file: path, format: string]: nothing -> record {

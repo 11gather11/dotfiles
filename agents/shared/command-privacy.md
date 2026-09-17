@@ -6,3 +6,10 @@
 - Prefer reading secrets at execution time from an existing credential helper, keychain-backed CLI, password manager, or already-present environment. Use command substitution such as `$(gh auth token)`, or existing variable references such as `$GITHUB_TOKEN`, instead of pasting token values.
 - Keep literal command text safe to store in shell history and agent transcripts. Use placeholders such as `<token>` only in explanatory text, never real secret values.
 - Do not echo, print, log, summarise, commit, or paste secret values. If a raw secret is accidentally exposed, tell the user it should be rotated or revoked; deleting shell history is not sufficient.
+
+## Execution Safety
+
+- Exploration runs against fixtures, dry runs, or resources that can be thrown away — never
+  production data, and never an operation that cannot be undone.
+- An effect outside this machine — sending, publishing, deleting, paying, messaging someone —
+  needs the user to have asked for it. Approval for one such action does not carry to the next.

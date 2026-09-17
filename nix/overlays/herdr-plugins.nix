@@ -71,6 +71,15 @@ in
   # commit that did so also deleted herdr-plugin.toml: a later revision builds
   # fine and then registers nothing, because there is no manifest for `herdr
   # plugin link` to read. This revision is the last one that is still a plugin.
+  #
+  # The successor was tried and is not ready here, so this stays until it is.
+  # pkgs.llm-agents.terminal-browser does not launch: Nix rewrites the Electron
+  # bundle, which breaks the signature seal on Electron Framework.framework, and
+  # macOS reports the app as damaged. Its own release tarball is unsigned from
+  # the browser's point of view and trips Gatekeeper's quarantine instead. That
+  # package is also on 0.8.1 while upstream has moved to 0.11.1, and its herdr
+  # plugin offers neither --target-pane nor --no-focus, both of which the
+  # markdown preview in nvim/lua/plugins/markdown.lua depends on.
   herdr-browser = sourcePlugin {
     pname = "herdr-browser";
     version = "0-unstable-2026-07-28";

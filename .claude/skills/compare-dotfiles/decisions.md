@@ -13,6 +13,14 @@
 - **ccusage / ccstatusline**（2026-09-16）— statusline は自作の Nushell 版を使う。表示項目も配色も
   こちらで決めたいため
 - **`sed`/`awk` を hook で禁止する**（2026-09-16、lambdalisue）— `tools.md` の推奨で足りている
+- **terminal-browser への乗り換え**（2026-09-18）— herdr-browser は上流で deprecated だが、後継は
+  まだ入らない。`llm-agents` 版は Electron の署名の封が壊れて起動せず、Release の tarball は
+  Gatekeeper の検疫に当たる。バージョンも 0.8.1 対 上流 0.11.1 で追随待ち。加えて後継の herdr
+  プラグインは `--target-pane` も `--no-focus` も持たず、`markdown.lua` をそのまま移せない。
+  **動いているものを、動かないものに替える段階ではない。** 再検討する条件は「`llm-agents` が
+  0.11 系を拾い、かつ `codesign --verify` が通ること」
+- **`git-wt` / `git-wtpr` skill**（2026-09-17）— worktrunk（`wt`）を使っているので、持っていない
+  CLI の手順書になる。`agents/shared/git-worktrees.md` が既に `wt` を指示している
 
 ## 意図的に違うもの
 

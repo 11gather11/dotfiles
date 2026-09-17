@@ -11,6 +11,17 @@
   ...
 }:
 let
+  # External skill repositories are pinned in registry/sources/*.nix rather than
+  # as flake inputs: `nix run .#skills-sources-lock` re-resolves them into
+  # registry/sources.lock.json, so a skill update no longer moves flake.lock and
+  # the update bot no longer opens a PR per skill repository. Each manifest
+  # carries its own subdir and idPrefix, which is why the sources below are only
+  # the ones that come from a package or from this repository.
+  registrySources = inputs.agent-skills.lib.agent-skills.sourcesFromLock {
+    manifestsDir = ../../../registry/sources;
+    lockFile = ../../../registry/sources.lock.json;
+  };
+
   # mattpocock/skills is two directories of same-shaped entries, so name them
   # once rather than writing `from` and `path` out for each.
   mattpocockSelect =
@@ -27,18 +38,9 @@ in
   programs.agent-skills = {
     enable = true;
 
-    # Skill sources (from flake inputs)
-    sources = {
-      # External: ast-grep official skill
-      ast-grep = {
-        path = inputs.ast-grep-skill;
-        subdir = "ast-grep/skills";
-      };
-      # External: agent-browser skill
-      agent-browser = {
-        path = inputs.agent-browser-skill;
-        subdir = "skills";
-      };
+    # Pinned sources come from the registry; the rest are paths this
+    # configuration already has — a package's own skills, or this repository.
+    sources = registrySources // {
       # External: herdr's own agent skill, shipped inside the package source
       herdr = {
         path = pkgs.llm-agents.herdr.src;
@@ -51,28 +53,6 @@ in
       hunk = {
         path = pkgs.hunk;
         subdir = "share/skills/hunk";
-      };
-      # External: mattpocock/skills. Two subdirectories hold the current ones;
-      # deprecated/ and in-progress/ also exist and are deliberately not read.
-      mattpocock-engineering = {
-        path = inputs.mattpocock-skills;
-        subdir = "skills/engineering";
-        # Namespaced, because registering the source at all makes every skill in
-        # it visible and this one ships a tdd that collides with the local one.
-        idPrefix = "mattpocock";
-      };
-      mattpocock-productivity = {
-        path = inputs.mattpocock-skills;
-        subdir = "skills/productivity";
-        # Namespaced, because registering the source at all makes every skill in
-        # it visible and this one ships a tdd that collides with the local one.
-        idPrefix = "mattpocock";
-      };
-      # External: cloudflare/skills. Thirteen of them; wrangler is the one
-      # taken, since Workers work here goes through that CLI.
-      cloudflare = {
-        path = inputs.cloudflare-skills;
-        subdir = "skills";
       };
       # Local: skills from this dotfiles repo
       local = {

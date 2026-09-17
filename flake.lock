@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "agent-browser-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1789077082,
-        "narHash": "sha256-JhWiPZesclmQdNQnHFPnVWZYDlDYKvou7Mvx/hoiIVs=",
-        "owner": "vercel-labs",
-        "repo": "agent-browser",
-        "rev": "8c15ff9f71ae60c7e99e66afe1e2d4b9bf414fe2",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vercel-labs",
-        "repo": "agent-browser",
-        "type": "github"
-      }
-    },
     "agent-skills": {
       "inputs": {
         "nixpkgs": [
@@ -33,22 +17,6 @@
       "original": {
         "owner": "Kyure-A",
         "repo": "agent-skills-nix",
-        "type": "github"
-      }
-    },
-    "ast-grep-skill": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1789268336,
-        "narHash": "sha256-dORqiMdFOUQVEF6wn1IZiTIcslzO+441A0GZP4KNcOQ=",
-        "owner": "ast-grep",
-        "repo": "claude-skill",
-        "rev": "f2175aff21f20cfb8e2db30c28febeb3a2d42b61",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ast-grep",
-        "repo": "claude-skill",
         "type": "github"
       }
     },
@@ -83,22 +51,6 @@
         "owner": "Mic92",
         "ref": "fix-structured-attrs-hook",
         "repo": "bun2nix",
-        "type": "github"
-      }
-    },
-    "cloudflare-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788843119,
-        "narHash": "sha256-eObCxuhTN/mujcUpIzGlX62M5ocFgrUUwEWSrHMbcf8=",
-        "owner": "cloudflare",
-        "repo": "skills",
-        "rev": "b052c32bab7dd493513260228a36c88294f343f1",
-        "type": "github"
-      },
-      "original": {
-        "owner": "cloudflare",
-        "repo": "skills",
         "type": "github"
       }
     },
@@ -345,22 +297,6 @@
         "type": "github"
       }
     },
-    "mattpocock-skills": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1788511407,
-        "narHash": "sha256-dF5i37jHnqfcXD1IRSVzSSm/pfCYSUmOsEhhs5Zx340=",
-        "owner": "mattpocock",
-        "repo": "skills",
-        "rev": "3cca18b368ae95cdbdebbff572ccafa662551015",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mattpocock",
-        "repo": "skills",
-        "type": "github"
-      }
-    },
     "nix-bun": {
       "inputs": {
         "nixpkgs": [
@@ -505,17 +441,13 @@
     },
     "root": {
       "inputs": {
-        "agent-browser-skill": "agent-browser-skill",
         "agent-skills": "agent-skills",
-        "ast-grep-skill": "ast-grep-skill",
-        "cloudflare-skills": "cloudflare-skills",
         "fish-na": "fish-na",
         "flake-parts": "flake-parts",
         "git-hooks": "git-hooks",
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "llm-agents": "llm-agents",
-        "mattpocock-skills": "mattpocock-skills",
         "nix-bun": "nix-bun",
         "nix-claude-code": "nix-claude-code",
         "nix-darwin": "nix-darwin",

@@ -1,3 +1,4 @@
+{ inputs, ... }:
 {
   perSystem =
     {
@@ -128,6 +129,13 @@
             }
           ''
         );
+
+        # Re-resolves every pin in registry/sources/ and rewrites
+        # registry/sources.lock.json. Skill sources live there rather than in
+        # flake.lock, so updating them does not move every other input.
+        skills-sources-lock = app "${
+          inputs.agent-skills.lib.agent-skills.mkSourceLockProgram { pkgs = localPkgs; }
+        }/bin/skills-sources-lock";
 
         fmt = app (
           writeNu "treefmt-wrapper" ''

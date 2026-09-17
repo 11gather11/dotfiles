@@ -1,0 +1,170 @@
+{
+	"manifests": {
+		"agent-browser": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": null,
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "vercel-labs",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "agent-browser",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "skills"
+		},
+		"ast-grep": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": null,
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "ast-grep",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "claude-skill",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "ast-grep/skills"
+		},
+		"cloudflare": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": null,
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "cloudflare",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "skills",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "skills"
+		},
+		"mattpocock-engineering": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": "mattpocock",
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "mattpocock",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "skills",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "skills/engineering"
+		},
+		"mattpocock-productivity": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": "mattpocock",
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "mattpocock",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "skills",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "skills/productivity"
+		}
+	},
+	"npins": {
+		"pins": {
+			"agent-browser": {
+				"branch": "main",
+				"hash": "sha256-C+XplCHOdFDQGPUnrCDuq7U4LkAX0QB3fC4uVA8o11w=",
+				"repository": {
+					"owner": "vercel-labs",
+					"repo": "agent-browser",
+					"type": "GitHub"
+				},
+				"revision": "aff6125c023b810ea3f2e5deec5379e9a4270bdc",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/vercel-labs/agent-browser/archive/aff6125c023b810ea3f2e5deec5379e9a4270bdc.tar.gz"
+			},
+			"ast-grep": {
+				"branch": "main",
+				"hash": "sha256-dORqiMdFOUQVEF6wn1IZiTIcslzO+441A0GZP4KNcOQ=",
+				"repository": {
+					"owner": "ast-grep",
+					"repo": "claude-skill",
+					"type": "GitHub"
+				},
+				"revision": "f2175aff21f20cfb8e2db30c28febeb3a2d42b61",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/ast-grep/claude-skill/archive/f2175aff21f20cfb8e2db30c28febeb3a2d42b61.tar.gz"
+			},
+			"cloudflare": {
+				"branch": "main",
+				"hash": "sha256-eObCxuhTN/mujcUpIzGlX62M5ocFgrUUwEWSrHMbcf8=",
+				"repository": {
+					"owner": "cloudflare",
+					"repo": "skills",
+					"type": "GitHub"
+				},
+				"revision": "b052c32bab7dd493513260228a36c88294f343f1",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/cloudflare/skills/archive/b052c32bab7dd493513260228a36c88294f343f1.tar.gz"
+			},
+			"mattpocock-engineering": {
+				"branch": "main",
+				"hash": "sha256-jV54LyJWtC/UJ7xHH0NRNVN/zwUT8vYS6gzH9gpo+yo=",
+				"repository": {
+					"owner": "mattpocock",
+					"repo": "skills",
+					"type": "GitHub"
+				},
+				"revision": "74ca5fe077456a0b3b2f5310cf9430999fd0b5fd",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/mattpocock/skills/archive/74ca5fe077456a0b3b2f5310cf9430999fd0b5fd.tar.gz"
+			},
+			"mattpocock-productivity": {
+				"branch": "main",
+				"hash": "sha256-jV54LyJWtC/UJ7xHH0NRNVN/zwUT8vYS6gzH9gpo+yo=",
+				"repository": {
+					"owner": "mattpocock",
+					"repo": "skills",
+					"type": "GitHub"
+				},
+				"revision": "74ca5fe077456a0b3b2f5310cf9430999fd0b5fd",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/mattpocock/skills/archive/74ca5fe077456a0b3b2f5310cf9430999fd0b5fd.tar.gz"
+			}
+		},
+		"version": 8
+	},
+	"schemaVersion": 1
+}

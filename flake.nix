@@ -75,27 +75,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Claude Code skills (flake = false for non-flake repos)
-    ast-grep-skill = {
-      url = "github:ast-grep/claude-skill";
-      flake = false;
-    };
-
-    agent-browser-skill = {
-      url = "github:vercel-labs/agent-browser";
-      flake = false;
-    };
-
-    mattpocock-skills = {
-      url = "github:mattpocock/skills";
-      flake = false;
-    };
-
-    cloudflare-skills = {
-      url = "github:cloudflare/skills";
-      flake = false;
-    };
-
     # A flake now, not a source tree: the skill it used to ship was dropped
     # upstream and the CLI is what is consumed instead.
     tgrab = {

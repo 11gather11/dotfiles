@@ -1,11 +1,13 @@
 ---
 name: skill-creator
-description: Guides agent-skill creation and updates following Anthropic's SKILL.md best practices. Use when adding or editing skills under `agents/skills/`, writing SKILL.md frontmatter, references, or skill routing.
+description: Guides authoring agent-facing instructions following Anthropic's SKILL.md best practices. Use when adding or editing skills under `agents/skills/`, rules in `claude/rules/`, `CLAUDE.md`, or `agents/shared/` fragments — frontmatter, references, and routing included.
 ---
 
 # Skill Creator
 
 Use this skill when creating or updating local skills under `agents/skills/` in this dotfiles repo. They are deployed to `~/.agents/skills/` and `~/.config/claude/skills/` via `nix/modules/home/agent-skills.nix` (auto-enabled by `skills.enableAll = [ "local" ]`).
+
+The **Body** and **Documentation references** sections below apply to every agent-facing instruction file here, not just skills: `claude/rules/*.md`, `claude/CLAUDE.md`, and `agents/shared/*.md`. Rules and `CLAUDE.md` are loaded on _every_ session, so they are the least forgiving place to be verbose — keep them to judgement the agent cannot derive on its own.
 
 ## Workflow
 
@@ -17,7 +19,9 @@ Use this skill when creating or updating local skills under `agents/skills/` in 
 
 ## Frontmatter
 
-Required fields (see `https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices`):
+Required fields:
+
+https://docs.claude.com/en/docs/agents-and-tools/agent-skills/best-practices
 
 ```yaml
 ---
@@ -60,19 +64,43 @@ Keep the body procedural and repo-specific:
 
 Avoid explaining generic concepts the model already knows. Aim for under 500 lines; split larger content into `references/`.
 
+Rules that are easy to violate without noticing:
+
+- One term per concept, used consistently throughout.
+- No time-sensitive wording ("after August 2025…"); put superseded guidance in an "old patterns" section instead.
+- Concrete examples, never abstract placeholders.
+- One default per task, not a menu of equivalent options.
+- Forward-slash paths only.
+- MCP tools written as `Server:tool_name`.
+- Reference links one level deep from `SKILL.md` — agents only preview nested files.
+
+- https://simonwillison.net/2026/Jul/21/cat-and-thariq/
+- https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models
+- https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+
 ## Documentation references
 
 Don't paste large chunks of external docs into the skill — they go stale and cost tokens. Point at the authoritative source instead:
 
+- When a URL is self-descriptive, include the URL directly without adding a title or summary.
+
 - **Public docs**: include the canonical docs URL (e.g. `https://vitest.dev/api/`) so the agent can fetch the current version when needed.
-- **Installed libraries**: if the skill is about a package present in `node_modules/`, instruct the agent to read the docs the package ships locally — they match the installed version and need no network. Many packages now publish docs on npm for exactly this (see <https://ryoppippi.com/blog/2025-12-14-publish-docs-on-npm-en>).
+- **Installed libraries**: if the skill is about a package present in `node_modules/`, instruct the agent to read the docs the package ships locally — they match the installed version and need no network. Many packages now publish docs on npm for exactly this.
+
+https://ryoppippi.com/blog/2025-12-14-publish-docs-on-npm-en
+
+```markdown
+For API details, read `node_modules/<package-name>/README.md`
+(or `node_modules/<package-name>/docs/**/*.md` if the package ships a docs folder).
+```
+
+Find them with `fd README.md node_modules/<package-name>` or `fd -e md . node_modules/<package-name>/docs`.
+
+- **CLI tools**: never transcribe usage, flags, or subcommands — the agent can run `<tool> --help` itself, and a copy goes stale. Write the judgement the help output cannot give (when to reach for the tool, which of several tools to pick, what not to do with it) and point at `<tool> --help` for the mechanics.
 
   ```markdown
-  For API details, read `node_modules/<package-name>/README.md`
-  (or `node_modules/<package-name>/docs/**/*.md` if the package ships a docs folder).
+  Clone it with `ghq` instead of `git clone` into `/tmp`. See `ghq --help` for usage.
   ```
-
-  Find them with `fd README.md node_modules/<package-name>` or `fd -e md . node_modules/<package-name>/docs`.
 
 - **Relevant repo files** (local skills only): if concrete files in this repo are the source of truth for the skill, list them by path so the agent reads the real thing instead of a stale copy. The `vitest-testing` skill's **Key Files** section is the model — it names `vitest.setup.ts`, `test-db.ts`, etc. by path.
 
@@ -89,7 +117,7 @@ Never paste the same instructions into two skills — pick a single home and lin
 
 Use `` !`command` `` inside fenced blocks to inject live state (current branch, tool version, detected test runner). Prefer dynamic blocks for environment info; keep static text for workflow steps and best practices.
 
-Reference: <https://code.claude.com/docs/en/skills#inject-dynamic-context>
+https://code.claude.com/docs/en/skills#inject-dynamic-context
 
 ## References
 
@@ -98,38 +126,7 @@ Two thresholds for `SKILL.md` length:
 - **~150 lines — consider splitting.** Once the body passes this, it is usually no longer a tight, scannable workflow. Move conditional or long-form detail into `references/*.md`. The `vitest-testing` skill is the model: a ~50-line `SKILL.md` that routes to ten focused `references/*.md` files.
 - **~500 lines — hard ceiling** (Anthropic guidance). Never exceed this; split aggressively before you get here.
 
-Reference files load only when the agent follows the link, so splitting keeps the always-loaded surface small without losing detail.
-
-```text
-agents/skills/example-skill/
-├── SKILL.md
-└── references/
-    ├── api.md
-    └── examples.md
-```
-
-### When to split into references
-
-Split content out as soon as it stops being needed on every run of the skill. Concrete triggers:
-
-- **Runner / platform-specific guidance** — e.g. Vitest vs Rust vs Zig examples for the `tdd` skill. The main SKILL.md keeps the universal cycle; each runner file is loaded only for that stack.
-- **Long good/bad example galleries** — keep one representative example inline, push the rest to `references/examples.md`.
-- **Failure-recovery and edge-case playbooks** — e.g. `references/git-apply.md` for patch-staging recovery: only read when the happy path fails.
-- **Command catalogues** — long lists of `gh` / `git` invocations belong in `references/<topic>-commands.md`, with the main file linking by purpose.
-- **Templates, schemas, or large tables** — anything > ~30 lines that the agent only needs as a lookup.
-
-Stop splitting when:
-
-- The detail is consulted on every invocation (keep it inline).
-- A reference would be < ~20 lines (just inline it — the extra file read costs more than the tokens it saves).
-
-### How to split
-
-1. Identify a self-contained section in `SKILL.md`.
-2. Move it verbatim to `references/<topic>.md`. Give it an H1 and, if > 100 lines, a contents list at the top so partial reads (`head -100`) still surface the scope.
-3. Replace the original location with a one-line pointer that names the trigger condition: e.g. `When a patch fails or needs whitespace handling, read references/git-apply.md.`
-4. Link reference files **directly from `SKILL.md`**. Keep links one level deep — agents may only preview nested references.
-5. Prefer `references/<topic>.md` over top-level `<topic>-example.md`; the dedicated folder makes the boundary obvious and is the convention used across this repo and the ccusage skills.
+Reference files load only when the agent follows the link, so splitting keeps the always-loaded surface small without losing detail. When a skill passes the soft threshold, or when deciding whether a section earns its own file, read [`references/splitting.md`](references/splitting.md).
 
 ## Scripts
 

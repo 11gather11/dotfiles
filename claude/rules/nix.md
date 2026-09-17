@@ -1,7 +1,5 @@
-# Nix Rules
+# Nix Build Rules
 
-- Add `--print-build-logs --show-trace` only when debugging a failing build or an
-  evaluation error; they are noise otherwise.
-- In CI, `nix profile install --inputs-from . nixpkgs#<pkg>` is faster than
-  setting up a full `nix develop` shell.
-- Prefer `flake-parts` over `flake-utils`.
+- Add `--print-build-logs --show-trace` only when debugging a failing build or evaluation; leave them off otherwise.
+- In CI, prefer `nix profile install --inputs-from . nixpkgs#<tool>` (or `.#<package>`) over `nix develop` — a full dev shell is slow to set up.
+- Keep a simple flake dependency-free: plain `outputs` needs no framework. Once per-system boilerplate becomes unwieldy, reach for `flake-parts` modules — never `flake-utils`.

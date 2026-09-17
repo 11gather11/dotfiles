@@ -4,7 +4,7 @@ Use these tools instead of their standard alternatives:
 
 | Tool             | Replaces | Description         |
 | ---------------- | -------- | ------------------- |
-| `fish`           | bash     | Shell               |
+| `fish`           | bash     | Environment shell   |
 | `rg`             | grep     | Fast search         |
 | `fd`             | find     | File finder         |
 | `bat`            | cat      | Syntax highlighting |
@@ -15,17 +15,16 @@ Use these tools instead of their standard alternatives:
 | `jq`             | -        | JSON processor      |
 | `gh`             | git      | GitHub CLI          |
 
-## Shell Fallback
+For code pattern searches (constructs, structure, not plain text), use the `ast-grep` skill rather than `rg`.
 
-If a bash command fails, try: `fish -c <command>`
+## Shell
 
-If `bunx <command>` fails, try: `bun x <command>`
+Fish bootstraps the environment; it is not necessarily the syntax shell. Run simple commands as `fish -lc '<command>'` so PATH and exports are initialised. When a command needs bash/zsh syntax, nest it: `fish -lc 'bash -lc "<posix command>"'`.
 
-## Code Search
+## Reading Other Repositories
 
-Prefer the `ast-grep` skill over `rg` for code pattern searches — finding code
-constructs, analysing structure, matching language syntax. Use `rg` for plain
-text.
+- A handful of known files: `gh repo read-file` / `gh repo read-dir` instead of cloning.
+- A whole repo (searching, history, running builds): clone with `ghq` instead of `git clone` into `/tmp` or the current project. Treat the clone as read-only reference; never commit or push to it.
 
 ## Tips
 

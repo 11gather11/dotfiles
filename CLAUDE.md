@@ -30,6 +30,9 @@ configuration has been applied once.
   the two.
 - `claude/` is symlinked to `~/.config/claude`, so edits there apply to the running
   Claude Code without a switch.
+- Per-directory docs are READMEs (`agents/README.md`, `fish/README.md`), not
+  `CLAUDE.md`: they describe the directory rather than instruct an agent, and a
+  nested `CLAUDE.md` would load itself into every session that touches the tree.
 
 ## Scripting Language Choice
 

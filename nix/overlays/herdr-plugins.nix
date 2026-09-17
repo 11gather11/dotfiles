@@ -41,4 +41,8 @@ in
   # back to the agent that wrote the code. Built here rather than fetched, so
   # it has a package of its own; see nix/packages/herdr-hunk-diff.
   herdr-hunk-diff = prev.callPackage ../packages/herdr-hunk-diff { };
+
+  # Copying what is on screen by typing a hint over it, rather than reaching for
+  # the mouse. Also built rather than fetched; see nix/packages/herdr-pluck.
+  herdr-pluck = prev.callPackage ../packages/herdr-pluck { };
 }

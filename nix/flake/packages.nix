@@ -7,6 +7,7 @@
       packages = {
         inherit (localPkgs)
           herdr-hunk-diff
+          herdr-pluck
           ;
       };
 

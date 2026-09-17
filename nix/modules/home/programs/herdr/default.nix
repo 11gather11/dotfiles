@@ -36,6 +36,24 @@ let
     # protocol, which herdr keeps behind this flag. Ghostty speaks it.
     experimental.kitty_graphics = true;
 
+    # A plugin action is reachable without a binding — `herdr plugin action
+    # invoke <id>` — but reaching for a hint overlay through a command line is
+    # the mouse round trip it exists to remove. Both keys are free in 0.9.1;
+    # `herdr config check` rejects a binding that collides.
+    keys.command = [
+      {
+        key = "prefix+f";
+        type = "plugin_action";
+        command = "rmarganti.herdr-pluck.pluck";
+        description = "pluck visible token";
+      }
+      {
+        key = "prefix+shift+f";
+        type = "plugin_action";
+        command = "rmarganti.herdr-pluck.open-url";
+        description = "open visible URL";
+      }
+    ];
   };
 
   # Plugin roots to keep registered. Each is a directory laid out the way a
@@ -46,6 +64,7 @@ let
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
     pkgs.herdr-hunk-diff
+    pkgs.herdr-pluck
   ];
 
   # Agents whose official integration should be installed. Without one, herdr
@@ -90,6 +109,26 @@ in
       NAME_TABS=1
       AUTO_INDEX=1
     '';
+
+    # herdr-pluck's built-in patterns already cover URLs, paths, git SHAs, hex
+    # literals, UUIDs and IPs. A Nix SRI hash matches none of them — it is the
+    # one token here that is routinely copied out of a build failure by hand,
+    # which is the whole reason this plugin is installed.
+    #
+    # Unlike herdr's own config.toml this is a symlink: herdr never writes a
+    # plugin's config, the plugin reads it, and nothing here has a TUI that
+    # would need to open it for writing.
+    file.".config/herdr/plugins/config/rmarganti.herdr-pluck/config.toml".source =
+      tomlFormat.generate "herdr-pluck-config.toml"
+        {
+          patterns = [
+            {
+              name = "nix-sri-hash";
+              regex = "sha256-[0-9a-zA-Z+/]{43}=";
+              priority = 25;
+            }
+          ];
+        };
 
     activation = {
       writeHerdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''

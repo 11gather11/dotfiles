@@ -20,23 +20,12 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 2. 各リポジトリのローカル clone を用意する。パスは `$(ghq root)/github.com/<repo>`。
 
-   **GitHub API では代替しない。** commit 一覧だけなら API でも取れるが、手順6の「このツールを
+   **GitHub API では代替しない。** commit 一覧だけなら API でも取れるが、手順7の「このツールを
    何人が使っているか」は全ファイルを横断 grep しないと数えられず、コード検索 API は結果が
    不安定でレート制限にもかかる（実際に誤検出とレート制限の両方を踏んでいる）。ローカルに
    置けば `rg` で確実に数えられる。19 リポジトリで 270MB 前後、全件 fetch で 20 秒程度。
 
-   無ければ blobless clone で取得する（履歴のメタデータは全部持ちつつ、過去版のファイル実体は
-   取らないので軽い。現在のファイルは checkout されるので grep できる）:
-
-   ```bash
-   git clone --filter=blob:none "https://github.com/<repo>" "$(ghq root)/github.com/<repo>"
-   ```
-
-   あれば更新する:
-
-   ```bash
-   git -C "$(ghq root)/github.com/<repo>" fetch origin --quiet
-   ```
+   clone と fetch のコマンドは [`references/commands.md`](references/commands.md) にある。
 
    デフォルトブランチは固定しない。`git -C <path> symbolic-ref refs/remotes/origin/HEAD` で解決する
    （`main` とは限らない）。
@@ -46,12 +35,7 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 4. 最終確認日以降の commit を取得する。依存更新 bot が大半を占めるので、**必ず除外してから**件数を数える:
 
-   ```bash
-   git -C <path> log <default-branch> --since="<SINCE>" --no-merges \
-     --pretty=format:'%h%x09%aI%x09%an%x09%s' \
-     | rg -v '\[bot\]|renovate|dependabot' \
-     | rg -v 'update flake input|update llm-agents|chore\(deps\)|: [0-9.]+ -> [0-9.]+'
-   ```
+   コマンドは [`references/commands.md`](references/commands.md) の「手順4」。
 
    全体件数と除外後の件数の両方を報告する。
 
@@ -60,25 +44,26 @@ description: Show new commits on the watched dotfiles repositories since each on
    - **30 件以下**: commit を一覧（`%h %aI %s`）。気になるものは `git show --stat` で深掘り
    - **30 件超**: 件数を報告し、領域別（darwin / nvim / skills / shell / nix 基盤 など）に分類した表を出してから、詳細を見たい領域を聞く
 
+   抜粋を出すときは、**どう絞ったか（検索語、件数）と、落とした件数を必ず書く**。
+   語で絞ると、当てはまらない領域の変更がまるごと消える。
+
    全リポジトリを見たあと、**横断的に「新しく登場したツール」を拾って報告する**。
    複数人が同じツールを入れ始めていれば、それが動向のシグナルになる。
 
-6. **ツールを提案する。** ここが監視の主目的なので、遠慮せず踏み込む。
+6. **指示文と skill の変更を拾う。** ツールや設定と並ぶ独立した観点。エージェントへの指示は
+   Markdown で書かれ、commit の件数に埋もれて見落とすので、**パスで明示的に絞って全リポジトリ分を出す**:
 
-   乗り換えの commit は最も強いシグナルなので、明示的に拾う:
+   コマンドは [`references/commands.md`](references/commands.md) の「手順6」。
 
-   ```bash
-   git -C <path> log <default-branch> --since="<SINCE>" --no-merges \
-     --pretty=format:'%h%x09%s' \
-     --grep='replace' --grep='instead of' --grep='in favou\?r of' \
-     --grep='migrate' --grep='switch to' --grep='drop' -i
-   ```
+   報告するのは**何が増えて何が消えたか**であって全文の差分ではない:
+   - 追加・削除・改名された skill の名前と、一行での用途
+   - 指示文で増えた／消えた節（`git show <sha> -- <file>` の追加行・削除行の見出しから）
+   - 「常に読み込まれる指示を削る」ような、書き方そのものの方針変更
 
-   採用の広がりは、こちらに無いツールを watchlist 全体で数えて測る:
+7. **ツールを提案する。** ここが監視の主目的なので、遠慮せず踏み込む。
 
-   ```bash
-   for p in <各 clone>; do rg -l --no-messages '<tool>' "$p" -g '!.git' >/dev/null && echo "$p"; done
-   ```
+   乗り換えの commit は最も強いシグナルなので明示的に拾い、採用の広がりは watchlist 全体で
+   数える。どちらも [`references/commands.md`](references/commands.md) の「手順7」。
 
    提案は次の3種類。いずれも**このリポジトリの現状と突き合わせてから**出す:
    - **未導入の新ツール** — 複数人が採用していて、こちらに無いもの
@@ -89,16 +74,16 @@ description: Show new commits on the watched dotfiles repositories since each on
    各提案には「**誰が使っているか（何/19）**」「**何を解決するか**」「**乗り換えコスト**」を添える。
    根拠なく流行りを勧めない。採用者が 1 人だけなら、そう明示する。
 
-7. **同じツールの設定と仕組みを比べる。** 手順6が「何を入れているか」なら、ここは「同じものを
+8. **同じツールの設定と仕組みを比べる。** 手順7が「何を入れているか」なら、ここは「同じものを
    どう設定しているか」を見る。新しいツールより、こちらが毎日使っているツールの設定のほうが
    効く場面は多い。
 
+   **セッションの前半で一部を見たリポジトリも、ここで飛ばさない。** 設定値だけ見て「比較済み」
+   にすると、指示文と skill がまるごと落ちる。
+
    対象は**両者が持っているツール**に絞る。相手が持っていないものを比べても意味がない:
 
-   ```bash
-   # 例: Codex / Claude Code / herdr / Neovim のモジュールを持つ相手を探す
-   for p in <各 clone>; do fd -i '<tool>' "$p" -t f -t d -E .git | head -1 | rg -q . && echo "$p"; done
-   ```
+   探し方は [`references/commands.md`](references/commands.md) の「手順8」。
 
    見つかった相手について、次の3点を比べる。差分が出たものだけ報告する:
    - **設定値** — こちらが宣言していないキー、値が違うキー（モデル、effort、機能フラグなど）
@@ -108,9 +93,10 @@ description: Show new commits on the watched dotfiles repositories since each on
    報告は「相手の値 / こちらの値 / なぜ違うか」の形にする。**相手の値をそのまま勧めない。**
    こちらの設定にコメントで理由が書いてあるなら、それを読んでから「その理由はまだ有効か」を問う。
 
-8. **結果を Artifact のページにまとめる。** チャットには要約（件数、目についた変更、提案の見出し）
-   だけを書き、詳細は毎回ページに置く。載せるのは手順4〜7の全部:
-   - リポジトリごとの新着 commit（除外前後の件数と一覧。30件超は領域別の表）
+9. **結果を Artifact のページにまとめる。** チャットには要約（件数、目についた変更、提案の見出し）
+   だけを書き、詳細は毎回ページに置く。載せるのは手順4〜8の全部:
+   - リポジトリごとの新着 commit（除外前後の件数と一覧。30件超は領域別の表。抜粋なら絞り方も）
+   - 指示文と skill の変更（増えた・消えた skill、指示文で変わった節、書き方の方針）
    - ツールの採用状況（何/19、誰が使っているか、こちらの有無）
    - 乗り換え commit
    - 設定の比較（相手の値 / こちらの値）
@@ -126,30 +112,27 @@ description: Show new commits on the watched dotfiles repositories since each on
    日付ごとの節を上に積む形にして、前回までの内容は残す。ページを書く前に `artifact-design`
    skill を読むこと（`Artifact` ツールの決まり）。
 
-9. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
+10. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
-   再 fetch して、レビュー中に upstream が進んでいないか確かめる:
+    再 fetch して、レビュー中に upstream が進んでいないか確かめる:
 
-   ```bash
-   git -C <path> fetch origin --quiet
-   git -C <path> log <default-branch> -1 --pretty='%aI'
-   ```
+    コマンドは [`references/commands.md`](references/commands.md) の「手順10」。
 
-   - 手順4で見た最新 commit と一致すれば、現在時刻（`date -u +"%Y-%m-%dT%H:%M:%SZ"`）を書き込む
-   - 進んでいれば**その差分を未レビューとして報告**し、続けてレビューするか、
-     手順4で見た最新 commit の日時を書き込んで残りを次回に持ち越すかを聞く
+    - 手順4で見た最新 commit と一致すれば、現在時刻（`date -u +"%Y-%m-%dT%H:%M:%SZ"`）を書き込む
+    - 進んでいれば**その差分を未レビューとして報告**し、続けてレビューするか、
+      手順4で見た最新 commit の日時を書き込んで残りを次回に持ち越すかを聞く
 
-   記録するのは「作業した時刻」ではなく「**実際にレビューし終えた地点**」。現在時刻を無条件に
-   書くと、fetch が古い場合やレビューが長引いた場合にその間の commit が永久にスキップされる。
+    記録するのは「作業した時刻」ではなく「**実際にレビューし終えた地点**」。現在時刻を無条件に
+    書くと、fetch が古い場合やレビューが長引いた場合にその間の commit が永久にスキップされる。
 
-   拒否されたらファイルは触らない。
+    拒否されたらファイルは触らない。
 
 ## 注意
 
-- commit のレビュー（手順4〜6）では、相手は相手の都合で構成を変えているので、ファイル内容の
-  差分比較はせず「何を変えたか」だけを見せる。ファイルを読み込むのは手順7だけで、そこでも
-  対象は両者が使っているツールに限る
-- ツールの提案は積極的にする（手順6）。ただし提案するのは**ツール選定**であって、相手の設定を
+- commit のレビュー（手順4〜7）では、相手は相手の都合で構成を変えているので、ファイル内容の
+  差分比較はせず「何を変えたか」だけを見せる。ファイルを読み込むのは手順6と手順8で、指示文と、
+  両者が使っているツールに限る
+- ツールの提案は積極的にする（手順7）。ただし提案するのは**ツール選定**であって、相手の設定を
   そのまま持ち込むことではない。ユーザーが指定した commit は `git -C <path> show <SHA>` で深掘りする
 - 取り込み候補として提示する前に、**その変更がこのリポジトリに該当するか**を確認する。
   相手側の「使わなくなったツールの削除」や「自分が使っているアプリの追加」は、こちらに同じものが

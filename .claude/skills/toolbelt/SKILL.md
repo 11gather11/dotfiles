@@ -78,6 +78,9 @@ description: Rebuild and republish the dotfiles reference page — what is insta
             favicon: "🧰")
    ```
 
+   `Artifact` ツールが無い環境（Codex など）では再公開せず、生成した `toolbelt.html` を
+   内蔵ブラウザで開いて確かめるところまでにする。公開ページの更新は Claude Code で行う。
+
 ## 注意
 
 - `toolbelt.html` は生成物。**直接編集しない**。直すのは `content.json` か `template.html`

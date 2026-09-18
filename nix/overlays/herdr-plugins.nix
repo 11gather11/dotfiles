@@ -90,11 +90,40 @@ in
     postInstall = ''
       substituteInPlace $out/herdr-plugin.toml \
         --replace-fail '"python3"' '"${prev.python3}/bin/python3"'
-      makeWrapper ${prev.python3}/bin/python3 $out/libexec/which-key-launch \
+      makeWrapper ${prev.python3}/bin/python3 $out/libexec/which-key-show \
         --set HERDR_PLUGIN_ROOT $out \
         --set HERDR_PLUGIN_ID cowboyvang.which-key \
         --add-flags "-u $out/bin/which-key show"
-    '';
+    ''
+    # herdr switches to an ASCII source for the length of prefix mode, and the
+    # space that opens this popup is what ends prefix mode — so the input
+    # method is back on kana by the time the popup reads its first key, and
+    # that key becomes a kana. The launcher switches to ABC itself and hands
+    # the input method back afterwards, so a herdr command taken mid-sentence
+    # returns to the sentence.
+    + (
+      if prev.stdenv.hostPlatform.isDarwin then
+        ''
+          cat > $out/libexec/which-key-launch <<'LAUNCH'
+          #!@shell@
+          previous="$(@macism@)"
+          @macism@ com.apple.keylayout.ABC
+          @show@ "$@"
+          status=$?
+          @macism@ "$previous"
+          exit "$status"
+          LAUNCH
+          substituteInPlace $out/libexec/which-key-launch \
+            --subst-var-by shell ${prev.runtimeShell} \
+            --subst-var-by macism ${prev.lib.getExe prev.macism} \
+            --subst-var-by show $out/libexec/which-key-show
+          chmod +x $out/libexec/which-key-launch
+        ''
+      else
+        ''
+          ln -s which-key-show $out/libexec/which-key-launch
+        ''
+    );
   };
 
   # Reviewing an agent's diff in a pane, and sending the comments written there

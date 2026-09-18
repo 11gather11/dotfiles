@@ -9,6 +9,7 @@
           herdr-automatic-rename
           herdr-hunk-diff
           herdr-pluck
+          herdr-which-key
           herdr-window-title-sync
           ;
       };

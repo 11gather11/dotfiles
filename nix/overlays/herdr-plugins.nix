@@ -61,6 +61,42 @@ in
     };
   };
 
+  # A which-key for herdr's prefix: a popup listing every binding grouped and
+  # labelled, where the next key runs the one shown. herdr gives plugins no way
+  # to notice the prefix being pressed, so it opens on a key of its own rather
+  # than on a timeout the way which-key does in Neovim.
+  #
+  # Pinned to the last commit. Upstream stopped after four days and says it was
+  # verified against herdr 0.7.5; this is on trial against 0.9.1.
+  #
+  # Two changes from the repository as published. The manifest runs `python3`
+  # by name, and on macOS that is a shim which fails without Command Line
+  # Tools, so it is pointed at nixpkgs' interpreter. And upstream's fast route —
+  # a `type = "popup"` keybinding — gets none of herdr's plugin variables, so it
+  # writes a launcher into the plugin's config directory to restore them,
+  # because a plugin installed by herdr lives under a path with a hash that
+  # changes on reinstall. A store path does not change within a version, so the
+  # launcher is built into the package instead of written at runtime.
+  herdr-which-key = sourcePlugin {
+    pname = "herdr-which-key";
+    version = "0-unstable-2026-08-02";
+    src = fetch {
+      owner = "CowboyVang";
+      repo = "herdr-which-key";
+      rev = "7339ad4edd734b5295e5bde8375e97de9f7ccb0b";
+      hash = "sha256-qar8aToFKMTTlpqfidmxBkJa3H7GFn2qWj+Gmd7ZPMY=";
+    };
+    nativeBuildInputs = [ prev.makeWrapper ];
+    postInstall = ''
+      substituteInPlace $out/herdr-plugin.toml \
+        --replace-fail '"python3"' '"${prev.python3}/bin/python3"'
+      makeWrapper ${prev.python3}/bin/python3 $out/libexec/which-key-launch \
+        --set HERDR_PLUGIN_ROOT $out \
+        --set HERDR_PLUGIN_ID cowboyvang.which-key \
+        --add-flags "-u $out/bin/which-key show"
+    '';
+  };
+
   # Reviewing an agent's diff in a pane, and sending the comments written there
   # back to the agent that wrote the code. Built here rather than fetched, so
   # it has a package of its own; see nix/packages/herdr-hunk-diff.

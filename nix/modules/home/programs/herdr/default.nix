@@ -69,6 +69,18 @@ let
         command = "rmarganti.herdr-pluck.open-url";
         description = "open visible URL";
       }
+      # The prefix then space, the way Space alone is Neovim's leader: the same
+      # key opens the menu of what comes next on either side. A popup binding
+      # rather than a plugin action, because it is the only route that gives
+      # the menu a real terminal to read keys from.
+      {
+        key = "prefix+space";
+        type = "popup";
+        command = "${pkgs.herdr-which-key}/libexec/which-key-launch";
+        description = "which-key: show prefix bindings";
+        width = "78%";
+        height = "62%";
+      }
     ];
   };
 
@@ -80,6 +92,7 @@ let
     pkgs.herdr-window-title-sync
     pkgs.herdr-hunk-diff
     pkgs.herdr-pluck
+    pkgs.herdr-which-key
   ];
 
   # Agents whose official integration should be installed. Without one, herdr

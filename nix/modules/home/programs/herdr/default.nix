@@ -132,36 +132,180 @@ in
     # LLM naming them from the conversation, and that wanted a paid API key
     # rather than the subscriptions already here, so a name that moves beats no
     # name at all. The numbering is unaffected either way.
-    file.".config/herdr-automatic-rename/config.sh".text = ''
-      NAME_TABS=1
-      AUTO_INDEX=1
-    '';
+    file = {
+      ".config/herdr-automatic-rename/config.sh".text = ''
+        NAME_TABS=1
+        AUTO_INDEX=1
+      '';
 
-    # herdr-pluck's built-in patterns already cover URLs, paths, git SHAs, hex
-    # literals, UUIDs and IPs. A Nix SRI hash matches none of them — it is the
-    # one token here that is routinely copied out of a build failure by hand,
-    # which is the whole reason this plugin is installed.
-    #
-    # Unlike herdr's own config.toml this is a symlink: herdr never writes a
-    # plugin's config, the plugin reads it, and nothing here has a TUI that
-    # would need to open it for writing.
-    file.".config/herdr/plugins/config/rmarganti.herdr-pluck/config.toml".source =
-      tomlFormat.generate "herdr-pluck-config.toml"
-        {
-          patterns = [
-            {
-              name = "nix-sri-hash";
-              regex = "sha256-[0-9a-zA-Z+/]{43}=";
-              priority = 25;
-            }
-          ];
+      # herdr-pluck's built-in patterns already cover URLs, paths, git SHAs, hex
+      # literals, UUIDs and IPs. A Nix SRI hash matches none of them — it is the
+      # one token here that is routinely copied out of a build failure by hand,
+      # which is the whole reason this plugin is installed.
+      #
+      # Unlike herdr's own config.toml this is a symlink: herdr never writes a
+      # plugin's config, the plugin reads it, and nothing here has a TUI that
+      # would need to open it for writing.
+      ".config/herdr/plugins/config/rmarganti.herdr-pluck/config.toml".source =
+        tomlFormat.generate "herdr-pluck-config.toml"
+          {
+            patterns = [
+              {
+                name = "nix-sri-hash";
+                regex = "sha256-[0-9a-zA-Z+/]{43}=";
+                priority = 25;
+              }
+            ];
+          };
+
+      # The popup's own multi-key groups turn herdr's flat prefix namespace into
+      # the same noun-first layout used by Neovim's leader mappings.
+      ".config/herdr/plugins/config/cowboyvang.which-key/groups.toml" = {
+        force = true;
+        source = tomlFormat.generate "herdr-which-key-groups.toml" {
+          hide_grouped = true;
+
+          tab = {
+            key = "t";
+            desc = "+tab";
+            keys = [
+              {
+                key = "t";
+                action = "switch_tab";
+              }
+              {
+                key = "c";
+                action = "new_tab";
+              }
+              {
+                key = "n";
+                action = "next_tab";
+              }
+              {
+                key = "p";
+                action = "previous_tab";
+              }
+              {
+                key = "r";
+                action = "rename_tab";
+              }
+              {
+                key = "x";
+                action = "close_tab";
+              }
+            ];
+          };
+
+          workspace = {
+            key = "w";
+            desc = "+workspace";
+            keys = [
+              {
+                key = "w";
+                node = "workspaces";
+              }
+              {
+                key = "c";
+                action = "new_workspace";
+              }
+              {
+                key = "r";
+                action = "rename_workspace";
+              }
+              {
+                key = "x";
+                action = "close_workspace";
+              }
+            ];
+          };
+
+          pane = {
+            key = "p";
+            desc = "+pane";
+            keys = [
+              {
+                key = "v";
+                action = "split_vertical";
+              }
+              {
+                key = "s";
+                action = "split_horizontal";
+              }
+              {
+                key = "z";
+                action = "zoom";
+              }
+              {
+                key = "r";
+                action = "rename_pane";
+              }
+              {
+                key = "x";
+                action = "close_pane";
+              }
+            ];
+
+            move = {
+              key = "m";
+              desc = "+move";
+              keys = [
+                {
+                  key = "h";
+                  action = "swap_pane_left";
+                }
+                {
+                  key = "j";
+                  action = "swap_pane_down";
+                }
+                {
+                  key = "k";
+                  action = "swap_pane_up";
+                }
+                {
+                  key = "l";
+                  action = "swap_pane_right";
+                }
+              ];
+            };
+          };
+
+          yank = {
+            key = "y";
+            desc = "+yank";
+            keys = [
+              {
+                key = "y";
+                desc = "表示中のトークンをコピー";
+                plugin_action = "rmarganti.herdr-pluck.pluck";
+              }
+              {
+                key = "u";
+                desc = "表示中の URL を開く";
+                plugin_action = "rmarganti.herdr-pluck.open-url";
+              }
+            ];
+          };
         };
+      };
+
+    };
 
     activation = {
       writeHerdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         mkdir -p "${herdrConfigDir}"
         cp --no-preserve=mode,ownership ${tomlFormat.generate "herdr-config.toml" settings} "${herdrConfigDir}/config.toml"
         chmod 644 "${herdrConfigDir}/config.toml"
+      '';
+
+      # Home Manager normally installs home.file entries as store symlinks,
+      # but which-key refuses symlinks before parsing user-provided commands.
+      # Materialize the generated TOML after linking so the security check sees
+      # a regular file owned by the user.
+      materializeHerdrWhichKeyGroups = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        target="${herdrConfigDir}/plugins/config/cowboyvang.which-key/groups.toml"
+        cp --no-preserve=mode,ownership "$target" "$target.tmp"
+        chmod 644 "$target.tmp"
+        mv -f "$target.tmp" "$target"
       '';
 
       # `herdr plugin install` fetches a repository and runs its build step at

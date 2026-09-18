@@ -64,9 +64,6 @@ description: Diff this repository against another dotfiles repository as it stan
    `artifact.json` に URL があれば同じページを更新し、無ければ新規に作って URL を書き込む。
    ページを書く前に `artifact-design` skill を読むこと。
 
-   `Artifact` ツールが無い環境（Codex など）では、同じ内容をリポジトリの外（`$TMPDIR` など）に
-   HTML で書き出して内蔵ブラウザで開く。`artifact.json` は触らない。
-
 8. **`decisions.md` を更新するか聞く。** 提案を見送ったもの、採ったものを1行ずつ追記する。
    書くのは「何を・いつ・なぜ」。次回この skill を動かしたとき、手順2でこれを読んで蒸し返さない。
 

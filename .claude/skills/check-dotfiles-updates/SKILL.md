@@ -112,9 +112,6 @@ description: Show new commits on the watched dotfiles repositories since each on
    日付ごとの節を上に積む形にして、前回までの内容は残す。ページを書く前に `artifact-design`
    skill を読むこと（`Artifact` ツールの決まり）。
 
-   `Artifact` ツールが無い環境（Codex など）では、同じ内容をリポジトリの外（`$TMPDIR` など）に
-   HTML で書き出して内蔵ブラウザで開く。`artifact.json` は触らない。
-
 10. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
     再 fetch して、レビュー中に upstream が進んでいないか確かめる:

@@ -41,9 +41,9 @@ let
     # thumb key for both, told apart by whether ctrl is held. The default
     # ctrl+b also shadowed copy mode's own page-up.
     #
-    # The cost is on the Neovim side, which never sees ctrl+space again: blink's
-    # manual completion trigger and LazyVim's syntax-node selection. Completion
-    # opens on its own anyway. macOS claims the chord for switching input
+    # Neovim binds ctrl+space too — blink's manual completion and LazyVim's
+    # syntax-node selection — and still gets it: pressing the prefix twice
+    # sends it through to the pane. macOS claims the chord for switching input
     # sources, which nix/modules/darwin-system/activation.nix turns off.
     keys.prefix = "ctrl+space";
 

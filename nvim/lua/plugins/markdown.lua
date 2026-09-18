@@ -6,7 +6,7 @@ local markdownlint_config = vim.fn.stdpath("config") .. "/markdownlint.jsonc"
 -- Each Neovim gets its own port, so two editors can preview at once.
 local preview_port = 5500 + vim.uv.os_getpid() % 500
 
--- The herdr pane the preview is shown in, while one is open.
+-- The pane the preview browser is shown in, while one is open.
 local preview_pane = nil
 
 local function herdr(args)
@@ -14,7 +14,7 @@ local function herdr(args)
 end
 
 -- Toggle a live preview of the markdown being edited. Inside herdr it opens in
--- a browser pane to the right of this one; elsewhere in the default browser.
+-- a terminal-browser pane to the right of this one; elsewhere in the default browser.
 local function toggle_preview()
   local lp = require("livepreview")
   local utils = require("livepreview.utils")
@@ -52,39 +52,33 @@ local function toggle_preview()
     return
   end
 
-  local me = vim.env.HERDR_PANE_ID
   local url = ("http://127.0.0.1:%d/%s"):format(preview_port, vim.uri_encode(vim.fs.basename(file)))
-  local opened = herdr({
-    "plugin",
-    "pane",
-    "open",
-    "--plugin",
-    "official.browser",
-    "--entrypoint",
-    "browser",
-    "--placement",
-    "split",
-    "--direction",
-    "right",
-    "--target-pane",
-    me,
-    "--no-focus",
-    "--env",
-    "HERDR_BROWSER_INITIAL_URL=" .. url,
-  })
+
+  -- terminal-browser splits the pane it was invoked from, so there is no target
+  -- to name: running it from this Neovim is what puts the preview beside it.
+  local opened = vim.system({ "terminal-browser", "open", url, "--split", "right" }, { text = true }):wait()
   if opened.code ~= 0 then
     lp.close()
-    vim.notify("herdr could not open the preview pane: " .. opened.stderr, vim.log.levels.ERROR)
+    vim.notify("terminal-browser could not open the preview pane: " .. opened.stderr, vim.log.levels.ERROR)
     return
   end
-  preview_pane = vim.json.decode(opened.stdout).result.plugin_pane.pane.pane_id
 
-  -- herdr does not resize panes after a plugin opens a split
-  -- (https://github.com/herdrdev/herdr/issues/3799), so this Neovim kept its
-  -- old width and drew past the pane. Nudging the divider makes herdr send the
-  -- new size.
-  herdr({ "pane", "resize", "--pane", me, "--direction", "right", "--amount", "0.01" })
-  herdr({ "pane", "resize", "--pane", me, "--direction", "left", "--amount", "0.01" })
+  -- `open` prints the new browser but not the pane herdr gave it; `ls` has both.
+  -- Matching on the key rather than taking the newest entry is what stops two
+  -- editors previewing at once from closing each other's pane.
+  local key = (vim.json.decode(opened.stdout) or {}).key
+  local listed = vim.system({ "terminal-browser", "ls", "--json" }, { text = true }):wait()
+  for _, browser in ipairs((vim.json.decode(listed.stdout) or {}).browsers or {}) do
+    if browser.key == key then
+      preview_pane = browser.pane and browser.pane.pane
+    end
+  end
+
+  -- terminal-browser has no --no-focus, so the browser takes focus and this
+  -- hands it straight back.
+  if preview_pane then
+    herdr({ "pane", "focus", "--pane", preview_pane, "--direction", "left" })
+  end
 end
 
 return {

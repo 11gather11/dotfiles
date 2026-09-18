@@ -32,8 +32,9 @@ let
       show_agent_labels_on_pane_borders = true;
     };
 
-    # herdr-browser draws Chromium into a pane through the Kitty graphics
-    # protocol, which herdr keeps behind this flag. Ghostty speaks it.
+    # Images drawn into a pane travel over the Kitty graphics protocol, which
+    # herdr keeps behind this flag and Ghostty speaks. snacks' image viewer is
+    # what needs it here — a pane without it shows a blank where the picture is.
     experimental.kitty_graphics = true;
 
     # A plugin action is reachable without a binding — `herdr plugin action
@@ -60,7 +61,6 @@ let
   # plugin repository is, with anything the manifest's [[build]] step would have
   # produced already in place.
   plugins = [
-    pkgs.herdr-browser
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
     pkgs.herdr-hunk-diff

@@ -55,11 +55,6 @@ jobs:
           # version that cannot build, so it is updated by hand.
           const TAGGED = [herdr-automatic-rename herdr-pluck]
           # Plugins with no tags at all; the pin follows the default branch.
-          #
-          # herdr-browser is deliberately absent, and the overlay says why: its
-          # newer revisions no longer carry a manifest, so they build and then
-          # register nothing. That failure is invisible to the build step below,
-          # which is exactly why the exclusion lives here rather than in a check.
           const BRANCH = [herdr-window-title-sync]
 
           # `git diff --quiet` exits 1 when the path differs, which Nushell raises

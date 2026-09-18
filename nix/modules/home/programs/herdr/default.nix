@@ -37,6 +37,21 @@ let
     # what needs it here — a pane without it shows a blank where the picture is.
     experimental.kitty_graphics = true;
 
+    # Space is Neovim's leader here, so ctrl+space puts herdr beside it: one
+    # thumb key for both, told apart by whether ctrl is held. The default
+    # ctrl+b also shadowed copy mode's own page-up.
+    #
+    # The cost is on the Neovim side, which never sees ctrl+space again: blink's
+    # manual completion trigger and LazyVim's syntax-node selection. Completion
+    # opens on its own anyway. macOS claims the chord for switching input
+    # sources, which nix/modules/darwin-system/activation.nix turns off.
+    keys.prefix = "ctrl+space";
+
+    # Typing Japanese, the key after the prefix reaches the input method first
+    # and `f` becomes a kana instead of a herdr command. This switches to an
+    # ASCII source for the length of prefix mode only.
+    experimental.switch_ascii_input_source_in_prefix = true;
+
     # A plugin action is reachable without a binding — `herdr plugin action
     # invoke <id>` — but reaching for a hint overlay through a command line is
     # the mouse round trip it exists to remove. Both keys are free in 0.9.1;

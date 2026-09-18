@@ -31,10 +31,27 @@ in
       fi
     '';
 
-    # Set user shell on activation
+    # Set the login shell, and release ctrl+space from macOS.
+    #
+    # ctrl+space is herdr's prefix, and macOS takes it first for "select the
+    # previous input source" (symbolic hotkey 60). Nothing is lost by turning
+    # that off: Karabiner switches kana and eisuu on a tap of cmd instead.
+    #
+    # -dict-add rather than CustomUserPreferences. nix-darwin writes a custom
+    # preference with `defaults write <domain> <key> <plist>`, which replaces
+    # the whole AppleSymbolicHotKeys dictionary — twenty-seven entries today —
+    # with the one declared here, resetting every other shortcut changed in
+    # System Settings. activateSettings applies it without a logout.
     activationScripts.postActivation.text = ''
       echo "Setting login shell to fish..."
       sudo chsh -s ${fishPath} ${username} || true
+
+      echo "Releasing ctrl+space from input source switching..."
+      launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
+        defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 60 \
+        '<dict><key>enabled</key><false/><key>value</key><dict><key>parameters</key><array><integer>32</integer><integer>49</integer><integer>262144</integer></array><key>type</key><string>standard</string></dict></dict>' || true
+      launchctl asuser "$(id -u -- ${username})" sudo --user=${username} -- \
+        /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u || true
     '';
 
     # macOS system defaults

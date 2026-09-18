@@ -5,7 +5,19 @@
 	},
 	{
 		"repo": "Mic92/dotfiles",
-		"note": "nix-community メンテナ。herdr を実運用に組み込んでいる唯一の例。llm-agents.nix 最大の貢献者"
+		"note": "nix-community メンテナ。herdr を実運用に組み込み、llm-agents.nix に継続的に貢献"
+	},
+	{
+		"repo": "ZeiZel/dotfiles",
+		"note": "Herdr + Neovim + Zsh を一体の terminal IDE として設計。導入・永続化・agent hook・安全境界まで追える"
+	},
+	{
+		"repo": "ViniVMA/dotfiles",
+		"note": "tmux から Herdr への移行と Neovim 連携の試行が具体的。無効化中の herdr-context.nvim と後継実験も追う"
+	},
+	{
+		"repo": "rlch/dotfiles",
+		"note": "Herdr の Vim 風 pane 操作、workspace / worktree 運用、Neovim とのキー競合対策が充実"
 	},
 	{
 		"repo": "sei40kr/dotfiles",

@@ -90,7 +90,6 @@ let
   plugins = [
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
-    pkgs.herdr-hunk-diff
     pkgs.herdr-pluck
     pkgs.herdr-which-key
   ];

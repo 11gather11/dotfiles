@@ -55,8 +55,8 @@
 - **herdr**（2026-09-16）— 19リポジトリ中、実運用は Mic92 のみ。worktrunk との連携 hook はこちらだけ
 - **worktrunk**（2026-09-16）— 採用は kclejeune のみ。herdr の workspace と繋ぐ hook はこちらだけ
 - **hunk**（2026-09-17 訂正）— 採用は ryoppippi のみ（1/19）。ただし `home.packages` に置くだけで、
-  git からも skill からも呼んでいない。こちらは herdr プラグイン（`herdr-hunk-diff`）として
-  ペインに出し、テーマを合わせ、`hunk-review` skill を配るところまでやっている。
+  git からも skill からも呼んでいない。こちらはテーマを合わせ、`hunk-review` skill を配るところまで
+  やっている（herdr プラグインの `herdr-hunk-diff` は 2026-09-18 に外した）。
   前回「採用ゼロ」と書いたのは誤り
 - **Neovim の Markdown プレビュー**（2026-09-16）— live-preview.nvim を herdr のブラウザペインに
   出す構成は、どのリポジトリにもない

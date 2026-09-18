@@ -2,11 +2,11 @@
 # in a pane, so a hash, path or URL is copied by typing its hint rather than by
 # selecting it with the mouse. tmux-fingers, for panes herdr owns.
 #
-# Like herdr-hunk-diff, this is not just a source tree: the manifest's [[build]]
-# step downloads a release binary, and `herdr plugin link` does not run build
-# steps at all. So the binary is built here and the finished layout is what gets
-# linked — the manifest at the plugin root, the binary under bin/, which is the
-# path the manifest's actions name.
+# This is not just a source tree: the manifest's [[build]] step downloads a
+# release binary, and `herdr plugin link` does not run build steps at all. So
+# the binary is built here and the finished layout is what gets linked — the
+# manifest at the plugin root, the binary under bin/, which is the path the
+# manifest's actions name.
 {
   lib,
   rustPlatform,

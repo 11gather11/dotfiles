@@ -43,16 +43,10 @@ jobs:
         shell: nu {0}
         run: |
           # Both directories hold a pin nix-update can move: the overlay defines
-          # the plugins that are only a source tree, nix/packages the two that
+          # the plugins that are only a source tree, nix/packages the ones that
           # are built.
           const PINNED = ['nix/overlays' 'nix/packages']
           # Plugins that publish releases, so the pin follows the newest tag.
-          #
-          # herdr-hunk-diff is deliberately absent. Its package.json lock ships
-          # entries with no tarball URL, so nix/packages/herdr-hunk-diff carries
-          # a hand-fetched lockfile-additions.json for exactly the versions it
-          # pins. Moving the tag without regenerating that file produces a
-          # version that cannot build, so it is updated by hand.
           const TAGGED = [herdr-automatic-rename herdr-pluck]
           # Plugins with no tags at all; the pin follows the default branch.
           const BRANCH = [herdr-window-title-sync]

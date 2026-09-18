@@ -1256,15 +1256,6 @@
 								"kind": "t-new",
 								"text": "新"
 							}
-						},
-						{
-							"name": "herdr-hunk-diff",
-							"desc": "herdr のペインで hunk を開き、書いたコメントを担当エージェントへ返す。npm ci と tsc を伴う唯一のプラグインなので、ビルドはこちらで固定している",
-							"expand": "nix/packages/herdr-hunk-diff",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
 						}
 					]
 				},

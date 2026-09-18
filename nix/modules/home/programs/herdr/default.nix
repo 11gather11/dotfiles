@@ -218,6 +218,28 @@ in
           esac
         done
       '';
+
+      # A switch installs a new herdr binary but cannot touch the server already
+      # running, which keeps the binary it started with until it is stopped.
+      # When the protocol changed, installHerdrIntegrations above already fails
+      # loudly. When it did not, every command still succeeds and nothing says
+      # the new version is not the one running — a server stayed on 0.9.0 for
+      # three and a half days of 0.9.1 switches that way, and the fix for the
+      # lag in graphics panes that 0.9.1 carried never reached it.
+      #
+      # herdr reports both conditions itself. Only a warning, never a restart:
+      # stopping the server ends every process in every pane, and this switch is
+      # often running inside one.
+      warnStaleHerdrServer = lib.hm.dag.entryAfter [ "linkHerdrPlugins" ] ''
+        if status="$(${herdr} status --json 2>/dev/null)"; then
+          stale="$(${pkgs.jq}/bin/jq -r '.update.server_binary_stale == true or .update.restart_needed == true' <<<"$status")"
+          if [ "$stale" = true ]; then
+            running="$(${pkgs.jq}/bin/jq -r '.server.version // "unknown"' <<<"$status")"
+            echo "herdr: the running server is $running, but this switch installed ${pkgs.llm-agents.herdr.version}." >&2
+            echo "herdr: the new version is not in effect until the server restarts: herdr server stop && herdr" >&2
+          fi
+        fi
+      '';
     };
   };
 }

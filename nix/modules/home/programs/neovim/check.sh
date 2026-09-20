@@ -26,17 +26,17 @@ export XDG_CONFIG_HOME="$(dirname "$NVIM_DOTFILES_DIR")"
 
 echo "📦 Running Lazy! $ACTION..."
 
-# `--headless` reports a failed startup command on stderr and still exits 0, so
-# the output is what has to be inspected. Without this the whole run is
-# vacuous: a missing config answers `E492: Not an editor command: Lazy!` and
-# reports success, which is how CI passed while checking nothing.
-output=$("$NVIM_BIN" --headless "+Lazy! $ACTION" +qa 2>&1)
-printf '%s\n' "$output"
+"$NVIM_BIN" --headless "+Lazy! $ACTION" +qa
 
-if grep -qE '^E[0-9]+:|Error( in command line|:)' <<<"$output"; then
-  echo "❌ Neovim reported an error above." >&2
-  exit 1
-fi
+# `--headless` reports a failed startup command on stderr and still exits 0, so
+# the run above proves nothing on its own: a Neovim that never found the config
+# answers `E492: Not an editor command: Lazy!` and reports success, which is how
+# CI passed for months while checking nothing. Ask Lazy.nvim itself instead —
+# `cq` is the headless way to exit non-zero. Warnings the config prints on the
+# way (nvim-treesitter has no CLI in CI, say) leave this assertion alone.
+"$NVIM_BIN" --headless \
+  -c 'lua local ok, lazy = pcall(require, "lazy"); if not ok or #lazy.plugins() == 0 then vim.cmd("cq") end' \
+  -c 'qa'
 
 mkdir -p "$LAZY_DIR"
 touch "$LAZY_LOCK_TIMESTAMP"

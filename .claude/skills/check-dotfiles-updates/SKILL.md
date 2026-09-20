@@ -9,14 +9,18 @@ description: Show new commits on the watched dotfiles repositories since each on
 
 - 監視対象: `watchlist.json`（このディレクトリ、git 管理）
 - 最終確認日: `last-check.json`（このディレクトリ、git 管理外）。リポジトリごとに ISO 8601 で保持
-- 報告先: `artifact.json`（このディレクトリ、git 管理外）。毎回同じページを更新するための URL を保持
+- 判断の記録: `decisions.md`（このディレクトリ、git 管理）。**回を跨いで残るのはここだけ**
+- 報告先: `artifact.json`（このディレクトリ、git 管理外）。同じページを更新するための URL を保持
 
 ## 手順
 
-1. `watchlist.json` と `last-check.json` を読む。
+1. `watchlist.json`、`last-check.json`、`decisions.md` を読む。
 
    引数でリポジトリ名（`Mic92/dotfiles` など）が渡された場合はそれだけを対象にする。
    渡されなければ watchlist 全件。
+
+   **`decisions.md` に「見送り」とあるものは提案し直さない。** 状況が変わった（採用者が増えた、
+   相手が方式を変えた、こちらの前提が変わった）ときだけ、「記録ではこうだが」と添えて再提示する。
 
 2. 各リポジトリのローカル clone を用意する。パスは `$(ghq root)/github.com/<repo>`。
 
@@ -102,15 +106,17 @@ description: Show new commits on the watched dotfiles repositories since each on
    - 設定の比較（相手の値 / こちらの値）
    - 提案（未導入・乗り換え候補・重複）
 
-   **ページは毎回作り直さず、同じものを更新する。** `artifact.json` に URL があればそれを
-   `Artifact` ツールの `url` に渡し、無ければ新規に作って返ってきた URL を書き込む:
+   **ページは同じ URL を使い、中身は今回の結果だけに差し替える。** `artifact.json` に URL が
+   あればそれを `Artifact` ツールの `url` に渡し、無ければ新規に作って返ってきた URL を書き込む:
 
    ```json
    { "url": "https://claude.ai/...", "updated": "2026-09-16T11:12:39Z" }
    ```
 
-   日付ごとの節を上に積む形にして、前回までの内容は残す。ページを書く前に `artifact-design`
-   skill を読むこと（`Artifact` ツールの決まり）。
+   前回までの節は積まない。積むと、次に回したとき**前回のレポート全文を読んでから調査を
+   始めることになり**、前回の枠組みに寄った結論が出る。回を跨いで要るのは全文ではなく
+   `decisions.md` の数十行で、そちらは git にある。ページを書く前に `artifact-design` skill を
+   読むこと（`Artifact` ツールの決まり）。
 
 10. 提示後、最終確認日を更新するか聞く。承認されたら、リポジトリごとに:
 
@@ -126,6 +132,15 @@ description: Show new commits on the watched dotfiles repositories since each on
     書くと、fetch が古い場合やレビューが長引いた場合にその間の commit が永久にスキップされる。
 
     拒否されたらファイルは触らない。
+
+11. **`decisions.md` を更新するか聞く。** ページは次回には残らないので、ここに書かなかったことは
+    忘れられる。1行ずつ、「いつ・何を・どうした・なぜ」を書く:
+
+    - **提案の結末** — 採った / 見送った / 保留。見送りは理由が要る。次回ここを読んで蒸し返さない
+    - **採用数** — その回に数えたもの（`herdr 6/24` のように）。推移が読めるのはこの行だけ
+
+    全部は書かない。**次回の判断を変えるものだけ**を書く。commit で何が起きたかは相手の git に
+    あるので、ここに写さない。
 
 ## 注意
 

@@ -3,9 +3,9 @@
 -- Add any additional options here
 
 -- The typescript extra picks its language server from this, and vtsls is its
--- default. tsgo is lspconfig's name for the Go rewrite, which Nix installs as
--- part of typescript 7; see nix/modules/home/programs/neovim and plugins/lsp.
-vim.g.lazyvim_ts_lsp = "tsgo"
+-- default. TypeScript 7 is the Go rewrite, so its compiler is also the server
+-- and both are named tsc; Nix installs it as part of typescript.
+vim.g.lazyvim_ts_lsp = "tsc"
 
 -- LazyVim turns spell checking on for markdown and git commits. Without cjk,
 -- every Japanese word in them is underlined as a misspelling.

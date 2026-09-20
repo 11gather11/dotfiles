@@ -21,7 +21,10 @@ in
     extraPackages = with pkgs; [
       # Language servers (nixd is already on system PATH via packages.nix)
       lua-language-server
-      typescript-go # TypeScript LSP (`tsgo` binary, Go-rewritten tsserver)
+      # TypeScript 7 is the Go rewrite, so nixpkgs folded typescript-go into
+      # this package and its binary is `tsc` — one compiler, which is also the
+      # language server (`tsc --lsp`). See the cmd in nvim/lua/plugins/lsp.lua.
+      typescript
 
       # Tools the enabled LazyVim extras (nvim/lazyvim.json) expect. Each extra
       # would have Mason fetch them, and Mason is disabled here.

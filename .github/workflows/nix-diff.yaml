@@ -13,7 +13,21 @@ permissions:
 
 jobs:
   nix-diff:
-    runs-on: ubuntu-24.04-arm
+    name: nix-diff (${{ matrix.system }})
+    # One runner per architecture, rather than both diffs on one. Computing a
+    # diff means realising both sides, and a derivation for a foreign system
+    # can only be substituted, never built: the moment a nixpkgs bump empties
+    # the cache, diffing x86_64-linux on an arm runner stops with `platform
+    # mismatch`. That is exactly the pull request whose diff is worth reading.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner: ubuntu-24.04
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -27,7 +41,5 @@ jobs:
         with:
           skip-no-change: true
           attributes: |
-            - displayName: home-manager (x86_64-linux)
-              attribute: diffTargets.home-x86_64-linux
-            - displayName: home-manager (aarch64-linux)
-              attribute: diffTargets.home-aarch64-linux
+            - displayName: home-manager (${{ matrix.system }})
+              attribute: diffTargets.home-${{ matrix.system }}

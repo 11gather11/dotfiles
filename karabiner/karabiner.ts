@@ -1,15 +1,20 @@
 import * as k from 'karabiner.ts';
-import * as utils from './utils.ts';
 
+// mdfind で引いていた値を定数にしてある。この設定は Nix のサンドボックスの中で
+// 生成されるので、アプリの場所も HID デバイスの一覧もそこからは見えない。
 const IDENTIFIERS = {
-	discord: await utils.extractIdentifierOptional('Discord'),
+	discord: 'com.hnc.Discord',
 } as const;
 
-// アプリが見つかった場合のみbundle_identifiersに追加
-const chatAppBundleIds = [IDENTIFIERS.discord].filter((id): id is string => id != null);
+const chatAppBundleIds = [IDENTIFIERS.discord];
 
 k.writeToProfile(
-	'Default profile',
+	{
+		name: 'Default profile',
+		// derivation は karabiner.base.json の写しを指す。writeToProfile は
+		// 既存のファイルにルールを混ぜ込むので、書き込む先が要る
+		karabinerJsonPath: process.env.KARABINER_JSON,
+	},
 	[
 		// Caps Lock -> Control (simple modification で設定)
 
@@ -39,35 +44,27 @@ k.writeToProfile(
 				}),
 		]),
 
-		// Discordがインストールされている場合のみルールを追加
-		...(chatAppBundleIds.length > 0
-			? [
-					k
-						.rule(
-							'Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord',
-							k.ifApp(chatAppBundleIds),
-						)
-						.manipulators([
-							k
-								.map({
-									key_code: 'return_or_enter',
-									modifiers: { mandatory: ['shift'] },
-								})
-								.to({ key_code: 'return_or_enter' }),
+		k
+			.rule('Swap Enter & Shift+Enter and CMD+Enter -> Enter on Discord', k.ifApp(chatAppBundleIds))
+			.manipulators([
+				k
+					.map({
+						key_code: 'return_or_enter',
+						modifiers: { mandatory: ['shift'] },
+					})
+					.to({ key_code: 'return_or_enter' }),
 
-							k
-								.map({
-									key_code: 'return_or_enter',
-									modifiers: { mandatory: ['command'] },
-								})
-								.to({ key_code: 'return_or_enter' }),
+				k
+					.map({
+						key_code: 'return_or_enter',
+						modifiers: { mandatory: ['command'] },
+					})
+					.to({ key_code: 'return_or_enter' }),
 
-							k
-								.map({ key_code: 'return_or_enter' })
-								.to({ key_code: 'return_or_enter', modifiers: ['shift'] }),
-						]),
-				]
-			: []),
+				k
+					.map({ key_code: 'return_or_enter' })
+					.to({ key_code: 'return_or_enter', modifiers: ['shift'] }),
+			]),
 
 		k.rule('Tap CMD to toggle Kana/Eisuu').manipulators([
 			k.withMapper<k.ModifierKeyCode, k.JapaneseKeyCode>({

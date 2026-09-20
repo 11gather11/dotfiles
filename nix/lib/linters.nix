@@ -9,18 +9,28 @@
 # `scope` records the difference that is real: deadnix takes a file list, so the
 # local hook can limit it to what is staged, while statix takes a single target
 # and reads the tree. Written down here rather than discovered by reading both
-# call sites.
+# call sites. `excludes` says the same thing as the deadnix flag in `args`, in
+# the form git-hooks.nix wants it: regexes matched against the path.
 [
   {
     name = "deadnix";
     package = pkgs: pkgs.deadnix;
     scope = "files";
-    args = [ "--fail" ];
+    # karabiner/bun.nix is written by bun2nix, whose header says not to edit it
+    # by hand: it takes the full fetcher set as arguments and uses the one that
+    # this lockfile happens to need.
+    args = [
+      "--fail"
+      "--exclude"
+      "karabiner/bun.nix"
+    ];
+    excludes = [ "^karabiner/bun\\.nix$" ];
   }
   {
     name = "statix";
     package = pkgs: pkgs.statix;
     scope = "tree";
     args = [ "check" ];
+    excludes = [ ];
   }
 ]

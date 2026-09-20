@@ -24,9 +24,15 @@
         # The linter list lives in nix/lib/linters.nix, which the home-manager
         # hook reads too. git-hooks.nix ships a ready-made hook for each of
         # these, so here the name is all that is needed.
-        // lib.genAttrs (map (l: l.name) (import ../lib/linters.nix)) (_: {
-          enable = true;
-        });
+        // lib.listToAttrs (
+          map (l: {
+            inherit (l) name;
+            value = {
+              enable = true;
+              inherit (l) excludes;
+            };
+          }) (import ../lib/linters.nix)
+        );
       };
     };
 }

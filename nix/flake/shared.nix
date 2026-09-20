@@ -48,6 +48,9 @@ let
         (_final: prev: {
           bun-upstream = inputs.nix-bun.packages.${prev.stdenv.hostPlatform.system}.bun;
         })
+        # Brings `bun2nix` and the `bun2nix.hook`/`fetchBunDeps` the Karabiner
+        # config is built with.
+        inputs.bun2nix.overlays.default
         (import ../overlays)
       ];
     };

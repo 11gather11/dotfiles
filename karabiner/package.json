@@ -3,10 +3,10 @@
 	"type": "module",
 	"scripts": {
 		"build": "bun run karabiner.ts",
-		"watch": "bun run --watch karabiner.ts"
+		"watch": "bun run --watch karabiner.ts",
+		"postinstall": "bun2nix -o bun.nix"
 	},
 	"dependencies": {
-		"karabiner.ts": "^1.36.0",
-		"zod": "^4.3.6"
+		"karabiner.ts": "^1.36.0"
 	}
 }

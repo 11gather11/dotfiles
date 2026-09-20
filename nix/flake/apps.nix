@@ -98,7 +98,21 @@
                 let declared = $env | get --optional DOTFILES_DIR | default "${homedir}/ghq/github.com/11gather11/dotfiles"
                 # Run from wherever the flake is when the checkout lives elsewhere.
                 let dotfiles = if ($declared | path exists) { $declared } else { pwd }
-                ^${bash} ${../modules/home/programs/neovim/check.sh} $"($dotfiles)/nvim" $"($env.HOME)/.local/share/nvim/lazy" ${neovim}
+                ^${bash} ${../modules/home/programs/neovim/check.sh} $"($dotfiles)/nvim" $"($env.HOME)/.local/share/nvim/lazy" ${neovim} restore
+            }
+          ''
+        );
+
+        # The other half of the same script: move the plugins to their newest
+        # revisions and write lazy-lock.json back. Run by hand, or weekly by
+        # .github/workflows/update-nvim-plugins.yaml, which turns the resulting
+        # lock file into a pull request.
+        nvim-update = app (
+          writeNu "nvim-update" ''
+            def main []: nothing -> nothing {
+                let declared = $env | get --optional DOTFILES_DIR | default "${homedir}/ghq/github.com/11gather11/dotfiles"
+                let dotfiles = if ($declared | path exists) { $declared } else { pwd }
+                ^${bash} ${../modules/home/programs/neovim/check.sh} $"($dotfiles)/nvim" $"($env.HOME)/.local/share/nvim/lazy" ${neovim} update
             }
           ''
         );

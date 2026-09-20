@@ -20,6 +20,10 @@
 		"note": "herdr プラグインへの言及が Mic92 に次ぐ多さ。プラグイン周辺の動向を見るのに向く"
 	},
 	{
+		"repo": "liby/dotfiles",
+		"note": "herdr を agent skill として書いており、こちらの herdr skill と直接比較できる。chezmoi 運用で更新も速い"
+	},
+	{
 		"repo": "rlch/dotfiles",
 		"note": "Herdr の Vim 風 pane 操作、workspace / worktree 運用、Neovim とのキー競合対策が充実"
 	},

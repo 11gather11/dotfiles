@@ -8,13 +8,15 @@ const IDENTIFIERS = {
 
 const chatAppBundleIds = [IDENTIFIERS.discord];
 
+// 書き込み先は derivation が KARABINER_JSON で渡す karabiner.base.json の写し。
+// writeToProfile は既存のファイルにルールを混ぜ込むので、書き込む先が要る。
+// `bun run check` はそれを持たないので、読むだけの --dry-run に倒す
+const writeTarget = process.argv.includes('--dry-run')
+	? '--dry-run'
+	: { name: 'Default profile', karabinerJsonPath: process.env.KARABINER_JSON };
+
 k.writeToProfile(
-	{
-		name: 'Default profile',
-		// derivation は karabiner.base.json の写しを指す。writeToProfile は
-		// 既存のファイルにルールを混ぜ込むので、書き込む先が要る
-		karabinerJsonPath: process.env.KARABINER_JSON,
-	},
+	writeTarget,
 	[
 		// Caps Lock -> Control (simple modification で設定)
 

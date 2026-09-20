@@ -49,7 +49,7 @@ jobs:
           # Plugins that publish releases, so the pin follows the newest tag.
           const TAGGED = [herdr-automatic-rename herdr-pluck]
           # Plugins with no tags at all; the pin follows the default branch.
-          const BRANCH = [herdr-window-title-sync]
+          const BRANCH = [herdr-window-title-sync herdr-which-key]
 
           # `git diff --quiet` exits 1 when the path differs, which Nushell raises
           # as a command failure, so the exit code has to be inspected instead.

@@ -31,20 +31,6 @@ let
     );
 in
 {
-  # tmux-style 1-9 numbering. Its tab naming is switched off in the module: every
-  # pane here is an agent, so naming a tab after its foreground process would
-  # read `claude` on all of them and flip with focus.
-  herdr-automatic-rename = sourcePlugin (finalAttrs: {
-    pname = "herdr-automatic-rename";
-    version = "0.11.1";
-    src = fetch {
-      owner = "qu8n";
-      repo = "herdr-automatic-rename";
-      tag = "v${finalAttrs.version}";
-      hash = "sha256-jgbX/WvlUAJYyVJRQ+IuC89TGC8rAISoTEofyf9IKS0=";
-    };
-  });
-
   # Writes herdr's workspace/tab/agent context out to the terminal's own title —
   # what the window manager and the app switcher show.
   #
@@ -114,4 +100,9 @@ in
   # declared sessions and zoxide's history. Built rather than fetched; see
   # nix/packages/herdr-sesh.
   herdr-sesh = prev.callPackage ../packages/herdr-sesh { };
+
+  # Tab and pane names that follow the work in them, replacing the automatic
+  # renaming this configuration had to switch off. Built rather than fetched;
+  # see nix/packages/herdr-auto-title.
+  herdr-auto-title = prev.callPackage ../packages/herdr-auto-title { };
 }

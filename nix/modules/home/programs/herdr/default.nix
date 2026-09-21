@@ -154,7 +154,7 @@ let
   # plugin repository is, with anything the manifest's [[build]] step would have
   # produced already in place.
   plugins = [
-    pkgs.herdr-automatic-rename
+    pkgs.herdr-auto-title
     pkgs.herdr-window-title-sync
     pkgs.herdr-pluck
     pkgs.herdr-worktrunk
@@ -191,21 +191,20 @@ in
     #
     # The rest of the directory is runtime state herdr owns outright —
     # session.json, sockets, logs, plugins.json — and none of it is touched.
-    # herdr-automatic-rename reads its settings from
-    # $XDG_CONFIG_HOME/herdr-automatic-rename/config.sh — its own directory, not
-    # the per-plugin one under herdr's config. Put here first, it was silently
-    # ignored and the tab naming this disables stayed on.
-    #
-    # Naming a tab after its foreground process assumes one tab is one job,
-    # which these tabs are not — several agents share one, so the name follows
-    # whichever pane has focus. It is on regardless: the alternative was an
-    # LLM naming them from the conversation, and that wanted a paid API key
-    # rather than the subscriptions already here, so a name that moves beats no
-    # name at all. The numbering is unaffected either way.
+    # herdr-auto-title reads its settings from
+    # $XDG_CONFIG_HOME/herdr-auto-title/config.env — its own directory, not the
+    # per-plugin one under herdr's config, which it says outright that it does
+    # not read.
     file = {
-      ".config/herdr-automatic-rename/config.sh".text = ''
-        NAME_TABS=1
-        AUTO_INDEX=1
+      # Defaults except for the transcript, which is the whole reason this
+      # plugin replaced the one that named a tab after its foreground process:
+      # every pane here runs an agent, so `claude` is not a name. Reading the
+      # transcript is also what supplies the branch for a tab whose agent works
+      # in a worktree.
+      ".config/herdr-auto-title/config.env".text = ''
+        HERDR_AUTO_TITLE_TRANSCRIPT=true
+        HERDR_AUTO_TITLE_PANES=true
+        HERDR_AUTO_TITLE_PREFER_AGENT=true
       '';
 
       # herdr-pluck's built-in patterns already cover URLs, paths, git SHAs, hex

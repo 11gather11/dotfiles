@@ -6,7 +6,7 @@
       # can target them directly.
       packages = {
         inherit (localPkgs)
-          herdr-automatic-rename
+          herdr-auto-title
           herdr-command-palette
           herdr-keymap
           herdr-nvim

@@ -30,6 +30,8 @@ description: Show new commits on the watched dotfiles repositories since each on
    置けば `rg` で確実に数えられる。19 リポジトリで 270MB 前後、全件 fetch で 20 秒程度。
 
    clone と fetch のコマンドは [`references/commands.md`](references/commands.md) にある。
+   **`fetch` のあと作業ツリーを取得した先頭まで進める。** `fetch` はファイルを更新しないので、
+   そのまま `rg` すると clone した当時の内容を読む。手順7と手順8がまるごと古い前提で動く。
 
    デフォルトブランチは固定しない。`git -C <path> symbolic-ref refs/remotes/origin/HEAD` で解決する
    （`main` とは限らない）。

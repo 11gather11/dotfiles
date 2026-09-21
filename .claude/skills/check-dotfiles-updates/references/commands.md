@@ -13,10 +13,22 @@
 git clone --filter=blob:none "https://github.com/<repo>" "$(ghq root)/github.com/<repo>"
 ```
 
-あれば更新する:
+あれば更新する。**`fetch` だけでは作業ツリーが clone した当時のまま**で、`rg` も `ls` も
+過去のファイルを読む。手順7の採用数も手順8の設定比較もそれを読むので、取得した先頭まで
+進めること。これらの clone は参照専用なので、捨ててよい:
 
 ```bash
 git -C <path> fetch origin --quiet
+br=$(git -C <path> symbolic-ref refs/remotes/origin/HEAD | sed 's|refs/remotes/||')
+git -C <path> reset --hard "$br" --quiet
+```
+
+作業ツリーを進めずに読みたいときは、参照から直接引く:
+
+```bash
+git -C <path> grep -q -i <語> "$br"        # そのリポジトリが使っているか
+git -C <path> show "$br:<file>"            # 現在の中身
+git -C <path> ls-tree -r --name-only "$br" # 現在のファイル一覧
 ```
 
 ## 手順4: 新着 commit を数える

@@ -7,6 +7,7 @@
   pkgs,
   lib,
   config,
+  helpers,
   ...
 }:
 let
@@ -18,7 +19,20 @@ let
     onboarding = false;
 
     ui = {
-      agent_panel_sort = "spaces";
+      # Whichever agent wants something comes first, rather than the agents
+      # staying in workspace order and the one that is waiting sitting wherever
+      # its workspace happens to be. The three others running herdr with agents
+      # all sort this way.
+      agent_panel_sort = "priority";
+
+      # Shapes rather than dots for agent state: a dot says only that something
+      # differs, a symbol says what.
+      status_indicators = "symbols";
+
+      # The default draws a border only once a pane has a neighbour, which also
+      # takes away the label below — a tab holding one agent showed neither its
+      # name nor which agent it was.
+      pane_borders = "always";
 
       # herdr asks every new tab for a name. With automatic naming on there is
       # nothing for it to do, and worse: a name typed into that prompt counts as
@@ -30,12 +44,49 @@ let
       # reason naming a tab after its foreground process was turned off above.
       # The border is per pane, so it says what the tab cannot.
       show_agent_labels_on_pane_borders = true;
+
+      # Through macOS' own notification centre, not herdr's overlay: an agent
+      # finishing while another application is in front is exactly the case
+      # worth being told about, and an overlay inside a terminal that is not on
+      # screen tells nobody.
+      toast.delivery = "system";
+
+      # The focused pane's title, which herdr-auto-title writes — the window
+      # then says what the work is in the app switcher too. This replaced
+      # rjyo/herdr-window-title-sync, a plugin that shipped workspace/tab/agent
+      # into the title itself; one setting does it, so the plugin went.
+      window_title = "{terminal_title}";
     };
 
-    # Images drawn into a pane travel over the Kitty graphics protocol, which
-    # herdr keeps behind this flag and Ghostty speaks. snacks' image viewer is
-    # what needs it here — a pane without it shows a blank where the picture is.
-    experimental.kitty_graphics = true;
+    # The scheme every other tool here is set to, through the one file that
+    # holds its spelling per tool. herdr was the one tool out of that scheme.
+    #
+    # auto_switch is herdr's default and is written out anyway: nothing else
+    # here follows the system appearance — Ghostty, Neovim, bat and hunk are
+    # all fixed on the dark flavour — so herdr turning light on its own would
+    # be the one window that did. The three others running herdr say it
+    # explicitly too.
+    theme = {
+      name = helpers.theme.herdr;
+      auto_switch = false;
+    };
+
+    # herdr's default, written out because this configuration has already been
+    # on the wrong side of it: restarting the server brought three work panes
+    # back as plain shells rather than their conversations. The integrations
+    # below are the other half of that fix — without one, herdr reads an agent's
+    # state from what its TUI draws and has nothing to resume.
+    session.resume_agents_on_restore = true;
+
+    # herdr arrives through the llm-agents flake input, so `herdr update` is
+    # never run here and a version herdr found for itself cannot be installed
+    # from inside it. The check only produces a notice nothing can act on.
+    #
+    # manifest_check, its neighbour, stays on: that one fetches the rules herdr
+    # reads an agent's state from — idle, working, blocked — which change when
+    # Claude Code or Codex change what they draw, on their own schedule rather
+    # than herdr's.
+    update.version_check = false;
 
     # Space is Neovim's leader here, so ctrl+space puts herdr beside it: one
     # thumb key for both, told apart by whether ctrl is held. The default
@@ -47,10 +98,34 @@ let
     # sources, which nix/modules/darwin-system/activation.nix turns off.
     keys.prefix = "ctrl+space";
 
-    # Typing Japanese, the key after the prefix reaches the input method first
-    # and `f` becomes a kana instead of a herdr command. This switches to an
-    # ASCII source for the length of prefix mode only.
-    experimental.switch_ascii_input_source_in_prefix = true;
+    experimental = {
+      # Images drawn into a pane travel over the Kitty graphics protocol, which
+      # herdr keeps behind this flag and Ghostty speaks. snacks' image viewer is
+      # what needs it here — a pane without it shows a blank where the picture
+      # is.
+      kitty_graphics = true;
+
+      # Typing Japanese, the key after the prefix reaches the input method
+      # first and `f` becomes a kana instead of a herdr command. This switches
+      # to an ASCII source for the length of prefix mode only.
+      switch_ascii_input_source_in_prefix = true;
+
+      # The screens themselves across a full server restart, where
+      # resume_agents_on_restore brings back only the conversations. A restart
+      # is what upgrading herdr costs, so this is the difference between
+      # returning to the work and returning to empty panes.
+      #
+      # It writes pane output to disk, which is why it is off by default.
+      # Everything on these panes is already in this repository or in an
+      # agent's own transcript.
+      pane_history = true;
+
+      # herdr inside a herdr pane is off by default, and stays off: the inner
+      # one would take the prefix, and nothing here wants a second multiplexer.
+      # Said out loud so that a pane refusing to start herdr reads as a
+      # decision rather than a bug.
+      allow_nested = false;
+    };
 
     # A plugin action is reachable without a binding — `herdr plugin action
     # invoke <id>` — but reaching for a hint overlay through a command line is
@@ -155,7 +230,6 @@ let
   # produced already in place.
   plugins = [
     pkgs.herdr-auto-title
-    pkgs.herdr-window-title-sync
     pkgs.herdr-pluck
     pkgs.herdr-worktrunk
     pkgs.herdr-nvim

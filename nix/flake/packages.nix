@@ -12,7 +12,6 @@
           herdr-nvim
           herdr-pluck
           herdr-sesh
-          herdr-window-title-sync
           herdr-worktrunk
           ;
       };

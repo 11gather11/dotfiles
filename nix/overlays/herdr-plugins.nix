@@ -31,22 +31,6 @@ let
     );
 in
 {
-  # Writes herdr's workspace/tab/agent context out to the terminal's own title —
-  # what the window manager and the app switcher show.
-  #
-  # No tags published, so the version is the pinned commit's date in the form
-  # `nix-update --version=branch` writes back.
-  herdr-window-title-sync = sourcePlugin {
-    pname = "herdr-window-title-sync";
-    version = "0-unstable-2026-06-26";
-    src = fetch {
-      owner = "rjyo";
-      repo = "herdr-window-title-sync";
-      rev = "b07f1140b7308d66487b2f4be546c0c7db065569";
-      hash = "sha256-NyRmPI7Ja0NGVzKpMOYWXdK9rISMD5xT27XCW2z6DAw=";
-    };
-  };
-
   # Copying what is on screen by typing a hint over it, rather than reaching for
   # the mouse. Also built rather than fetched; see nix/packages/herdr-pluck.
   herdr-pluck = prev.callPackage ../packages/herdr-pluck { };

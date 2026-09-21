@@ -30,6 +30,11 @@ _: {
   # hunk ships the scheme as one of its built-in themes, under an id.
   hunk = "catppuccin-mocha";
 
+  # herdr ships two flavours only, under `catppuccin` for the dark one and
+  # `catppuccin-latte` for the light. Its auto_switch is left off, so only the
+  # dark name is named here.
+  herdr = "catppuccin";
+
   # The colours delta paints an added and a removed line with, taken from
   # catppuccin/delta rather than left at delta's own — which are a saturated
   # green and red mixed with nothing, and read as a warning next to a scheme

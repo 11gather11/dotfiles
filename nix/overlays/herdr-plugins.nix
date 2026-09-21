@@ -61,72 +61,52 @@ in
     };
   };
 
-  # A which-key for herdr's prefix: a popup listing every binding grouped and
-  # labelled, where the next key runs the one shown. herdr gives plugins no way
-  # to notice the prefix being pressed, so it opens on a key of its own rather
-  # than on a timeout the way which-key does in Neovim.
-  #
-  # Pinned to the last commit. Upstream stopped after four days and says it was
-  # verified against herdr 0.7.5; this is on trial against 0.9.1.
-  #
-  # Two changes from the repository as published. The manifest runs `python3`
-  # by name, and on macOS that is a shim which fails without Command Line
-  # Tools, so it is pointed at nixpkgs' interpreter. And upstream's fast route —
-  # a `type = "popup"` keybinding — gets none of herdr's plugin variables, so it
-  # writes a launcher into the plugin's config directory to restore them,
-  # because a plugin installed by herdr lives under a path with a hash that
-  # changes on reinstall. A store path does not change within a version, so the
-  # launcher is built into the package instead of written at runtime.
-  herdr-which-key = sourcePlugin {
-    pname = "herdr-which-key";
-    version = "0-unstable-2026-08-02";
-    src = fetch {
-      owner = "CowboyVang";
-      repo = "herdr-which-key";
-      rev = "7339ad4edd734b5295e5bde8375e97de9f7ccb0b";
-      hash = "sha256-qar8aToFKMTTlpqfidmxBkJa3H7GFn2qWj+Gmd7ZPMY=";
-    };
-    nativeBuildInputs = [ prev.makeWrapper ];
-    postInstall = ''
-      substituteInPlace $out/herdr-plugin.toml \
-        --replace-fail '"python3"' '"${prev.python3}/bin/python3"'
-      makeWrapper ${prev.python3}/bin/python3 $out/libexec/which-key-show \
-        --set HERDR_PLUGIN_ROOT $out \
-        --set HERDR_PLUGIN_ID cowboyvang.which-key \
-        --add-flags "-u $out/bin/which-key show"
-    ''
-    # herdr switches to an ASCII source for the length of prefix mode, and the
-    # space that opens this popup is what ends prefix mode — so the input
-    # method is back on kana by the time the popup reads its first key, and
-    # that key becomes a kana. The launcher switches to ABC itself and hands
-    # the input method back afterwards, so a herdr command taken mid-sentence
-    # returns to the sentence.
-    + (
-      if prev.stdenv.hostPlatform.isDarwin then
-        ''
-          cat > $out/libexec/which-key-launch <<'LAUNCH'
-          #!@shell@
-          previous="$(@macism@)"
-          @macism@ com.apple.keylayout.ABC
-          @show@ "$@"
-          status=$?
-          @macism@ "$previous"
-          exit "$status"
-          LAUNCH
-          substituteInPlace $out/libexec/which-key-launch \
-            --subst-var-by shell ${prev.runtimeShell} \
-            --subst-var-by macism ${prev.lib.getExe prev.macism} \
-            --subst-var-by show $out/libexec/which-key-show
-          chmod +x $out/libexec/which-key-launch
-        ''
-      else
-        ''
-          ln -s which-key-show $out/libexec/which-key-launch
-        ''
-    );
-  };
-
   # Copying what is on screen by typing a hint over it, rather than reaching for
   # the mouse. Also built rather than fetched; see nix/packages/herdr-pluck.
   herdr-pluck = prev.callPackage ../packages/herdr-pluck { };
+
+  # worktrunk (`wt`) from inside herdr: an fzf picker over the worktrees and
+  # branches of the repository the workspace is in, opening the checkout as a
+  # tab or as a native worktree workspace. herdr has worktree commands of its
+  # own, but no hook system, and the hooks are the reason `wt` is used here.
+  #
+  # Plain bash calling `wt`, `fzf` and `jq`, which the manifest expects on PATH
+  # rather than naming by path — all three are installed here, so the scripts
+  # are copied as they are.
+  herdr-worktrunk = sourcePlugin (finalAttrs: {
+    pname = "herdr-worktrunk";
+    version = "0.7.0";
+    src = fetch {
+      owner = "devashish2203";
+      repo = "herdr-worktrunk";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-Tx++zTQ1z4H8dLdCjOZ1yX9QGY/i6M3Yvi39KGHDoH4=";
+    };
+  });
+
+  # Neovim in a full-height sidebar pane, its file picker as an overlay, and a
+  # key to hand the file under the cursor to an agent. Built rather than
+  # fetched; see nix/packages/herdr-nvim.
+  herdr-nvim = prev.callPackage ../packages/herdr-nvim { };
+
+  # An fzf palette over every action every installed plugin exposes, for the
+  # ones that are not worth a key of their own. Plain bash and fzf, both of
+  # which the manifest expects on PATH.
+  #
+  # No tags published, so the version is the pinned commit's date in the form
+  # `nix-update --version=branch` writes back.
+  herdr-command-palette = sourcePlugin {
+    pname = "herdr-command-palette";
+    version = "0-unstable-2026-06-29";
+    src = fetch {
+      owner = "JanTvrdik";
+      repo = "herdr-command-palette";
+      rev = "eab940018c2135ac23718efa11e23e9dddcd2a75";
+      hash = "sha256-A43Dl365S/5w2wrttV1RnQ1g7YRJmsD3tb5EUUZcQQY=";
+    };
+  };
+
+  # The keybinding palette, built rather than fetched because its manifest's
+  # build step is `npm ci`; see nix/packages/herdr-keymap.
+  herdr-keymap = prev.callPackage ../packages/herdr-keymap { };
 }

@@ -7,9 +7,12 @@
       packages = {
         inherit (localPkgs)
           herdr-automatic-rename
+          herdr-command-palette
+          herdr-keymap
+          herdr-nvim
           herdr-pluck
-          herdr-which-key
           herdr-window-title-sync
+          herdr-worktrunk
           ;
       };
 

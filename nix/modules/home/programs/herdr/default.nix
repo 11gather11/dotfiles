@@ -69,17 +69,68 @@ let
         command = "rmarganti.herdr-pluck.open-url";
         description = "open visible URL";
       }
-      # The prefix then space, the way Space alone is Neovim's leader: the same
-      # key opens the menu of what comes next on either side. A popup binding
-      # rather than a plugin action, because it is the only route that gives
-      # the menu a real terminal to read keys from.
+      # worktrunk's own README binds these, and the first deliberately takes
+      # over herdr's built-in new_worktree: the built-in has no hooks, which is
+      # the reason this plugin is here at all. merge-no-squash is left unbound
+      # upstream and stays that way — `herdr plugin action invoke` reaches it.
       {
-        key = "prefix+space";
-        type = "popup";
-        command = "${pkgs.herdr-which-key}/libexec/which-key-launch";
-        description = "which-key: show prefix bindings";
-        width = "78%";
-        height = "62%";
+        key = "prefix+shift+g";
+        type = "plugin_action";
+        command = "worktrunk.open";
+        description = "Worktree: switch / create from default branch";
+      }
+      {
+        key = "prefix+shift+c";
+        type = "plugin_action";
+        command = "worktrunk.open-current";
+        description = "Worktree: switch / create from current branch";
+      }
+      {
+        key = "prefix+shift+r";
+        type = "plugin_action";
+        command = "worktrunk.open-with-remotes";
+        description = "Worktree: switch / create from local or remote branches";
+      }
+      {
+        key = "prefix+shift+d";
+        type = "plugin_action";
+        command = "worktrunk.remove";
+        description = "Worktree: remove";
+      }
+      {
+        key = "prefix+shift+m";
+        type = "plugin_action";
+        command = "worktrunk.merge";
+        description = "Worktree: merge into the target branch";
+      }
+
+      # Each of the three below is the binding its own README names. prefix+e
+      # and prefix+o are herdr's own edit_scrollback and
+      # open_notification_target; the sidebar and the picker are what those
+      # keys are reached for here instead.
+      {
+        key = "prefix+e";
+        type = "plugin_action";
+        command = "chmarax.herdr-nvim.toggle";
+        description = "nvim sidebar";
+      }
+      {
+        key = "prefix+o";
+        type = "plugin_action";
+        command = "chmarax.herdr-nvim.pick-file";
+        description = "open file from agent output";
+      }
+      {
+        key = "prefix+p";
+        type = "plugin_action";
+        command = "jt.command-palette.open";
+        description = "Command palette";
+      }
+      {
+        key = "prefix+m";
+        type = "plugin_action";
+        command = "tds.keymap.open_palette";
+        description = "Keybindings palette";
       }
     ];
   };
@@ -91,7 +142,10 @@ let
     pkgs.herdr-automatic-rename
     pkgs.herdr-window-title-sync
     pkgs.herdr-pluck
-    pkgs.herdr-which-key
+    pkgs.herdr-worktrunk
+    pkgs.herdr-nvim
+    pkgs.herdr-command-palette
+    pkgs.herdr-keymap
   ];
 
   # Agents whose official integration should be installed. Without one, herdr
@@ -158,136 +212,6 @@ in
             ];
           };
 
-      # The popup's own multi-key groups turn herdr's flat prefix namespace into
-      # the same noun-first layout used by Neovim's leader mappings.
-      ".config/herdr/plugins/config/cowboyvang.which-key/groups.toml" = {
-        force = true;
-        source = tomlFormat.generate "herdr-which-key-groups.toml" {
-          hide_grouped = true;
-
-          tab = {
-            key = "t";
-            desc = "+tab";
-            keys = [
-              {
-                key = "t";
-                action = "switch_tab";
-              }
-              {
-                key = "c";
-                action = "new_tab";
-              }
-              {
-                key = "n";
-                action = "next_tab";
-              }
-              {
-                key = "p";
-                action = "previous_tab";
-              }
-              {
-                key = "r";
-                action = "rename_tab";
-              }
-              {
-                key = "x";
-                action = "close_tab";
-              }
-            ];
-          };
-
-          workspace = {
-            key = "w";
-            desc = "+workspace";
-            keys = [
-              {
-                key = "w";
-                node = "workspaces";
-              }
-              {
-                key = "c";
-                action = "new_workspace";
-              }
-              {
-                key = "r";
-                action = "rename_workspace";
-              }
-              {
-                key = "x";
-                action = "close_workspace";
-              }
-            ];
-          };
-
-          pane = {
-            key = "p";
-            desc = "+pane";
-            keys = [
-              {
-                key = "v";
-                action = "split_vertical";
-              }
-              {
-                key = "s";
-                action = "split_horizontal";
-              }
-              {
-                key = "z";
-                action = "zoom";
-              }
-              {
-                key = "r";
-                action = "rename_pane";
-              }
-              {
-                key = "x";
-                action = "close_pane";
-              }
-            ];
-
-            move = {
-              key = "m";
-              desc = "+move";
-              keys = [
-                {
-                  key = "h";
-                  action = "swap_pane_left";
-                }
-                {
-                  key = "j";
-                  action = "swap_pane_down";
-                }
-                {
-                  key = "k";
-                  action = "swap_pane_up";
-                }
-                {
-                  key = "l";
-                  action = "swap_pane_right";
-                }
-              ];
-            };
-          };
-
-          yank = {
-            key = "y";
-            desc = "+yank";
-            keys = [
-              {
-                key = "y";
-                desc = "表示中のトークンをコピー";
-                plugin_action = "rmarganti.herdr-pluck.pluck";
-              }
-              {
-                key = "u";
-                desc = "表示中の URL を開く";
-                plugin_action = "rmarganti.herdr-pluck.open-url";
-              }
-            ];
-          };
-        };
-      };
-
     };
 
     activation = {
@@ -295,17 +219,6 @@ in
         mkdir -p "${herdrConfigDir}"
         cp --no-preserve=mode,ownership ${tomlFormat.generate "herdr-config.toml" settings} "${herdrConfigDir}/config.toml"
         chmod 644 "${herdrConfigDir}/config.toml"
-      '';
-
-      # Home Manager normally installs home.file entries as store symlinks,
-      # but which-key refuses symlinks before parsing user-provided commands.
-      # Materialize the generated TOML after linking so the security check sees
-      # a regular file owned by the user.
-      materializeHerdrWhichKeyGroups = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-        target="${herdrConfigDir}/plugins/config/cowboyvang.which-key/groups.toml"
-        cp --no-preserve=mode,ownership "$target" "$target.tmp"
-        chmod 644 "$target.tmp"
-        mv -f "$target.tmp" "$target"
       '';
 
       # `herdr plugin install` fetches a repository and runs its build step at

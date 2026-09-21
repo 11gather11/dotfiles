@@ -47,9 +47,9 @@ jobs:
           # are built.
           const PINNED = ['nix/overlays' 'nix/packages']
           # Plugins that publish releases, so the pin follows the newest tag.
-          const TAGGED = [herdr-automatic-rename herdr-pluck]
+          const TAGGED = [herdr-automatic-rename herdr-pluck herdr-worktrunk herdr-nvim]
           # Plugins with no tags at all; the pin follows the default branch.
-          const BRANCH = [herdr-window-title-sync herdr-which-key]
+          const BRANCH = [herdr-window-title-sync herdr-command-palette herdr-keymap]
 
           # `git diff --quiet` exits 1 when the path differs, which Nushell raises
           # as a command failure, so the exit code has to be inspected instead.

@@ -132,6 +132,21 @@ let
         command = "tds.keymap.open_palette";
         description = "Keybindings palette";
       }
+      # sesh's own README leaves the keys to the reader; these are the ones
+      # Mic92 runs. prefix+s is herdr's settings, which the Settings TUI is not
+      # opened often enough to keep.
+      {
+        key = "prefix+s";
+        type = "plugin_action";
+        command = "fullerzz.sesh.open-picker";
+        description = "sesh picker";
+      }
+      {
+        key = "prefix+shift+l";
+        type = "plugin_action";
+        command = "fullerzz.sesh.last";
+        description = "last workspace";
+      }
     ];
   };
 
@@ -146,6 +161,7 @@ let
     pkgs.herdr-nvim
     pkgs.herdr-command-palette
     pkgs.herdr-keymap
+    pkgs.herdr-sesh
   ];
 
   # Agents whose official integration should be installed. Without one, herdr

@@ -109,4 +109,9 @@ in
   # The keybinding palette, built rather than fetched because its manifest's
   # build step is `npm ci`; see nix/packages/herdr-keymap.
   herdr-keymap = prev.callPackage ../packages/herdr-keymap { };
+
+  # One list of every place a workspace could be opened — the open ones,
+  # declared sessions and zoxide's history. Built rather than fetched; see
+  # nix/packages/herdr-sesh.
+  herdr-sesh = prev.callPackage ../packages/herdr-sesh { };
 }

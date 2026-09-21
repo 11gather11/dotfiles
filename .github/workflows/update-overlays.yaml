@@ -47,7 +47,7 @@ jobs:
           # are built.
           const PINNED = ['nix/overlays' 'nix/packages']
           # Plugins that publish releases, so the pin follows the newest tag.
-          const TAGGED = [herdr-automatic-rename herdr-pluck herdr-worktrunk herdr-nvim]
+          const TAGGED = [herdr-automatic-rename herdr-pluck herdr-worktrunk herdr-nvim herdr-sesh]
           # Plugins with no tags at all; the pin follows the default branch.
           const BRANCH = [herdr-window-title-sync herdr-command-palette herdr-keymap]
 

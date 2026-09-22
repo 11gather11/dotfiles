@@ -24,6 +24,11 @@
     fd
     fzf
     zoxide
+
+    # Japanese prose diagnostics. Installed globally rather than per project:
+    # the Japanese written here is mostly agent-written, in this repository and
+    # in every checkout beside it. See nix/packages/suiko.
+    suiko
     bat
     eza
     jq

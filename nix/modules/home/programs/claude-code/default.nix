@@ -15,6 +15,27 @@ let
   statuslineScript = ./statusline.nu;
 
   codexReviewGate = lib.getExe (helpers.codexReviewGate pkgs);
+
+  # Same shape as the gate above: the wrapper is where PATH is decided, and a
+  # hook whose jq is missing fails open — which for this one would mean silently
+  # never linting anything. grep is GNU's for -P, which the Japanese range test
+  # uses; macOS' own grep has no such flag.
+  suikoLint = lib.getExe (
+    pkgs.writeShellApplication {
+      name = "claude-suiko-lint";
+      runtimeInputs = with pkgs; [
+        jq
+        suiko
+        gnugrep
+        coreutils
+      ];
+      bashOptions = [
+        "nounset"
+        "pipefail"
+      ];
+      text = builtins.readFile ./suiko-lint.sh;
+    }
+  );
   mergeConfig = helpers.mergeConfig pkgs;
 
   # The name agents type to review. It is the same binary as the gate, so the
@@ -83,6 +104,22 @@ let
       # script. The record is written by codex-review-run when the review ends,
       # not by a hook: the Skill tool returns when the skill loads, so a hook on
       # it marked the commit before anything had been read.
+      # Japanese prose the agent just wrote, read back to it with suiko's
+      # findings. PostToolUse rather than PreToolUse: the write lands either
+      # way, and the point is the remark, not a veto.
+      PostToolUse = [
+        {
+          matcher = "Write|Edit";
+          hooks = [
+            {
+              type = "command";
+              command = suikoLint;
+              timeout = 30;
+            }
+          ];
+        }
+      ];
+
       PreToolUse = [
         {
           matcher = "Bash";

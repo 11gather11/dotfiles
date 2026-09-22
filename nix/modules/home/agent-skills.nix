@@ -54,6 +54,13 @@ in
         path = pkgs.hunk;
         subdir = "share/skills/hunk";
       };
+      # External: suiko's own skill, shipped inside the repository the package
+      # is built from. It carries the writing workflow the CLI is one step of —
+      # decide the reader, write, check, converge — rather than only the flags.
+      suiko = {
+        path = pkgs.suiko.src;
+        subdir = "skills";
+      };
       # Local: skills from this dotfiles repo
       local = {
         path = local-skills;
@@ -132,6 +139,21 @@ in
         herdr = {
           from = "herdr";
           path = "herdr";
+        };
+
+        # The skill tells an agent to `cargo install suiko` when the CLI is
+        # missing, which here would build a second copy beside the one in the
+        # store — and fail in any sandbox, having no network.
+        suiko = {
+          from = "suiko";
+          path = "suiko";
+          packages = [ pkgs.suiko ];
+          transform =
+            { original, ... }:
+            builtins.replaceStrings
+              [ "CLI が見つからない場合（`suiko --version` が失敗する場合）は、次の順で自分で導入する。" ]
+              [ "CLI は Nix で入っている。`suiko --version` が失敗する場合は導入を試みず、その旨を報告する。" ]
+              original;
         };
 
         # Registering the source is not installing the skill; each one is named

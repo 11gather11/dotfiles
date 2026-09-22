@@ -4,6 +4,7 @@ let
   overlayFiles = [
     ./claude-code.nix
     ./herdr-plugins.nix
+    ./writing-tools.nix
   ];
 
   # Apply each overlay and merge results

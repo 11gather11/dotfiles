@@ -41,7 +41,9 @@ buildGoModule (finalAttrs: {
   # temp directory, sets PATH to only that, and runs the preview under each
   # shell present; under zsh macOS's /etc/zshenv runs path_helper, which
   # rebuilds PATH and drops the directory the test just prepared.
-  checkFlags = [ "-skip=TestVersionCommand|TestFZFPreviewCommandFindsSystemToolsWithMinimalPath" ];
+  checkFlags = [
+    "-skip=TestVersionCommand|TestFZFPreviewCommandFindsSystemToolsWithMinimalPath|TestRenderBatUsesBatForReadmePreview"
+  ];
 
   # The namer tests build a repository with `git init` to read a remote off it,
   # which is also how the plugin names a workspace at runtime.

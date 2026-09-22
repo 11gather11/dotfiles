@@ -20,6 +20,7 @@ let
   # therefore apply only after nix run .#switch).
   agentsMdText = lib.concatMapStringsSep "\n" builtins.readFile [
     ../../../../codex/AGENTS.md
+    ../../../../agents/shared/tools.md
     ../../../../agents/shared/code-comments.md
     ../../../../agents/shared/command-privacy.md
     ../../../../agents/shared/delegate-work.md

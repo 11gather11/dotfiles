@@ -19,7 +19,9 @@ For code pattern searches (constructs, structure, not plain text), use the `ast-
 
 ## Shell
 
-Fish bootstraps the environment; it is not necessarily the syntax shell. Run simple commands as `fish -lc '<command>'` so PATH and exports are initialised. When a command needs bash/zsh syntax, nest it: `fish -lc 'bash -lc "<posix command>"'`.
+- Fish bootstraps the environment; it is not necessarily the syntax shell. Run simple commands as `fish -lc '<command>'` so PATH and exports are initialised.
+- If a command uses Bash-specific syntax, fragile quoting, heredocs, arrays, inline environment assignments, or command substitutions, nest it rather than asking Fish to parse it: `fish -lc 'bash -lc "<posix command>"'`.
+- For complex multi-line commands, prefer an existing script, or create one with the right shebang and invoke it with the appropriate interpreter.
 
 ## Reading Other Repositories
 

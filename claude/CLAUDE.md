@@ -7,6 +7,8 @@ Personal preferences that apply to all projects.
 - My name is 11gather11
 - Always communicate in Japanese
 
+@~/.config/claude/shared/tools.md
+
 @~/.config/claude/shared/code-comments.md
 
 @~/.config/claude/shared/delegate-work.md

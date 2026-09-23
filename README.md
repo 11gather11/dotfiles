@@ -41,51 +41,24 @@ keep it outside `nix/modules/`.
 
 ### Initial Setup
 
-#### macOS
-
 1. Install [Determinate Nix](https://github.com/DeterminateSystems/nix-installer):
 
    ```sh
    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
    ```
 
-2. Clone this repository:
+2. Fetch and apply the configuration:
 
    ```sh
-   git clone https://github.com/11gather11/dotfiles.git ~/ghq/github.com/11gather11/dotfiles
-   cd ~/ghq/github.com/11gather11/dotfiles
+   nix run github:11gather11/dotfiles
    ```
 
-3. Apply the nix-darwin configuration (this will also install Homebrew automatically):
+   This clones the repository to `~/ghq/github.com/11gather11/dotfiles` and
+   applies it from there: nix-darwin (which also installs Homebrew) on macOS,
+   Home Manager on Linux. The account must be `11gather11` on macOS and
+   `gather` on Linux.
 
-   ```sh
-   sudo nix run nix-darwin -- switch --flake .#11gather11
-   ```
-
-4. Reload your shell:
-   ```sh
-   exec fish
-   ```
-
-#### Linux
-
-1. Install Nix (if not already installed):
-
-   ```sh
-   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
-   ```
-
-2. Clone this repository:
-
-   ```sh
-   git clone https://github.com/11gather11/dotfiles.git ~/ghq/github.com/11gather11/dotfiles
-   cd ~/ghq/github.com/11gather11/dotfiles
-   ```
-
-3. Apply Home Manager configuration:
-   ```sh
-   nix run .#switch
-   ```
+3. Open a new terminal, or reload the shell with `exec fish`.
 
 ### Daily Usage
 
@@ -103,6 +76,8 @@ nix run .#build
 ```
 
 ### Available Nix Apps
+
+- `nix run github:11gather11/dotfiles` - Set up a new machine (see Initial Setup)
 
 #### macOS
 

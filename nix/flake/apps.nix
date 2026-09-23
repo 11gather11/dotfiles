@@ -14,7 +14,12 @@
       inherit (localPkgs) lib;
       inherit (localPkgs.stdenv) isDarwin;
       homedir = if isDarwin then darwinHomedir else linuxHomedir;
+      account = if isDarwin then username else linuxUsername;
       hostname = username;
+
+      # Where the configuration expects its own checkout: the home modules
+      # symlink live config out of this path (dotfilesDir in shared.nix).
+      checkout = "${homedir}/ghq/github.com/11gather11/dotfiles";
 
       # Nushell, checked at build time — see nix/lib/helpers/write-nu.nix.
       writeNu = import ../lib/helpers/write-nu.nix { pkgs = localPkgs; };
@@ -23,6 +28,7 @@
       # from each package's meta.mainProgram instead of being hand-written
       # (e.g. neovim ships nvim, nix-output-monitor ships nom).
       bash = lib.getExe localPkgs.bash;
+      git = lib.getExe localPkgs.git;
       neovim = lib.getExe localPkgs.neovim;
       nh = lib.getExe localPkgs.nh;
       nix = lib.getExe localPkgs.nix;
@@ -97,13 +103,71 @@
         type = "app";
         program = toString program;
       };
+
+      # A Mac that nix-darwin does not manage yet has no darwin-rebuild, and nh
+      # has only ever switched machines it already manages. So the first switch
+      # takes the route the README has always used, with darwin-rebuild pinned
+      # by flake.lock; every later one goes through `.#switch`. Linux needs no
+      # such step: Home Manager activates as the user from the first run.
+      darwinRebuild =
+        lib.getExe' inputs.nix-darwin.packages.${localPkgs.stdenv.hostPlatform.system}.darwin-rebuild
+          "darwin-rebuild";
+      # A whole definition rather than a block spliced into a function body:
+      # Nix strips the indentation of an interpolated string, so a nested block
+      # comes out flush against the left margin.
+      runSwitch =
+        if isDarwin then
+          ''
+            def run-switch []: nothing -> nothing {
+                if ("/run/current-system/sw/bin/darwin-rebuild" | path exists) {
+                    ^nix run ".#switch"
+                } else {
+                    ^sudo ${darwinRebuild} switch --flake "${checkout}#${hostname}"
+                }
+            }
+          ''
+        else
+          ''
+            def run-switch []: nothing -> nothing {
+                ^nix run ".#switch"
+            }
+          '';
     in
     {
       apps = {
+        # `nix run github:11gather11/dotfiles` sets a machine up from nothing
+        # but Nix itself: it fetches the checkout the configuration expects,
+        # then applies that checkout's configuration.
+        default = app (
+          writeNu "bootstrap" ''
+            ${runSwitch}
+            def main []: nothing -> nothing {
+                let user = (^id -un | str trim)
+                if $user != "${account}" {
+                    error make {msg: $"This configuration is built for `${account}`, but you are `($user)`."}
+                }
+
+                if ("${checkout}" | path exists) {
+                    print "Using the checkout already at ${checkout}"
+                } else {
+                    # git from nixpkgs: a fresh Mac's /usr/bin/git is a stub that
+                    # opens the Command Line Tools installer instead of cloning.
+                    ^${git} clone https://github.com/11gather11/dotfiles.git "${checkout}"
+                }
+
+                # Apply from the clone rather than from this store copy, so the
+                # symlinks point at a tree that can be edited afterwards.
+                cd "${checkout}"
+                run-switch
+                print "Done! Open a new terminal, or run `exec fish`."
+            }
+          ''
+        );
+
         nvim-restore = app (
           writeNu "nvim-restore" ''
             def main []: nothing -> nothing {
-                let declared = $env | get --optional DOTFILES_DIR | default "${homedir}/ghq/github.com/11gather11/dotfiles"
+                let declared = $env | get --optional DOTFILES_DIR | default "${checkout}"
                 # Run from wherever the flake is when the checkout lives elsewhere.
                 let dotfiles = if ($declared | path exists) { $declared } else { pwd }
                 ^${bash} ${../modules/home/programs/neovim/check.sh} $"($dotfiles)/nvim" $"($env.HOME)/.local/share/nvim/lazy" ${neovim} restore
@@ -118,7 +182,7 @@
         nvim-update = app (
           writeNu "nvim-update" ''
             def main []: nothing -> nothing {
-                let declared = $env | get --optional DOTFILES_DIR | default "${homedir}/ghq/github.com/11gather11/dotfiles"
+                let declared = $env | get --optional DOTFILES_DIR | default "${checkout}"
                 let dotfiles = if ($declared | path exists) { $declared } else { pwd }
                 ^${bash} ${../modules/home/programs/neovim/check.sh} $"($dotfiles)/nvim" $"($env.HOME)/.local/share/nvim/lazy" ${neovim} update
             }

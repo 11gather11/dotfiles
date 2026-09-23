@@ -78,7 +78,12 @@ let
     alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
     useAutoModeDuringPlan = true;
-    effortLevel = "high";
+    # Per model, not the top-level effortLevel: in user settings that one is a
+    # legacy default Claude Code applies only to models it already knew, so
+    # when `opus` moved to a new release, sessions fell back to that model's
+    # own default of medium. The key is resolved like `model`, so it follows
+    # the alias to whichever release it names.
+    modelSettings.opus.effortLevel = "high";
     skipAutoPermissionPrompt = true;
     skipDangerousModePermissionPrompt = true;
     hooks = {

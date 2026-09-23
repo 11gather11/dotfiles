@@ -5,6 +5,7 @@
       config,
       localPkgs,
       username,
+      linuxUsername,
       darwinHomedir,
       linuxHomedir,
       ...
@@ -74,14 +75,21 @@
 
       # `nh darwin` picks the configuration by hostname and `nh home` by
       # attribute name, and neither matches this machine's actual hostname —
-      # both configurations are keyed on the username.
+      # both configurations are keyed on the account name, which differs
+      # between macOS and Linux, and the aarch64 Linux one is suffixed. See
+      # configurations.nix.
+      homeConfig =
+        if localPkgs.stdenv.hostPlatform.isAarch64 then "${linuxUsername}-aarch64" else linuxUsername;
       nhTarget =
         if isDarwin then
           ''"darwin" "switch" "-H" "${hostname}"''
         else
-          ''"home" "switch" "-c" "${username}"'';
+          ''"home" "switch" "-c" "${homeConfig}"'';
       nhBuildTarget =
-        if isDarwin then ''"darwin" "build" "-H" "${hostname}"'' else ''"home" "build" "-c" "${username}"'';
+        if isDarwin then
+          ''"darwin" "build" "-H" "${hostname}"''
+        else
+          ''"home" "build" "-c" "${homeConfig}"'';
 
       system = if isDarwin then "darwin" else "Home Manager";
 

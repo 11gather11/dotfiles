@@ -10,7 +10,13 @@ let
 
   username = "11gather11";
   darwinHomedir = "/Users/${username}";
-  linuxHomedir = "/home/${username}";
+
+  # Linux refuses a user name starting with a digit — useradd's default pattern
+  # is [a-z_][a-z0-9_-]* — so the name above cannot exist on the WSL2 machine
+  # and its home configuration is built for this one instead. Only the Linux
+  # side uses it; macOS keeps the name the account there already has.
+  linuxUsername = "gather";
+  linuxHomedir = "/home/${linuxUsername}";
 
   # ../.. is this repository's root. Paths resolve against the flake source, so
   # this names the same fileset flake.nix used to write as ./agents/skills.
@@ -75,6 +81,7 @@ in
   _module.args = {
     inherit
       username
+      linuxUsername
       darwinHomedir
       linuxHomedir
       local-skills
@@ -88,7 +95,12 @@ in
     { system, ... }:
     {
       _module.args = {
-        inherit username darwinHomedir linuxHomedir;
+        inherit
+          username
+          linuxUsername
+          darwinHomedir
+          linuxHomedir
+          ;
         localPkgs = mkPkgs system;
       };
     };

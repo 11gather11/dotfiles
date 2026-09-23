@@ -15,6 +15,10 @@
   system,
   homedir,
   darwin ? false,
+  # The account the configuration is for. Defaults to this flake's own, which
+  # macOS uses; Linux passes its own, because a user name starting with a digit
+  # is not one Linux will accept.
+  user ? username,
   # Platform-specific home-manager modules, appended to the common set.
   homeModules ? [ ],
   # nix-darwin system modules. Ignored when darwin is false.
@@ -41,7 +45,8 @@ in
 if darwin then
   nix-darwin.lib.darwinSystem {
     specialArgs = {
-      inherit inputs username homedir;
+      inherit inputs homedir;
+      username = user;
     };
     modules = [
       # nixpkgs.pkgs rather than nixpkgs.hostPlatform: the overlays live in
@@ -64,7 +69,7 @@ if darwin then
           useGlobalPkgs = true;
           useUserPackages = true;
           inherit extraSpecialArgs;
-          users.${username}.imports = commonHomeModules;
+          users.${user}.imports = commonHomeModules;
         };
       }
     ];
@@ -74,7 +79,7 @@ else
     inherit pkgs extraSpecialArgs;
     modules = [
       {
-        home.username = username;
+        home.username = user;
         home.homeDirectory = homedir;
       }
       nix-index-database.homeModules.nix-index

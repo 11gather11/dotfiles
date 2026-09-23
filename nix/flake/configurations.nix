@@ -1,6 +1,7 @@
 {
   inputs,
   username,
+  linuxUsername,
   darwinHomedir,
   linuxHomedir,
   mkPkgs,
@@ -17,17 +18,22 @@ let
       ;
   };
 
+  # The Linux machine's account is not the one macOS uses: a name starting
+  # with a digit is not a valid Linux user, so `11gather11` cannot exist there.
+  # home-manager refuses to activate when home.username is not the user
+  # running it, which is what made the Linux configurations unusable.
   mkLinuxHomeConfig =
     system:
     mkSystem {
       inherit system;
+      user = linuxUsername;
       homedir = linuxHomedir;
       homeModules = [ (inputs.import-tree ../modules/home-linux) ];
     };
 
   linuxHomeConfigurations = {
-    ${username} = mkLinuxHomeConfig "x86_64-linux";
-    "${username}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
+    ${linuxUsername} = mkLinuxHomeConfig "x86_64-linux";
+    "${linuxUsername}-aarch64" = mkLinuxHomeConfig "aarch64-linux";
   };
 in
 {
@@ -47,8 +53,8 @@ in
     # Aliases for tools that can't parse digit-starting attribute segments
     # (e.g. natsukium/nix-diff-action's attribute path validator).
     diffTargets = {
-      home-x86_64-linux = linuxHomeConfigurations.${username}.activationPackage;
-      home-aarch64-linux = linuxHomeConfigurations."${username}-aarch64".activationPackage;
+      home-x86_64-linux = linuxHomeConfigurations.${linuxUsername}.activationPackage;
+      home-aarch64-linux = linuxHomeConfigurations."${linuxUsername}-aarch64".activationPackage;
     };
   };
 }

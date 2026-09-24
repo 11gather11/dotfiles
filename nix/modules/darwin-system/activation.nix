@@ -23,7 +23,18 @@ in
     # activation runs as root, and brew aborts during startup when HOME is
     # root's rather than the user's. Without it this exits 1 into the `|| true`
     # and the opt-out silently never happens.
+    #
+    # Rosetta 2 is installed here too, for casks that still ship x86_64 only.
+    # preActivation for the same ordering reason: it has to be there before the
+    # bundle installs anything that needs it. macOS has no declarative switch
+    # for it, and softwareupdate goes to the network every time it is asked, so
+    # the runtime's presence is checked first.
     activationScripts.preActivation.text = ''
+      if [ ! -e /Library/Apple/usr/libexec/oah/libRosettaRuntime ]; then
+        echo "Installing Rosetta 2..."
+        softwareupdate --install-rosetta --agree-to-license || true
+      fi
+
       if [ -x /opt/homebrew/bin/brew ] \
         && [ "$(/usr/bin/git -C /opt/homebrew config --local --get homebrew.analyticsdisabled || true)" != "true" ]; then
         echo "Disabling Homebrew analytics..."

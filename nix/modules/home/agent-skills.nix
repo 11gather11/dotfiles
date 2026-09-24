@@ -1,8 +1,9 @@
-# Agent skills configuration for Claude Code
+# Agent skills for Claude Code and Codex
 # https://github.com/Kyure-A/agent-skills-nix
 #
-# All skills (external and local) are managed here via agent-skills-nix.
-# Skills are deployed to ~/.agents (standard location) and ~/.config/claude/skills
+# Skills are deployed to ~/.agents (standard location, which Codex reads) and
+# ~/.config/claude/skills. mattpocock/skills is the exception: Claude Code loads
+# it whole as a plugin, and Codex does not get it.
 {
   pkgs,
   lib,
@@ -21,18 +22,6 @@ let
     manifestsDir = ../../../registry/sources;
     lockFile = ../../../registry/sources.lock.json;
   };
-
-  # mattpocock/skills is two directories of same-shaped entries, so name them
-  # once rather than writing `from` and `path` out for each.
-  mattpocockSelect =
-    groups:
-    lib.concatMapAttrs (
-      group: names:
-      lib.genAttrs names (name: {
-        from = "mattpocock-${group}";
-        path = name;
-      })
-    ) groups;
 in
 {
   programs.agent-skills = {
@@ -77,45 +66,11 @@ in
       # which the source's idPrefix produces and the module happily lays out —
       # nests them one level down, where they are simply never found.
       explicit = {
-        # Selected from mattpocock/skills. Names only: each is a directory in
-        # the source and installs under the same name, so the interesting part
-        # is which ones and not how.
-        #
-        # Flat, because Claude Code reads the directories directly under its
-        # skills directory and nothing below them. The source's idPrefix
-        # produces `/`-separated ids, and the module lays those out as nested
-        # directories, where nothing ever finds them.
-        #
-        # tdd is the exception: the local one keeps the bare name because it is
-        # the one to run — it carries the loop and detects the project's test
-        # runner — and upstream's installs alongside as what its own text calls
-        # "a reference to consult, not a session to run".
-      }
-      // mattpocockSelect {
-        engineering = [
-          "grill-with-docs"
-          "diagnosing-bugs"
-          "codebase-design"
-          "domain-modeling"
-          "research"
-          "wayfinder"
-        ];
-        productivity = [
-          "grill-me"
-          "grilling"
-        ];
-      }
-      // {
         wrangler = {
           from = "cloudflare";
           path = "wrangler";
         };
 
-        # The one that cannot keep upstream's name: the local tdd holds it.
-        mattpocock-tdd = {
-          from = "mattpocock-engineering";
-          path = "tdd";
-        };
         ast-grep = {
           from = "ast-grep";
           path = "ast-grep";
@@ -201,4 +156,13 @@ in
       };
     };
   };
+
+  # mattpocock/skills as the Claude Code plugin it ships as, not as skills
+  # picked one by one. A plugin's skills are namespaced — /mattpocock-skills:tdd,
+  # /mattpocock-skills:code-review — so they sit beside the local tdd and the
+  # built-in /code-review instead of fighting them for the name, and all of them
+  # come, which the ask-matt router assumes. Claude Code loads a plugin
+  # directory placed under skills/. The repository is the one the registry pins,
+  # so skills-sources-lock still moves it.
+  xdg.configFile."claude/skills/mattpocock-skills".source = registrySources.mattpocock.path;
 }

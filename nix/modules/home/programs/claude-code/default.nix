@@ -81,12 +81,16 @@ let
     alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
     useAutoModeDuringPlan = true;
+    # Medium, Opus 5.5's own default: effort levels do not mean the same
+    # amount of thinking across releases, and its medium matches or beats
+    # Opus 5 at high while spending fewer tokens. Kept at high it thinks more
+    # per turn than Opus 5 did, which a 1M-context session pays for every turn.
+    #
     # Per model, not the top-level effortLevel: in user settings that one is a
-    # legacy default Claude Code applies only to models it already knew, so
-    # when `opus` moved to a new release, sessions fell back to that model's
-    # own default of medium. The key is resolved like `model`, so it follows
-    # the alias to whichever release it names.
-    modelSettings.opus.effortLevel = "high";
+    # legacy default Claude Code applies only to models it already knew. The
+    # key is resolved like `model`, so it follows the alias to whichever
+    # release it names.
+    modelSettings.opus.effortLevel = "medium";
     skipAutoPermissionPrompt = true;
     skipDangerousModePermissionPrompt = true;
     hooks = {

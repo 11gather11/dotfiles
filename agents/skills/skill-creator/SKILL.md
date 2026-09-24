@@ -54,6 +54,8 @@ description: This skill is a comprehensive commit assistant that analyses change
 
 ## Body
 
+This skill owns where things go and which rules they follow here. How to word them — pointers, completion criteria, leading words, pruning — is `mattpocock-skills:writing-for-agents`; read it for the prose itself.
+
 Keep the body procedural and repo-specific:
 
 - Commands to run, with exact flags.

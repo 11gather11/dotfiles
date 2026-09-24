@@ -74,7 +74,10 @@ let
       # the interactive config.
       command = "${nu} --no-config-file --stdin ${statuslineScript}";
     };
-    model = "opus";
+    # The 1M context window: long sessions that research, implement and commit
+    # in one go otherwise hit auto-compaction, and lose their early detail to
+    # a summary.
+    model = "opus[1m]";
     alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
     useAutoModeDuringPlan = true;

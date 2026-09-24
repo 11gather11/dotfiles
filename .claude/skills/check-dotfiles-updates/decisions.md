@@ -27,6 +27,7 @@ Artifact のページは毎回その回の結果に差し替わる。だから�
 | 2026-09-23 | Claude Code の LSP         | 採用     | 公式の *-lsp プラグインではなく自前の personal plugin（`skills/lsp`）。公式は PATH のコマンド名を指すだけで、こちらの server は Neovim の extraPackages にしかない。TypeScript はプロジェクトの `tsc --lsp`（7 以上）を優先し、TS 7 に tsserver が無いので公式の typescript-lsp は使えない。Go / Rust / Nix / Python も同梱。Lua は Neovim の API 定義が無いと誤検出だらけになるので入れていない |
 | 2026-09-23 | permissions.deny / ask     | 保留     | 他の人は全員何かしら持つ。案は秘密ファイルの Read と main への force push だけ。`rm -rf` と `sudo` は日常作業を止めるので外す。`ask: git push` は main へ直接 push する方針と衝突する                                                                                                                                                                                                            |
 | 2026-09-23 | Claude Code の effortLevel | 修正     | 比較で見つけたのではなく、こちらで踏んだ。トップレベルの `effortLevel` は既知のモデルにしか効かず、Opus 5.5 は既定の medium になった。`modelSettings.opus.effortLevel` に移した。ryoppippi も同じトップレベルの書き方のままなので、あちらの値を参考にするときは注意                                                                                                                              |
+| 2026-09-23 | Claude Code の 1M context  | 採用     | liby が `claude-opus-5-5[1m]` に固定している。こちらは版を固定せず別名の `opus[1m]` にした。調査から commit まで 1 セッションで続けるので、標準の文脈長だと途中で自動圧縮が入る。サブエージェントは短い仕事なので `opus` のまま                                                                                                                                                                  |
 
 ## 採用数
 

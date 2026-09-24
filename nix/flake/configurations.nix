@@ -49,12 +49,5 @@ in
 
     # Linux configurations with standalone Home Manager
     homeConfigurations = linuxHomeConfigurations;
-
-    # Aliases for tools that can't parse digit-starting attribute segments
-    # (e.g. natsukium/nix-diff-action's attribute path validator).
-    diffTargets = {
-      home-x86_64-linux = linuxHomeConfigurations.${linuxUsername}.activationPackage;
-      home-aarch64-linux = linuxHomeConfigurations."${linuxUsername}-aarch64".activationPackage;
-    };
   };
 }

@@ -19,6 +19,6 @@ Steps:
 
 1. Read:
    - https://react.dev/reference/rsc/server-components
-   - https://nextjs.org/docs/app/building-your-application/rendering/composition-patterns
+   - https://nextjs.org/docs/app/getting-started/server-and-client-components
 2. Analyse the specified scope for Server/Client Component anti-patterns
 3. If fix=true, apply the fixes. If fix=false, propose the fixes without applying.

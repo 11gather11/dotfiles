@@ -74,8 +74,7 @@ description: Rebuild and republish the dotfiles reference page — what is insta
 
    ```
    Artifact(file_path: ".claude/skills/toolbelt/toolbelt.html",
-            url: "https://claude.ai/code/artifact/e12e959b-8f13-4965-a0d3-53ef5e21403e",
-            favicon: "🧰")
+            url: "https://claude.ai/code/artifact/e12e959b-8f13-4965-a0d3-53ef5e21403e")
    ```
 
 ## 注意
@@ -85,5 +84,5 @@ description: Rebuild and republish the dotfiles reference page — what is insta
 - タブを増やすなら `content.json` の `tabs` に足すだけでよい。`template.html` と `generate.nu` は
   タブ数に依存していない
 - 配色は端末のテーマ（Catppuccin Mocha）に合わせてある。名前の正解は
-  `nix/modules/lib/helpers/theme.nix`。テーマを変えるならそこを直したうえで `template.html` の
+  `nix/lib/helpers/theme.nix`。テーマを変えるならそこを直したうえで `template.html` の
   `:root` にある変数を差し替える。ライト・ダーク両方の定義があるので両方直すこと

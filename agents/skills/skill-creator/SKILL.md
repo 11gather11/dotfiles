@@ -15,7 +15,7 @@ The **Body** and **Documentation references** sections below apply to every agen
 2. Create or update `agents/skills/<skill-name>/SKILL.md` with YAML frontmatter and concise Markdown.
 3. Keep `SKILL.md` focused on workflow and navigation. Move detailed examples, APIs, or long checklists into `references/*.md` linked directly from `SKILL.md`.
 4. Add scripts under `scripts/` for deterministic, repeated, or fragile operations — see the **Scripts** section below for when a script beats inline commands.
-5. Stage only the skill directory and deploy: `git add agents/skills/<skill-name> && nix run .#switch`. Avoid `git add .` so unrelated working-tree changes (especially `nix/modules/home/programs/codex.nix`, which can contain private repo names) are not picked up. `agent-skills.nix` enables every directory under `local` automatically — no allow-list edit needed.
+5. Stage only the skill directory and deploy: `git add agents/skills/<skill-name> && nix run .#switch`. Stage explicit paths only, per `agents/shared/git-staging.md`: this repository is public, and a catch-all add publishes whatever else is in the working tree. `agent-skills.nix` enables every directory under `local` automatically — no allow-list edit needed.
 
 ## Frontmatter
 

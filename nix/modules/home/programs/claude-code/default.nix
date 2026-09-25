@@ -78,7 +78,6 @@ let
     # in one go otherwise hit auto-compaction, and lose their early detail to
     # a summary.
     model = "opus[1m]";
-    alwaysThinkingEnabled = true;
     autoMemoryEnabled = false;
     useAutoModeDuringPlan = true;
     # Medium, Opus 5.5's own default: effort levels do not mean the same

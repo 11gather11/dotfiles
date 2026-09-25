@@ -19,14 +19,14 @@ agents/skills/example-skill/
 ├── references/
 │   └── api.md
 └── scripts/
-    ├── validate.sh
-    └── analyse.py
+    ├── validate.nu
+    └── analyse.nu
 ```
 
 Rules:
 
-- Make execution intent explicit in `SKILL.md`: write `Run scripts/validate.sh` (execute) vs `See scripts/validate.sh for the algorithm` (read as reference). Default to execute.
-- Mark scripts executable (`chmod +x`) and use a real shebang (`#!/usr/bin/env bash` / `#!/usr/bin/env python3`).
+- Make execution intent explicit in `SKILL.md`: write `Run scripts/validate.nu` (execute) vs `See scripts/validate.nu for the algorithm` (read as reference). Default to execute.
+- Pick the language by the scripting rules in the repository `CLAUDE.md`: Nushell unless the script needs libraries. Mark scripts executable (`chmod +x`) and use a real shebang (`#!/usr/bin/env nu`).
 - Handle errors inside the script instead of punting back to the agent. Print a precise, actionable message (`Field 'foo' missing. Available: bar, baz.`) so the agent can fix the input and retry.
 - No magic constants — justify timeouts, retry counts, and thresholds in a comment.
 - Use forward slashes in every documented path. They work on every platform.

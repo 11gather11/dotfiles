@@ -35,4 +35,4 @@ Stop splitting when:
 2. Move it verbatim to `references/<topic>.md`. Give it an H1 and, if it runs past 100 lines, a contents list at the top so partial reads (`head -100`) still surface the scope.
 3. Replace the original location with a one-line pointer that names the trigger condition: e.g. `When a patch fails or needs whitespace handling, read references/git-apply.md.`
 4. Link reference files **directly from `SKILL.md`**. Keep links one level deep — agents may only preview nested references.
-5. Prefer `references/<topic>.md` over top-level `<topic>-example.md`; the dedicated folder makes the boundary obvious and is the convention used across this repo and the ccusage skills.
+5. Prefer `references/<topic>.md` over top-level `<topic>-example.md`; the dedicated folder makes the boundary obvious and is the convention used across this repo.

@@ -23,5 +23,4 @@ Let's fix whatever error we can find in CI using the `gh` CLI.
 1. **Analyse the check status above**: Identify which actions are failing
 2. If nothing is broken, bail.
 3. Fetch the logs for the broken action using `gh run view <run-id> --log-failed`
-4. Make a quick plan on what needs to be fixed
-5. Fix the error
+4. Fix the error

@@ -43,7 +43,7 @@ configuration has been applied once.
 
 ## Git Workflow
 
-- This is a personal dotfiles repo — **committing and pushing directly to `main` is fine**. Do NOT open a pull request unless explicitly asked.
+- This is a personal dotfiles repo — **committing and pushing directly to `main` is fine**. Open a pull request only when asked.
 - Use **Conventional Commits** for commit messages.
 
 ### This repository is public
@@ -63,11 +63,9 @@ Employment is not the subject of this repository, so keep it out of them.
   repository, declaring a value and publishing it are the same act.
 - Personal identity is already public and needs no such care.
 
-This was learned the hard way: commit messages written for reproducibility named
-a client, its repositories and the work account, and they were pushed before
-anyone noticed. Rewriting published history only half works, so the rule is to
-not write it in the first place. Explanations lose nothing by being generic —
-ten commit messages were rewritten without losing any of their reasoning.
+Rewriting published history only half works, so keep these names out from the
+first draft. Explanations lose nothing by being generic: the reasoning survives
+with "the client" in place of its name.
 
 ## Applying Changes
 

@@ -13,7 +13,7 @@ Use these tools instead of their standard alternatives:
 | `typos`          | -        | Spell checker       |
 | `bunx` / `bun x` | npx      | Package runner      |
 | `jq`             | -        | JSON processor      |
-| `gh`             | git      | GitHub CLI          |
+| `gh`             | -        | GitHub operations   |
 
 For code pattern searches (constructs, structure, not plain text), use the `ast-grep` skill rather than `rg`.
 

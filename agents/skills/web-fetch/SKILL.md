@@ -27,8 +27,8 @@ tgrab -l ja https://youtu.be/<id>          # transcript language
 ```
 
 It detects the service from the URL and prints the text. `tgrab --help` carries the full
-contract — every supported URL pattern and option. It used to ship a skill of its own; upstream
-dropped that in favour of the help text, so read the help rather than looking for a skill.
+contract — every supported URL pattern and option. There is no separate tgrab skill; the help
+text is the reference.
 
 ## Reading a lot
 

@@ -17,6 +17,6 @@ Exceptions:
 
 For GitHub-backed Nix fetches, use the `nix-github-rate-limit` skill.
 
-Never install tools globally: not `npm install -g`, `npm i -g`, `pnpm add -g`, `yarn global add`, `bun add -g`, `uv tool install`, `brew install`, or any language-specific global installer.
+Never install tools globally — this machine is declared in Nix, and a global install is invisible to that declaration and missing on the next machine: not `npm install -g`, `npm i -g`, `pnpm add -g`, `yarn global add`, `bun add -g`, `uv tool install`, `brew install`, or any language-specific global installer.
 
 Fish is the interactive shell here, so a tool may only be on Fish's PATH. If another shell cannot find a command, resolve its absolute path with `fish -lc 'command -v <tool>'` and invoke that path.

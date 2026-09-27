@@ -7,7 +7,15 @@
     # Vendors' own taps, for apps that are not in homebrew-core
     taps = [
       "arto-app/tap"
+      "rjyo/moshi"
       "typewhisper/tap"
+    ];
+
+    brews = [
+      # Moshi's host daemon: it installs the Claude Code hooks that push
+      # notifications to the phone. Paired by hand, so its service is started
+      # by hand too rather than on every activation.
+      "rjyo/moshi/moshi-hook"
     ];
 
     casks = [

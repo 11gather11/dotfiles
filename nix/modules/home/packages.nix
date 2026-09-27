@@ -46,6 +46,9 @@
     uv
     # Misc utilities
     fixjson
+    # The server end for Moshi on the phone. Over SSH alone the session would
+    # drop whenever the phone sleeps or changes network.
+    mosh
     #LSP
     nixd
   ];

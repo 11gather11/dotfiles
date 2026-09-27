@@ -48,6 +48,11 @@ let
       memories = true;
       # Subagents, which the agents block below configures.
       multi_agent = true;
+      # Hooks run inside the shared app-server with the environment of
+      # whichever session started it, so herdr's and Moshi's hooks saw every
+      # Codex session as the first one's pane. `codex agents` and `codex queue`
+      # need the shared server and stop working without it.
+      daemon_auto_start = false;
     };
 
     agents = {

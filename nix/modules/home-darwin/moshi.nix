@@ -10,8 +10,10 @@ in
   # merge replaces declared lists whole, so every switch that rewrote the
   # settings dropped Moshi's entries from those three events. Installing again
   # afterwards puts them back; it is idempotent and leaves other hooks alone.
-  # Codex's hooks.json and grok's hooks directory are not generated here, so
-  # installing them once by hand is enough.
+  # Codex's hooks.json is not generated here, but herdr's integration rewrites
+  # it after a change and puts its own hook first, which moshi-hook doctor
+  # reports as out of date, so Codex is reinstalled here too. grok's hooks
+  # directory is Moshi's alone, so installing it once by hand is enough.
   home.activation.installMoshiHooks =
     lib.hm.dag.entryAfter
       [
@@ -22,10 +24,12 @@ in
         # brew bundle may not have installed it yet on a fresh machine.
         if [ -x ${moshiHook} ]; then
           # Activation does not run with the session's environment, and without
-          # this the hooks would go to ~/.claude, which nothing here reads.
+          # these the hooks would go to ~/.claude and ~/.codex, which nothing
+          # here reads.
           export CLAUDE_CONFIG_DIR=${lib.escapeShellArg config.home.sessionVariables.CLAUDE_CONFIG_DIR}
-          if ! out="$($DRY_RUN_CMD ${moshiHook} install --target claude 2>&1)"; then
-            echo "moshi-hook: install --target claude failed:" >&2
+          export CODEX_HOME=${lib.escapeShellArg config.home.sessionVariables.CODEX_HOME}
+          if ! out="$($DRY_RUN_CMD ${moshiHook} install --target claude,codex 2>&1)"; then
+            echo "moshi-hook: install --target claude,codex failed:" >&2
             echo "$out" >&2
             exit 1
           fi

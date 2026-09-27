@@ -16,6 +16,9 @@
       # notifications to the phone. Paired by hand, so its service is started
       # by hand too rather than on every activation.
       "rjyo/moshi/moshi-hook"
+      # zmk-layer-hud's Python wheel links against Homebrew's hidapi, and its
+      # own setup installs it imperatively; declared so cleanup keeps it.
+      "hidapi"
     ];
 
     casks = [

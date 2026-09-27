@@ -1,0 +1,41 @@
+--- a/host/hudfeed.py
++++ b/host/hudfeed.py
+@@ -64,8 +64,8 @@
+ ZMK_VID, ZMK_PID = 0x1D50, 0x615E
+ 
+ # The module's own GATT service; the characteristic notifies one frame at a time.
+-BLE_SERVICE_UUID = "d1f0a7c2-5b47-4a1e-9c3d-6f2a8e10b7c1"
+-BLE_SIGNAL_UUID = "d1f0a7c3-5b47-4a1e-9c3d-6f2a8e10b7c1"
++BLE_SERVICE_UUID = "d1f0a7c2-6b3e-4f8a-9c21-5e7b4a0d9f31"
++BLE_SIGNAL_UUID = "d1f0a7c3-6b3e-4f8a-9c21-5e7b4a0d9f31"
+ BLE_RETRY_MAX_S = 60  # longest gap between scans while none of them find anything
+ 
+ # HID modifier byte bits -> HUD flag names (left/right collapse).
+@@ -457,6 +457,18 @@
+ 
+     async def _find(self):
+         from bleak import BleakScanner
++        if self.address and sys.platform == "darwin":
++            # A keyboard already bonded and connected to the Mac stops advertising, so a scan
++            # never finds it; CoreBluetooth hands it over by its peripheral UUID instead.
++            from Foundation import NSUUID
++            from bleak.backends.corebluetooth.CentralManagerDelegate import CentralManagerDelegate
++            from bleak.backends.device import BLEDevice
++            manager = CentralManagerDelegate()
++            await manager.wait_until_ready()
++            found = manager.central_manager.retrievePeripheralsWithIdentifiers_(
++                [NSUUID.alloc().initWithUUIDString_(self.address)])
++            if found:
++                return BLEDevice(self.address, found[0].name(), (found[0], manager))
+         if self.address:
+             return await BleakScanner.find_device_by_address(self.address, timeout=self.rescan)
+         return await BleakScanner.find_device_by_filter(
+--- a/hud/hud.css
++++ b/hud/hud.css
+@@ -150,3 +150,6 @@
+ #close { margin-left: 10px; width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
+   background: rgba(255,255,255,0.06); color: #aab0c0; font: 13px/1 var(--font); cursor: pointer; padding: 0; }
+ #close:hover { background: var(--chip-raw); color: #101420; }
++
++/* local: the typed-keys strip stays empty without Input Monitoring, and its transparent box still takes clicks */
++#keys { display: none; }

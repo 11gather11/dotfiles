@@ -32,6 +32,21 @@
          return await BleakScanner.find_device_by_filter(
 --- a/hud/hud.css
 +++ b/hud/hud.css
+@@ -61,10 +61,10 @@
+    baseline and survives; the acute on Á, the tilde on Ã and the circumflex on Ô sit above cap
+    height and were cut off entirely, so a Portuguese alpha layer drew as bare A, A, O. Measured
+    worst case is 1.095 of the font size; 1.25 leaves margin and still fits the grid row. */
+-.key .tap { font-size: calc(var(--kh, 62px) * 0.32); font-weight: 600; line-height: 1.25; max-width: 100%; overflow: hidden; white-space: nowrap; }
+-.key .tap.long { font-size: calc(var(--kh, 62px) * 0.19); }
+-.key .tap.mid { font-size: calc(var(--kh, 62px) * 0.24); }
+-.key .hold, .key .shifted { font-size: calc(var(--kh, 62px) * 0.145); color: #5b6172; line-height: 1.25; max-width: 100%; overflow: hidden; white-space: nowrap; }
++.key .tap { font-size: calc(var(--kh, 62px) * 0.38); font-weight: 600; line-height: 1.25; max-width: 100%; overflow: hidden; white-space: nowrap; }
++.key .tap.long { font-size: calc(var(--kh, 62px) * 0.23); }
++.key .tap.mid { font-size: calc(var(--kh, 62px) * 0.29); }
++.key .hold, .key .shifted { font-size: calc(var(--kh, 62px) * 0.175); color: #5b6172; line-height: 1.25; max-width: 100%; overflow: hidden; white-space: nowrap; }
+ .key.trans { background: #e6e8ef; }
+ .key.trans .tap, .key.trans .hold, .key.trans .shifted { color: var(--key-dim); }
+ .key.blank { background: #dcdfe8; border-style: dashed; }
 @@ -150,3 +150,6 @@
  #close { margin-left: 10px; width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.12);
    background: rgba(255,255,255,0.06); color: #aab0c0; font: 13px/1 var(--font); cursor: pointer; padding: 0; }
@@ -39,3 +54,14 @@
 +
 +/* local: the typed-keys strip stays empty without Input Monitoring, and its transparent box still takes clicks */
 +#keys { display: none; }
+--- a/hud/hud.js
++++ b/hud/hud.js
+@@ -28,7 +28,7 @@
+ (function () {
+   "use strict";
+ 
+-  const GAP = 6;             // px between keys at the drawn scale
++  const GAP = 3;             // px between keys at the drawn scale
+   // Every timing the page uses comes from the config's `hud:` section (host/keymap.py fills the
+   // defaults in); these are only the fallbacks for a keymap message without it.
+   const DEFAULTS = { opacity: 86, press_ms: 320, release_ms: 60, held_timeout_ms: 5000, momentary_ms: 700, combo_slack_ms: 20, activator_ms: 400,

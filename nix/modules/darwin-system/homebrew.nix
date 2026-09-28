@@ -7,6 +7,7 @@
     # Vendors' own taps, for apps that are not in homebrew-core
     taps = [
       "arto-app/tap"
+      "kot149/tap"
       "rjyo/moshi"
       "typewhisper/tap"
     ];
@@ -49,6 +50,13 @@
       "typewhisper/tap/typewhisper"
       "visual-studio-code"
       "vlc"
+      # macOS shows only one battery per BLE keyboard, so the Ergonaut One's
+      # two halves are read by this menu bar app. Homebrew 6+ refuses casks
+      # from untrusted taps.
+      {
+        name = "kot149/tap/zmk-battery-center";
+        trusted = true;
+      }
     ];
 
     masApps = {
@@ -56,14 +64,17 @@
     };
   };
 
-  # Arto is neither signed nor notarized, so Gatekeeper refuses to open it
-  # while the download's quarantine flag is on, and its cask says to clear
-  # the flag by hand. Every upgrade brings a fresh one, so it is cleared on
-  # each activation, which runs after the brew bundle that installs it.
+  # Arto and zmk-battery-center are neither signed nor notarized, so
+  # Gatekeeper refuses to open them while the download's quarantine flag is
+  # on, and their casks say to clear the flag by hand. Every upgrade brings a
+  # fresh one, so it is cleared on each activation, which runs after the brew
+  # bundle that installs them.
   system.activationScripts.postActivation.text = ''
-    if xattr -p com.apple.quarantine /Applications/Arto.app >/dev/null 2>&1; then
-      echo "Clearing quarantine from Arto.app..."
-      xattr -dr com.apple.quarantine /Applications/Arto.app || true
-    fi
+    for app in /Applications/Arto.app /Applications/zmk-battery-center.app; do
+      if xattr -p com.apple.quarantine "$app" >/dev/null 2>&1; then
+        echo "Clearing quarantine from $app..."
+        xattr -dr com.apple.quarantine "$app" || true
+      fi
+    done
   '';
 }

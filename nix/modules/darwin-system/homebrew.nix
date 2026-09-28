@@ -4,7 +4,9 @@
     enable = true;
     onActivation.cleanup = "uninstall";
 
-    # Vendors' own taps, for apps that are not in homebrew-core
+    # Vendors' own taps, for apps that are not in homebrew-core. Homebrew 6+
+    # loads nothing from them until it is trusted, so each package taken from
+    # one below is marked trusted rather than the whole tap.
     taps = [
       "arto-app/tap"
       "kot149/tap"
@@ -16,7 +18,10 @@
       # Moshi's host daemon: it installs the Claude Code hooks that push
       # notifications to the phone. Paired by hand, so its service is started
       # by hand too rather than on every activation.
-      "rjyo/moshi/moshi-hook"
+      {
+        name = "rjyo/moshi/moshi-hook";
+        trusted = true;
+      }
       # zmk-layer-hud's Python wheel links against Homebrew's hidapi, and its
       # own setup installs it imperatively; declared so cleanup keeps it.
       "hidapi"
@@ -28,7 +33,10 @@
       "appcleaner"
       # A Markdown reader: GitHub's rendering, offline, following the file as
       # it changes — for what agents write, read beside them as they write it.
-      "arto-app/tap/arto"
+      {
+        name = "arto-app/tap/arto";
+        trusted = true;
+      }
       "autodesk-fusion"
       "bambu-studio"
       "bruno"
@@ -47,12 +55,14 @@
       "stats"
       "steam"
       "tailscale-app"
-      "typewhisper/tap/typewhisper"
+      {
+        name = "typewhisper/tap/typewhisper";
+        trusted = true;
+      }
       "visual-studio-code"
       "vlc"
       # macOS shows only one battery per BLE keyboard, so the Ergonaut One's
-      # two halves are read by this menu bar app. Homebrew 6+ refuses casks
-      # from untrusted taps.
+      # two halves are read by this menu bar app.
       {
         name = "kot149/tap/zmk-battery-center";
         trusted = true;

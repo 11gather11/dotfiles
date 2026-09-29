@@ -359,14 +359,6 @@
 							}
 						},
 						{
-							"name": "Bruno",
-							"desc": "API クライアント（Postman 代替）",
-							"tag": {
-								"kind": "t-gui",
-								"text": "GUI"
-							}
-						},
-						{
 							"name": "OrbStack",
 							"desc": "Docker / Linux VM。do・dc 系の略語がこれに繋がる",
 							"tag": {
@@ -1463,14 +1455,6 @@
 						{
 							"name": "Stats",
 							"desc": "メニューバーの状態表示"
-						},
-						{
-							"name": "Bruno",
-							"desc": "API クライアント",
-							"tag": {
-								"kind": "t-new",
-								"text": "新"
-							}
 						},
 						{
 							"name": "Google Chrome",

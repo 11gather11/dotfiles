@@ -39,7 +39,6 @@
       }
       "autodesk-fusion"
       "bambu-studio"
-      "bruno"
       "chatgpt"
       "claude"
       "codexbar"

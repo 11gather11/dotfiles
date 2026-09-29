@@ -9,6 +9,7 @@
     # one below is marked trusted rather than the whole tap.
     taps = [
       "arto-app/tap"
+      "kamillobinski/thock"
       "kot149/tap"
       "rjyo/moshi"
       "typewhisper/tap"
@@ -53,6 +54,11 @@
       "stats"
       "steam"
       "tailscale-app"
+      # Typing sounds; taken over Klack for its importable sound packs.
+      {
+        name = "kamillobinski/thock/thock";
+        trusted = true;
+      }
       {
         name = "typewhisper/tap/typewhisper";
         trusted = true;
@@ -66,10 +72,6 @@
         trusted = true;
       }
     ];
-
-    masApps = {
-      "Klack" = 6446206067;
-    };
   };
 
   # Arto and zmk-battery-center are neither signed nor notarized, so

@@ -46,7 +46,6 @@
       "discord"
       "ghostty"
       "google-chrome"
-      "hhkb"
       "karabiner-elements"
       "microsoft-teams"
       "raycast"

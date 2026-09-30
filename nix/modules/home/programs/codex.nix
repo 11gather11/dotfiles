@@ -65,6 +65,12 @@ let
       default_subagent_reasoning_effort = "high";
     };
 
+    # Usage analytics and feedback uploads off, as for Claude Code: Codex runs
+    # against the work checkout too, and nothing beyond the conversation needs
+    # to leave.
+    analytics.enabled = false;
+    feedback.enabled = false;
+
     # The ChatGPT desktop app, installed as a cask here, reads these.
     desktop = {
       preventSleepWhileRunning = true;

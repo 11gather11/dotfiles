@@ -58,7 +58,16 @@ let
       DISABLE_MICROCOMPACT = "1";
 
       DISABLE_INTERLEAVED_THINKING = "1";
+
+      # Nothing about the work leaves beyond the conversation itself: this
+      # runs against the work checkout too. Usage statistics, error reports
+      # and the feedback survey are all off. Telemetry off also stops the
+      # feature-flag fetch that stages new features in, so the flags last
+      # fetched are kept from disk rather than falling back to defaults.
+      DISABLE_TELEMETRY = "1";
       DISABLE_ERROR_REPORTING = "1";
+      CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = "1";
+      CLAUDE_CODE_GB_DISK_CACHE_WHEN_TELEMETRY_OFF = "1";
 
       CLAUDE_CODE_NO_FLICKER = "1";
 

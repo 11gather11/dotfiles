@@ -248,6 +248,7 @@ let
     "claude"
     "codex"
     "grok"
+    "antigravity-cli"
   ];
 
   herdr = lib.getExe pkgs.llm-agents.herdr;

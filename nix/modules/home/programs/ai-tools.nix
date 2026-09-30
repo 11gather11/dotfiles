@@ -10,5 +10,9 @@
     # A browser in a pane, replacing herdr-browser, which upstream deprecated in
     # its favour.
     pkgs.llm-agents.terminal-browser
+
+    # Google's Antigravity agent in the terminal, as `agy`. From llm-agents
+    # rather than nixpkgs, which carries the same CLI several releases behind.
+    pkgs.llm-agents.antigravity-cli
   ];
 }

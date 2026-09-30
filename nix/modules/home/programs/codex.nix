@@ -61,7 +61,7 @@ let
       # review is built on, and what it misses the lead never sees. Sol carries
       # the depth that max used to buy on a weaker model, and these run up to a
       # hundred at a time.
-      default_subagent_model = "gpt-6-sol";
+      default_subagent_model = "gpt-6.1-sol";
       default_subagent_reasoning_effort = "high";
     };
 
@@ -89,9 +89,10 @@ let
     # Codex here is mostly a reviewer, and a review misses what the model
     # cannot see. Luna is the cheap-and-fast tier, which the previous plan was
     # the reason for; Sol is the workhorse tier above it, and the plan no
-    # longer makes that the deciding factor. GPT-6 Sol is the generation Codex
-    # itself now starts on, and lists 5.6 Sol as the older model.
-    model = "gpt-6-sol";
+    # longer makes that the deciding factor. GPT-6.1 Sol nearly matches Astra
+    # on agentic coding at a fifth of its price, and makes fewer factual errors
+    # than 6 Sol — the kind a reviewer's finding cannot afford.
+    model = "gpt-6.1-sol";
     # auto_review requires the on-request approval policy
     approval_policy = "on-request";
     approvals_reviewer = "auto_review";

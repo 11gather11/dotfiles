@@ -35,8 +35,11 @@ in
         softwareupdate --install-rosetta --agree-to-license || true
       fi
 
+      # The check runs as the user too: /opt/homebrew is the user's, and git run
+      # as root refuses a repository another user owns (safe.directory), so it
+      # answered "not a repository" and brew ran on every switch.
       if [ -x /opt/homebrew/bin/brew ] \
-        && [ "$(/usr/bin/git -C /opt/homebrew config --local --get homebrew.analyticsdisabled || true)" != "true" ]; then
+        && [ "$(sudo --user=${username} /usr/bin/git -C /opt/homebrew config --local --get homebrew.analyticsdisabled || true)" != "true" ]; then
         echo "Disabling Homebrew analytics..."
         sudo --user=${username} --set-home /opt/homebrew/bin/brew analytics off || true
       fi

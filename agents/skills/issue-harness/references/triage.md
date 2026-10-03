@@ -39,6 +39,8 @@ Decide whose failure it is from the failed log:
   `gh run rerun <run> --failed`, once. If no issue covers it yet
   (`gh issue list --search "<test name>"`), file one with the repository's
   triage label. Leave it for the user to schedule rather than starting a worker
-  for it in this batch.
+  for it in this batch, unless the user has left you to run the batch through
+  unattended: then start a `diagnosing-bugs` worker for it, so the flake does
+  not keep stalling the issues behind it.
 - **Fails again, or fails the same way on main**: main is broken. Stop landing
   and bring it to the user.

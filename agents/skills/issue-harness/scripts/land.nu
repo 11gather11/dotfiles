@@ -383,7 +383,7 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
         "failed" => {
             let names = $checks.failed | get name | str join ", "
             return (
-                do $say ci-failed $"failed: ($names)" "read `gh run view <run> --log-failed`; send it back if the PR caused it, else `gh run rerun <run> --failed`"
+                do $say ci-failed $"failed: ($names)" "read `gh run view <run> --log-failed`; send it back if the PR caused it, else `gh run rerun <run> --failed` once; a second failure means main is broken"
                 | insert failed $checks.failed
             )
         }

@@ -77,11 +77,13 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     echo '' >$CONFIG_CACHE_TMP
 
     # homebrew
+    # Name the shell: brew guesses it from $SHELL and the parent process, so a
+    # cache rebuilt under `fish -lc` from zsh or bash got zsh syntax.
     if test (uname -m) = arm64
-        echo $(/opt/homebrew/bin/brew shellenv) >>$CONFIG_CACHE_TMP
+        echo $(/opt/homebrew/bin/brew shellenv fish) >>$CONFIG_CACHE_TMP
         echo "set -gx PATH /opt/homebrew/opt/llvm/bin $PATH" >>$CONFIG_CACHE_TMP
     else
-        echo $(/usr/local/bin/brew shellenv) >>$CONFIG_CACHE_TMP
+        echo $(/usr/local/bin/brew shellenv fish) >>$CONFIG_CACHE_TMP
     end
 
     # xcode

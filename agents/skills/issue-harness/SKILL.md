@@ -3,107 +3,118 @@ name: issue-harness
 description: Runs GitHub issues as separate Claude Code workers in herdr panes, one worktree each, and supervises them through to merge. Use when implementing issues in parallel or acting as the harness for workers.
 ---
 
-You are the harness. Workers implement; you start them, watch them, answer
-what you can, merge what passes, and bring the rest to the user. Edit nothing in
-a worker's worktree yourself.
+You are the harness. Workers implement; you start them, wait on them, triage
+what wakes you, land what passes, and bring the rest to the user. Edit nothing
+in a worker's worktree yourself.
 
 A worker is a full Claude Code session in its own herdr pane rather than a
 subagent: the user can open the pane and talk to it, its log stays out of your
-context, and it runs with the user's own hooks and skills. Prefer it over a
-subagent for any issue that ends in a PR.
+context, and it runs with the user's own hooks and skills.
 
-For herdr mechanics, run `herdr --skill` or `<command> --help`.
+The two scripts live in this skill's `scripts/` directory. `nu` is not on PATH,
+so run them through Nix, from the repository's main checkout, with the Bash
+tool's `timeout: 600000`: both can wait several minutes, and a script killed by
+the default timeout leaves no output. Each prints one JSON line last; keep that
+line when you trim output.
 
-## Start a worker
-
-Run `scripts/spawn.nu` from this skill's directory, in the repository's main
-checkout. `nu` is not on PATH, so go through Nix:
+## 1. Start
 
 ```bash
-nix shell nixpkgs#nushell --command <skill-dir>/scripts/spawn.nu pg-264 issue-264-lint "Implement GitHub issue #264 and open a PR."
+nix shell nixpkgs#nushell --command <skill-dir>/scripts/spawn.nu pg-264 issue-264-lint "Implement GitHub issue #264 with the tdd skill and open a PR."
 ```
 
-- Name: a short repository prefix and the issue number, matching
-  `[a-z][a-z0-9_-]{0,31}`. The prefix keeps workers from two repositories apart.
+- Name: a short repository prefix and the issue number (`pg-264`).
 - Branch: `issue-<n>-<slug>`.
-- Prompt: one line naming the issue, plus anything specific to this issue
-  alone. The issue body and the repository's CLAUDE.md carry the rest.
+- Prompt: one line naming the issue and the skill that fits it: `tdd` for
+  behaviour to build or change, `diagnosing-bugs` for a bug or a flaky test.
+  Add only what is specific to this issue; the issue body and the repository's
+  CLAUDE.md carry the rest.
 
-The script creates the worktree, waits for the herdr workspace wt's hook opens,
-retries while the new pane is still loading direnv, and starts Claude with
-[`references/worker-brief.md`](references/worker-brief.md) appended to its
-system prompt. It prints the worker as JSON; done when `status` is `working`.
+Done when the line has `status: working`. Exit 2 (`stage: capacity`) means the
+machine is full: start it after another worker stops working. Any other error:
+fix the cause in `error`, then run the same command again; it picks up where
+the last attempt stopped.
 
-Machine-local instructions that cannot be committed (local data paths, private
-hosts) go in `~/.local/state/harness/<repo>/brief.md`; the script appends it to
-the worker brief. Repository rules belong in the repository's CLAUDE.md.
+Start a dependent issue only after its dependency has landed. Machine-local
+settings live in `~/.local/state/harness/`: `max-workers` (machine-wide) and
+`<repo>/max-workers`, both default 4, and `<repo>/brief.md`, appended to the
+worker brief for what the repository cannot publish (local data paths).
+Repository rules belong in the repository's CLAUDE.md.
 
-Keep at most four workers running at once. When issues depend on each other,
-start a dependent only after its dependency is merged.
+## 2. Wait
 
-## Wait
-
-Wait on each worker with one background command, so each worker wakes you on
-its own:
+One background command per worker, so each wakes you on its own:
 
 ```bash
 herdr agent wait pg-264 --timeout 7000000
 ```
 
-Use the Bash tool's `run_in_background` with a timeout above the wait's own.
-Keep one wait per worker; start a new one after you handle each wake-up. When a
-worker has opened its PR and stopped, wait on CI instead:
+When a worker has opened its PR and stopped, wait on CI instead:
+`gh pr checks <pr> --watch --fail-fast`. It exits 1 both on failure and when no
+checks exist yet; either way, go to Land, which tells them apart.
 
-```bash
-gh pr checks 312 --watch --fail-fast
-```
+Done when every running worker has exactly one wait.
 
-## On wake-up
+## 3. Triage
 
-Read before you act: `herdr agent get <name>` and `herdr agent read <name>
---lines 40`.
+Read before you act: `herdr agent get <name>`, `herdr agent read <name> --lines 40`.
 
-- **blocked**: a permission prompt or an AskUserQuestion. Answer it when the
-  issue, the parent spec, the ADRs or CONTEXT.md decide it; otherwise bring it
-  to the user. Never approve a permission the user's settings would refuse.
+- **blocked**: a permission prompt or a question. Answer it or bring it to the
+  user, per [`references/triage.md`](references/triage.md).
 - **idle with `N shells` on screen**: still waiting on a background command.
   Wait again.
-- **idle with a PR**: check CI, then merge or send it back.
-- **idle without a PR**: read the last turn. A plain-text question gets the same
-  treatment as blocked; a stuck worker gets one concrete nudge with
-  `herdr agent prompt <name> "<text>" --wait`.
-- **wait failed with the agent gone**: the pane closed. Check the worktree for
-  uncommitted work before starting over.
+- **idle with a PR**: Land.
+- **idle without a PR**: read its last turn. A question gets the blocked
+  treatment; a stuck worker gets one concrete nudge.
+- **gone**: expected after Land removed its worktree. Otherwise check the
+  worktree for uncommitted work before starting it again.
 
-Send a worker back with the failing job name and the lines that matter from
-`gh run view <run> --log-failed`, and let it decide between a fix and a rerun of
-a flaky job. After three send-backs on one issue, stop and report to the user.
-
-## Merge
-
-When `gh pr checks <pr>` passes and the PR body records no open spec decision:
+Send every prompt so that only its receipt is awaited, then wait again:
 
 ```bash
-sha=$(gh pr view 312 --json headRefOid -q .headRefOid)
-gh pr merge 312 --squash --match-head-commit "$sha"
-git pull --ff-only
-wt remove issue-264-lint
+herdr agent prompt pg-264 "<text>" --wait --until working --until blocked --timeout 30000
 ```
 
-`--match-head-commit` refuses the merge if the worker pushed after your check.
-On a conflict, ask the worker to rebase onto `origin/main` and push. `wt remove`
-also closes the herdr workspace and the worker with it.
+Done when the worker is working again, or its case is with the user.
 
-Gotchas from earlier runs:
+## 4. Land
 
-- A docs-only PR can skip heavy jobs on purpose; skipped is a pass.
-- A commit can get two CI runs, one cancelled. Judge by the run that finished.
-- A failed `gh` call is unknown, not open. Retry before starting or restarting
-  anything on its result; treating it as open once restarted merged issues.
+First check what the script cannot judge:
 
-## Bring to the user
+- The PR body leaves no spec decision open.
+- Work the PR defers ("moved to #285", "out of scope") is recorded in the issue
+  that owns it, or in a new one.
 
-- A spec decision the issue and the documents do not settle.
+Then:
+
+```bash
+nix shell nixpkgs#nushell --command <skill-dir>/scripts/land.nu 312 --agent pg-264
+```
+
+It checks mergeability, CI, and whether main moved under the PR, then merges
+with the head pinned to the commit whose CI it read, pulls main, and removes
+the worktree. On anything else it stops with a `result` and a `next`:
+
+- `conflict`: ask the worker to merge `origin/main` into its branch and push.
+- `ci-failed`: read `gh run view <run> --log-failed` and decide whose failure it
+  is, per [`references/triage.md`](references/triage.md).
+- `updated`, `pending`, `no-checks`: CI is (re)starting; wait on it and land
+  again.
+- anything else: follow `next`.
+
+Done when the result is `landed`. After three send-backs on one issue, stop and
+bring it to the user.
+
+## 5. Report
+
+Bring to the user, when they arise:
+
+- A spec decision the issue, the documents and the repository's CLAUDE.md do not
+  settle.
 - Signing, authentication, or anything touching production.
+- Main failing on its own.
 - An issue given up after three send-backs.
-- Every merge, in one line each, when the batch is done.
+
+When the batch is done, report each landing in one line with the decisions you
+made for it, and append to `~/.local/state/harness/<repo>/retro.md` whatever
+in this skill or its scripts slowed you down, so the next revision has it.

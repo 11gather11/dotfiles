@@ -62,8 +62,9 @@ def main [
     retry 18 10sec "the pane to accept the agent" {
         let r = herdr agent start $name --kind claude --pane $pane --timeout 60000 -- --append-system-prompt-file $brief | complete
         if $r.exit_code == 0 { true } else {
-            let code = $r.stdout | from json | get -o error.code
-            if $code != "agent_pane_busy" { error make {msg: $"agent start failed: ($r.stdout)"} }
+            # herdr writes its error envelope to stderr
+            let code = $r.stderr | from json | get -o error.code
+            if $code != "agent_pane_busy" { error make {msg: $"agent start failed: ($r.stderr)"} }
         }
     }
 

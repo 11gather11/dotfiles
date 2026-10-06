@@ -23,6 +23,10 @@ runs:
       with:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.private-key }}
+        # What the callers do with it: push update branches, open, edit and
+        # auto-merge their PRs. Anything else the installation allows stays out.
+        permission-contents: write
+        permission-pull-requests: write
 
     - name: Configure git bot identity
       shell: bash

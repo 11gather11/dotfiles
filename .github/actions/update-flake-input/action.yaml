@@ -420,7 +420,8 @@ runs:
         git commit -m "$commit_message"
 
         # Push (force to handle re-runs)
-        git push --force origin "$branch"
+        # checkout keeps no credentials; gh hands git this step's GH_TOKEN.
+        git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push --force origin "$branch"
 
         # Check if PR exists
         pr_number=$(gh pr list --head "$branch" --json number --jq '.[0].number // empty')

@@ -20,6 +20,10 @@ on:
         type: boolean
         default: false
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   update:
     uses: ./.github/workflows/_update-flake-reusable.yaml

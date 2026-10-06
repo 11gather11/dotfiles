@@ -5,6 +5,10 @@ on:
     - cron: '0 */3 * * *'
   workflow_dispatch:
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   update:
     uses: ./.github/workflows/_update-flake-reusable.yaml

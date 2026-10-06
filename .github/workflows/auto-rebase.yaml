@@ -16,12 +16,18 @@ concurrency:
   # up whatever is still behind.
   cancel-in-progress: true
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   rebase-prs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository (for local actions)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Set up git bot identity
         id: bot
@@ -35,6 +41,7 @@ jobs:
         with:
           token: ${{ steps.bot.outputs.token }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Rebase open flake update PRs
         env:
@@ -78,7 +85,8 @@ jobs:
 
             if git rebase origin/main; then
               echo "Rebase successful, force pushing..."
-              git push --force origin "$branch_name"
+              # checkout keeps no credentials; gh hands git this step's GH_TOKEN.
+              git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push --force origin "$branch_name"
               echo "PR #$pr_number rebased successfully"
             else
               echo "Rebase failed for PR #$pr_number, aborting"

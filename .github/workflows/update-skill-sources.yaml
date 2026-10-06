@@ -8,15 +8,18 @@ on:
     - cron: '30 6 * * *'
   workflow_dispatch:
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   update:
     runs-on: ubuntu-24.04-arm
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout repository (for local actions)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Set up git bot identity
         id: bot
@@ -29,6 +32,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           token: ${{ steps.bot.outputs.token }}
+          persist-credentials: false
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
@@ -110,7 +114,8 @@ jobs:
             git checkout -b $BRANCH
             git commit -m $title
             # A re-run reuses the branch name, so the push is forced.
-            git push --force origin $BRANCH
+            # checkout keeps no credentials; gh hands git this step's GH_TOKEN.
+            git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push --force origin $BRANCH
 
             match (gh pr list --head $BRANCH --json number | from json | get -o 0.number) {
               null => {

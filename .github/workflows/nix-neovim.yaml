@@ -15,12 +15,18 @@ concurrency:
   # discards the only result that commit will ever have.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   neovim-check:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-nix
         with:

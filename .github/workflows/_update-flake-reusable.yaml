@@ -54,6 +54,10 @@ on:
         description: 'Cachix authentication token'
         required: true
 
+# Every write goes through the bot's app token; GITHUB_TOKEN only reads.
+permissions:
+  contents: read
+
 jobs:
   discover:
     runs-on: ubuntu-24.04-arm
@@ -62,6 +66,8 @@ jobs:
       has-updates: ${{ steps.discover.outputs.has-updates }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
@@ -81,12 +87,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Checkout repository (for local actions)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Set up git bot identity
         id: bot
@@ -99,6 +104,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           token: ${{ steps.bot.outputs.token }}
+          persist-credentials: false
 
       - name: Setup Nix
         uses: ./.github/actions/setup-nix
@@ -135,24 +141,26 @@ jobs:
           AUTO_MERGE: ${{ inputs.auto-merge }}
           UPDATE_RESULT: ${{ needs.update.result }}
         run: |
-          echo "## $SUMMARY_TITLE" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
-          if [ -n "$INPUTS" ]; then
-            echo "- Inputs: $INPUTS" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -n "$EXCLUDE_INPUTS" ]; then
-            echo "- Excluded: $EXCLUDE_INPUTS" >> $GITHUB_STEP_SUMMARY
-          fi
-          if [ -n "$SKIP_DELAY_INPUTS" ]; then
-            echo "- Skip delay: $SKIP_DELAY_INPUTS" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "- Minimum release age: $MINIMUM_RELEASE_AGE_DAYS days" >> $GITHUB_STEP_SUMMARY
-          echo "- Auto-merge: $AUTO_MERGE" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## $SUMMARY_TITLE"
+            echo ""
+            echo "### Configuration"
+            if [ -n "$INPUTS" ]; then
+              echo "- Inputs: $INPUTS"
+            fi
+            if [ -n "$EXCLUDE_INPUTS" ]; then
+              echo "- Excluded: $EXCLUDE_INPUTS"
+            fi
+            if [ -n "$SKIP_DELAY_INPUTS" ]; then
+              echo "- Skip delay: $SKIP_DELAY_INPUTS"
+            fi
+            echo "- Minimum release age: $MINIMUM_RELEASE_AGE_DAYS days"
+            echo "- Auto-merge: $AUTO_MERGE"
+            echo ""
 
-          if [ "$UPDATE_RESULT" = "failure" ]; then
-            echo ":warning: Some updates failed. Check individual job logs for details." >> $GITHUB_STEP_SUMMARY
-          else
-            echo ":white_check_mark: All update jobs completed." >> $GITHUB_STEP_SUMMARY
-          fi
+            if [ "$UPDATE_RESULT" = "failure" ]; then
+              echo ":warning: Some updates failed. Check individual job logs for details."
+            else
+              echo ":white_check_mark: All update jobs completed."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

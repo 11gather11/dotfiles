@@ -1,6 +1,7 @@
 ---
 name: compare-dotfiles
 description: Diff this repository against another dotfiles repository as it stands today, area by area, and propose what to take. Use when the user wants to compare the whole setup with someone else's rather than review their new commits.
+disable-model-invocation: true
 ---
 
 # Compare this repository with another dotfiles repository

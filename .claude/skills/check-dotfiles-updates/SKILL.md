@@ -1,6 +1,7 @@
 ---
 name: check-dotfiles-updates
 description: Show new commits on the watched dotfiles repositories since each one was last checked, then compare how they configure the tools this repository also uses. Use when the user asks to check upstream dotfiles, catch up on what others changed, or look for tools and settings worth adopting.
+disable-model-invocation: true
 ---
 
 # Check watched dotfiles updates

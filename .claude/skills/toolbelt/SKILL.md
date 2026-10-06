@@ -1,6 +1,7 @@
 ---
 name: toolbelt
 description: Rebuild and republish the dotfiles reference page — what is installed here and how to use it. Use when tools are added or removed, when the page has gone stale, or when the user asks to update the toolbelt.
+disable-model-invocation: true
 ---
 
 # Toolbelt page

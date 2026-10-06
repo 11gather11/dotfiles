@@ -1,0 +1,6 @@
+rules:
+  # The `uses: $/...` form it asks for is rejected by actionlint, which also
+  # runs in treefmt and has not learnt the syntax yet. Turn this back on once
+  # the actionlint in nixpkgs accepts it.
+  self-repository:
+    disable: true

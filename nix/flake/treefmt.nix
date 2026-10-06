@@ -21,6 +21,11 @@
           };
           stylua.enable = true;
           shfmt.enable = true;
+          # Workflow linters. They change nothing, but treefmt is where the
+          # pre-commit hook and the flake check both already look, and they
+          # only ever match .github/workflows/.
+          actionlint.enable = true;
+          zizmor.enable = true;
         };
         settings = {
           global.excludes = [

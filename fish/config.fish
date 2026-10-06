@@ -103,7 +103,7 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     echo "fish_add_path $(ensure_installed gem environment gemdir)/bin" >>$CONFIG_CACHE_TMP
 
     # tools
-    ensure_installed direnv hook fish >>$CONFIG_CACHE_TMP
+    ensure_installed direnv-instant hook fish >>$CONFIG_CACHE_TMP
     ensure_installed zoxide init fish >>$CONFIG_CACHE_TMP
     ensure_installed tirith init --shell fish >>$CONFIG_CACHE_TMP
     ensure_installed wt config shell init fish >>$CONFIG_CACHE_TMP

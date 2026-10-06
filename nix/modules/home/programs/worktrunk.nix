@@ -105,6 +105,41 @@ let
       direnv allow "$worktree" || true
     '';
   };
+
+  # Files kept out of git live only in the primary checkout, yet an agent
+  # started in a new worktree needs them from its first turn: CLAUDE.local.md
+  # carries the repository's local rules, and .claude/settings.local.json the
+  # permission rules that make it ask before pushing. Each is linked back to
+  # the primary's copy, and only when git ignores that path in the worktree:
+  # a link at a path git does not ignore would be staged with the next commit.
+  wt-local-files = pkgs.writeShellApplication {
+    name = "wt-local-files";
+    runtimeInputs = [
+      pkgs.git
+      pkgs.coreutils
+    ];
+    text = ''
+      worktree="$1"
+      primary="$2"
+      [ "$worktree" != "$primary" ] || exit 0
+
+      link() {
+        local rel="$1"
+        [ -e "$primary/$rel" ] || return 0
+        # -L as well: a dangling link is still something not to overwrite
+        [ -e "$worktree/$rel" ] || [ -L "$worktree/$rel" ] && return 0
+        git -C "$worktree" check-ignore -q "$rel" || return 0
+        mkdir -p "$(dirname "$worktree/$rel")"
+        ln -s "$primary/$rel" "$worktree/$rel"
+      }
+
+      # This runs as a pre- hook, where a failure would abort creating the
+      # worktree; a worktree without these files is still worth having.
+      for rel in CLAUDE.local.md .claude/settings.local.json; do
+        link "$rel" || true
+      done
+    '';
+  };
 in
 {
   home.packages = [ pkgs.worktrunk ];
@@ -118,6 +153,10 @@ in
     # pre-start, which blocks until it finishes, so the .envrc is trusted
     # before post-start opens a herdr workspace and its shell loads direnv.
     pre-start.direnv = "${lib.getExe wt-direnv} {{ worktree_path }} {{ primary_worktree_path }}";
+
+    # pre-start too: post-start opens the herdr workspace an agent starts in,
+    # and the agent reads its local rules and permissions at launch.
+    pre-start.local-files = "${lib.getExe wt-local-files} {{ worktree_path }} {{ primary_worktree_path }}";
 
     # post-start fires once, on creation — not on switching to an existing
     # checkout. The workspace opens without focus, so the pane that ran `wt`

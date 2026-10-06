@@ -75,16 +75,18 @@ git -C <path> log <br> --since="<SINCE>" --no-merges \
   --grep='migrate' --grep='switch to' --grep='drop' -i
 ```
 
-こちらに無いツールの採用数:
+こちらに無いツールの採用数。`rg` と `fd` は既定で隠しファイルを読まないので、`--hidden` / `-H` を
+外さないこと。`.config/` 配下に設定を置く人がまるごと数から落ちる（2026-10-07、herdr が 9/24 から
+7/24 に減って見えた）:
 
 ```bash
-for p in <各 clone>; do rg -l --no-messages '<tool>' "$p" -g '!.git' >/dev/null && echo "$p"; done
+for p in <各 clone>; do rg -l --hidden --no-messages '<tool>' "$p" -g '!.git' >/dev/null && echo "$p"; done
 ```
 
 ## 手順8: 同じツールを持つ相手を探す
 
 ```bash
-for p in <各 clone>; do fd -i '<tool>' "$p" -t f -t d -E .git | head -1 | rg -q . && echo "$p"; done
+for p in <各 clone>; do fd -H -i '<tool>' "$p" -t f -t d -E .git | head -1 | rg -q . && echo "$p"; done
 ```
 
 ## 手順10: レビューし終えた地点を確かめる

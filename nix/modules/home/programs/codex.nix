@@ -122,6 +122,12 @@ let
     plugins."github@openai-curated" = {
       enabled = true;
     };
+    # Reviews here go through the codex-review skill and the PR review gate,
+    # which decide what Codex is shown and how its findings come back. The
+    # bundled plugin would be a second, unconfigured way in.
+    plugins."code-review@openai-bundled" = {
+      enabled = false;
+    };
 
     tui.status_line = [
       "model-with-reasoning"

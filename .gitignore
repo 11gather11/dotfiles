@@ -12,3 +12,6 @@ result
 
 # Claude Code runtime state
 .claude/scheduled_tasks.lock
+# Skills Claude Code syncs down from the claude.ai account. claude/ is linked to
+# ~/.config/claude, so they would land in this public tree; the account owns them.
+claude/skills/synced/

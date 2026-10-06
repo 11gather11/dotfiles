@@ -7,5 +7,12 @@
 -- claims, so they stay as upstream ships them:
 --   <leader>ac comment   <leader>al list   <leader>as send   <leader>aS submit
 return {
-  { "ChmaraX/herdr-nvim", opts = {} },
+  {
+    "ChmaraX/herdr-nvim",
+    -- The sidebar is a headless Neovim that loads this config and then calls
+    -- setup() itself on VimEnter. A second setup() finds the keymaps the
+    -- first one made and warns once for each, so the sidebar is left to its own.
+    cond = not vim.list_contains(vim.v.argv, "--headless"),
+    opts = {},
+  },
 }

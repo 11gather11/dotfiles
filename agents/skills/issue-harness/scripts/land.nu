@@ -289,6 +289,13 @@ def clean-up [repo: string, branch: string, agent]: nothing -> record {
     )
 }
 
+# The harness's machine-local settings for `repo`, resolved as spawn.nu does.
+def state-dir [repo: string]: nothing -> string {
+    $env.XDG_STATE_HOME?
+    | default ($env.HOME | path join .local/state)
+    | path join harness ($repo | path basename)
+}
+
 # Walks the PR through every check in precedence order and acts on the first
 # that applies.
 def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
@@ -323,6 +330,20 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
                 $"($pr.url) is ($pr.state | str lowercase) without a merge"
                 "bring it to the user"
             )
+        )
+    }
+    # A repository that merges by hand stops here, before update-branch, the
+    # merge or worktree removal, and before the draft check: its PRs stay
+    # drafts until a person reviews them
+    if (state-dir $repo | path join no-land | path exists) {
+        let ci = classify-checks (read-checks $pr_arg)
+        return (
+            do
+                $say
+                manual-land
+                $"($pr.url) is merged by hand in this repository; CI ($ci.status)"
+                "merging is the user's: if CI failed, triage it as for ci-failed; if pending or none, wait on CI and run land.nu again; once it passed, report the PR URL and CI result to the user"
+            | insert ci $ci
         )
     }
     if $pr.isDraft {

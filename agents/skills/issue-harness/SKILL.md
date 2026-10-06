@@ -29,6 +29,8 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/spawn.nu pg-264 issue-26
   behaviour to build or change, `diagnosing-bugs` for a bug or a flaky test.
   Add only what is specific to this issue; the issue body and the repository's
   CLAUDE.md carry the rest.
+- `--base <branch>`: in a repository whose work branches from a branch other
+  than the default, cut the new branch from that branch's latest on origin.
 
 Done when the line has `status: working`. Exit 2 (`stage: capacity`) means the
 machine is full: start it after another worker stops working. Any other error:
@@ -36,9 +38,15 @@ fix the cause in `error`, then run the same command again; it picks up where
 the last attempt stopped.
 
 Start a dependent issue only after its dependency has landed. Machine-local
-settings live in `~/.local/state/harness/`: `max-workers` (machine-wide) and
-`<repo>/max-workers`, both default 4, and `<repo>/brief.md`, appended to the
-worker brief for what the repository cannot publish (local data paths).
+settings live in `~/.local/state/harness/`:
+
+- `max-workers` (machine-wide) and `<repo>/max-workers`, both default 4.
+- `<repo>/brief.md`, appended after the shared worker brief, for what the
+  repository cannot publish (local data paths). Coming last, it can override
+  the shared brief, such as how the PR closes its issue.
+- `<repo>/no-land`, an empty file, for a repository where a person merges:
+  Land stops before changing anything and reports instead.
+
 Repository rules belong in the repository's CLAUDE.md.
 
 ## 2. Wait
@@ -100,9 +108,13 @@ the worktree. On anything else it stops with a `result` and a `next`:
   is, per [`references/triage.md`](references/triage.md).
 - `updated`, `pending`, `no-checks`: CI is (re)starting; wait on it and land
   again.
+- `manual-land`: the repository has `no-land`. Its `ci` field carries the CI
+  verdict: send a failure back as for `ci-failed`, wait on a pending one, and
+  report a pass to the user with the PR URL.
 - anything else: follow `next`.
 
-Done when the result is `landed`. After three send-backs on one issue, stop and
+Done when the result is `landed`, or, under `no-land`, when the PR's CI has
+passed and the user has its URL. After three send-backs on one issue, stop and
 bring it to the user.
 
 ## 5. Report

@@ -52,9 +52,10 @@ def main [
     branch: string # worktree branch, e.g. issue-264-lint
     prompt: string # first prompt, usually one line naming the issue
     --force # start even when the capacity limits say to wait
+    --base: string # branch to cut a new branch from, at its latest on origin; the default branch when omitted
 ]: nothing -> nothing {
     let outcome = try {
-        spawn $name $branch $prompt $force
+        spawn $name $branch $prompt $force $base
     } catch {|e| {
         exit: 1
         out: {
@@ -75,6 +76,7 @@ def spawn [
     branch: string
     prompt: string
     force: bool
+    base: oneof<string, nothing>
 ]: nothing -> record {
     let ctx = step setup { context $name }
 
@@ -102,7 +104,7 @@ def spawn [
         ] | ignore
     }
     let path = step worktree {
-        $existing | default { create-worktree $ctx.repo $branch }
+        $existing | default { create-worktree $ctx.repo $branch $base }
     }
     let ws = step workspace { workspace-for $path $branch ($existing != null) }
     let pane = step workspace {
@@ -119,16 +121,22 @@ def spawn [
     let agent = step prompt {
         herdr-ok [agent get $name] | get agent
     }
+    let worker = {
+        name: $name
+        branch: $branch
+        workspace: $ws
+        pane: $pane
+        worktree: $agent.cwd
+        status: $agent.agent_status
+    }
     {
         exit: 0
-        out: {
-            name: $name
-            branch: $branch
-            workspace: $ws
-            pane: $pane
-            worktree: $agent.cwd
-            status: $agent.agent_status
-        }
+        # `base` only when given, so the default record is unchanged
+        out: (
+            if $base == null { $worker } else {
+                $worker | insert base $base
+            }
+        )
     }
 }
 
@@ -337,7 +345,8 @@ def memory-pressure []: nothing -> oneof<int, nothing> {
 
 # Makes the worktree for `branch` and returns its path. The branch can
 # outlive its worktree, and `--create` refuses an existing branch.
-def create-worktree [repo: string, branch: string]: nothing -> string {
+# `base` applies only to a new branch, so a rerun reuses what the first run cut.
+def create-worktree [repo: string, branch: string, base: oneof<string, nothing>]: nothing -> string {
     let has_branch = (^git -C $repo show-ref --verify --quiet $"refs/heads/($branch)" | complete).exit_code == 0
     if $has_branch {
         external [
@@ -348,7 +357,7 @@ def create-worktree [repo: string, branch: string]: nothing -> string {
             $branch
             --no-cd
         ] | ignore
-    } else {
+    } else if $base == null {
         external [
             wt
             -C
@@ -356,6 +365,30 @@ def create-worktree [repo: string, branch: string]: nothing -> string {
             switch
             --create
             $branch
+            --no-cd
+        ] | ignore
+    } else {
+        # Cut from origin's copy rather than the local branch: fetching into a
+        # local branch fails while the main checkout has it checked out, and a
+        # remote-tracking base leaves the new branch without an upstream
+        external [
+            git
+            -C
+            $repo
+            fetch
+            --quiet
+            origin
+            $base
+        ] | ignore
+        external [
+            wt
+            -C
+            $repo
+            switch
+            --create
+            $branch
+            --base
+            $"origin/($base)"
             --no-cd
         ] | ignore
     }

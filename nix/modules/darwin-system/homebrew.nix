@@ -11,7 +11,6 @@
       "arto-app/tap"
       "kamillobinski/thock"
       "kot149/tap"
-      "penso/tap"
       "rjyo/moshi"
       "typewhisper/tap"
     ];
@@ -47,13 +46,6 @@
       "discord"
       "ghostty"
       "google-chrome"
-      # A native window onto the herdr daemon already running here: it paints
-      # the daemon's panes, so the terminal herdr stays the one that is
-      # configured and nothing is set up twice. Signed and notarized.
-      {
-        name = "penso/tap/herdr-gpui";
-        trusted = true;
-      }
       "karabiner-elements"
       "microsoft-teams"
       "raycast"

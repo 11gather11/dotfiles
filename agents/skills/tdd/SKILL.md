@@ -5,7 +5,7 @@ description: Guides execute-inspect-adjust development and t-wada Red-Green-Refa
 
 Use TDD when a behaviour should become an executable contract. For unfamiliar APIs, prototypes, and data exploration, use execute-inspect-adjust first; not every probe needs a test.
 
-Before writing a test, identify the public interface and the seam where its behaviour can be observed. When `CONTEXT.md` or relevant ADRs exist, read them so test names and interfaces use the project's vocabulary.
+Before writing a test, identify the public interface and the seam where its behaviour can be observed. When `GLOSSARY.md` or relevant ADRs exist, read them so test names and interfaces use the project's vocabulary.
 
 For test design and anti-patterns, read [`references/testing.md`](references/testing.md). For test doubles and system boundaries, read [`references/mocking.md`](references/mocking.md).
 

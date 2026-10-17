@@ -3,7 +3,7 @@
 ## Questions and permission prompts
 
 Answer a question yourself only when something already decides it: the issue,
-its parent spec, the ADRs, CONTEXT.md, or a rule in the repository's CLAUDE.md
+its parent spec, the ADRs, GLOSSARY.md, or a rule in the repository's CLAUDE.md
 for settling open questions (such as following a reference product). Otherwise
 bring it to the user, with the options and your recommendation.
 

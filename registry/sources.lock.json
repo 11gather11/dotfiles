@@ -81,16 +81,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-QJwKiWbFh2lLXDhpEvWq02aqhbneRgqi9DTdO+/4Js0=",
+				"hash": "sha256-AGkOphWUxVAZ5YUQKa1LhGWmQC0UNzrme/ln8EC2bCQ=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "d01253d9db28d75080e36da3c1c31ef89454731e",
+				"revision": "dac13bb87468fe9d74a040d862720f6cc17a9565",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/d01253d9db28d75080e36da3c1c31ef89454731e.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/dac13bb87468fe9d74a040d862720f6cc17a9565.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -107,29 +107,29 @@
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-5Qf3xeVzMrR0vE2oQZQypO63mE8Nz41GzxZT1fPDecA=",
+				"hash": "sha256-lfrCyTZwnkjW6xn8lpxSw/jyHTZI7YuZIEO+QDDrBIk=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "6dc7604903127485e7e4cb26314651ebd4a4df19",
+				"revision": "86505e44f87d801aa1864a3c4109e9a8ae5c409f",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/6dc7604903127485e7e4cb26314651ebd4a4df19.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/86505e44f87d801aa1864a3c4109e9a8ae5c409f.tar.gz"
 			},
 			"mattpocock": {
 				"branch": "main",
-				"hash": "sha256-L3CpIT2DeI+fUFl9fcygojtQo2DzEen69rMD1XqR1vM=",
+				"hash": "sha256-NljCSZNI3sZ+vbCw7pRdrwR7try4BxOFp4gdjuWYtzs=",
 				"repository": {
 					"owner": "mattpocock",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+				"revision": "49dd158d1076134a641b33efb035946536778336",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/mattpocock/skills/archive/c55ee46073ed923f86ce59a5eb3b6d895095d1b7.tar.gz"
+				"url": "https://github.com/mattpocock/skills/archive/49dd158d1076134a641b33efb035946536778336.tar.gz"
 			}
 		},
 		"version": 8

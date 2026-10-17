@@ -1878,7 +1878,7 @@
 						},
 						{
 							"name": "domain-modeling",
-							"desc": "ドメインモデルと用語を磨く。CONTEXT.md や ADR を書くとき"
+							"desc": "ドメインモデルと用語を磨く。GLOSSARY.md や ADR を書くとき"
 						},
 						{
 							"name": "grill-me",

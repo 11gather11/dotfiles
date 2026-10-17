@@ -62,7 +62,7 @@ let
       # the depth that max used to buy on a weaker model, and these run up to a
       # hundred at a time.
       default_subagent_model = "gpt-6.1-sol";
-      default_subagent_reasoning_effort = "high";
+      default_subagent_reasoning_effort = "medium";
     };
 
     # Usage analytics and feedback uploads off, as for Claude Code: Codex runs
@@ -99,11 +99,10 @@ let
     # Measured from this machine's own session logs, reasoning tokens per turn:
     # max 50,282, xhigh about half of that, high 1,953. The depth bought there
     # is what a weaker model needs to keep up; on Sol the base model carries
-    # more of it, so the default starts back at high and `/model` raises it for
-    # the work that asks. Those numbers were 5.6 Sol's, and levels do not map
-    # across generations. High stays because OpenAI names it the level for
-    # reviewer agents, one above the medium it gives Sol as a starting point.
-    model_reasoning_effort = "high";
+    # more of it, so the default is medium, the level OpenAI gives Sol as its
+    # starting point, and `/model` raises it for the work that asks. Those
+    # numbers were 5.6 Sol's, and levels do not map across generations.
+    model_reasoning_effort = "medium";
     # The fast tier buys 1.5x speed for higher usage. What Codex does here runs
     # in the background — reviews take minutes either way — so the usage goes
     # into reasoning above instead. fast_default_opt_out declines Codex's offer

@@ -256,7 +256,7 @@
               mkdir -p $out/bin $out/share
               ln -s ${program}/bin/skills-sources-lock $out/bin/skills-sources-lock
               ln -s ${inputs.agent-skills} $out/share/agent-skills-source
-              ln -s ${localPkgs.path} $out/share/nixpkgs-source
+              ln -s ${inputs.nixpkgs} $out/share/nixpkgs-source
             '';
           in
           app "${withSource}/bin/skills-sources-lock";

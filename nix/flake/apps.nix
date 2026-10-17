@@ -242,9 +242,24 @@
         # Re-resolves every pin in registry/sources/ and rewrites
         # registry/sources.lock.json. Skill sources live there rather than in
         # flake.lock, so updating them does not move every other input.
-        skills-sources-lock = app "${
-          inputs.agent-skills.lib.agent-skills.mkSourceLockProgram { pkgs = localPkgs; }
-        }/bin/skills-sources-lock";
+        #
+        # The program names its own helper files and nixpkgs' lib with
+        # `toString`, which drops the store reference, so its closure lacks them. Locally evaluation
+        # has already put the source in the store; in CI the program comes
+        # from the cache alone and fails with "eval-source-manifests.nix does
+        # not exist". Linking both sources from the output makes them runtime
+        # dependencies again.
+        skills-sources-lock =
+          let
+            program = inputs.agent-skills.lib.agent-skills.mkSourceLockProgram { pkgs = localPkgs; };
+            withSource = localPkgs.runCommand "skills-sources-lock" { } ''
+              mkdir -p $out/bin $out/share
+              ln -s ${program}/bin/skills-sources-lock $out/bin/skills-sources-lock
+              ln -s ${inputs.agent-skills} $out/share/agent-skills-source
+              ln -s ${localPkgs.path} $out/share/nixpkgs-source
+            '';
+          in
+          app "${withSource}/bin/skills-sources-lock";
 
         fmt = app (
           writeNu "treefmt-wrapper" ''

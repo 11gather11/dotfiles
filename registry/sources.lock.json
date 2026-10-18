@@ -75,6 +75,25 @@
 				"versionUpperBound": null
 			},
 			"subdir": "skills"
+		},
+		"pstack": {
+			"filter": {
+				"maxDepth": null,
+				"nameRegex": null
+			},
+			"idPrefix": "pstack",
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "cursor",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "plugins",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "harness/pstack/claude-code/skills"
 		}
 	},
 	"npins": {
@@ -130,6 +149,19 @@
 				"submodules": false,
 				"type": "Git",
 				"url": "https://github.com/mattpocock/skills/archive/49dd158d1076134a641b33efb035946536778336.tar.gz"
+			},
+			"pstack": {
+				"branch": "main",
+				"hash": "sha256-9y7/JHWLK4T75Q25RnmPzEyLmkXfJV1KMB6+pAQGZl8=",
+				"repository": {
+					"owner": "cursor",
+					"repo": "plugins",
+					"type": "GitHub"
+				},
+				"revision": "0b8e952052d482ee6de06deebf14d590d77b1b34",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/cursor/plugins/archive/0b8e952052d482ee6de06deebf14d590d77b1b34.tar.gz"
 			}
 		},
 		"version": 8

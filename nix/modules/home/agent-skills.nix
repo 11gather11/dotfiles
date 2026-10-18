@@ -2,8 +2,8 @@
 # https://github.com/Kyure-A/agent-skills-nix
 #
 # Skills are deployed to ~/.agents (standard location, which Codex reads) and
-# ~/.config/claude/skills. mattpocock/skills is the exception: Claude Code loads
-# it whole as a plugin, and Codex does not get it.
+# ~/.config/claude/skills. mattpocock/skills and pstack are the exceptions:
+# Claude Code loads each whole as a plugin, and Codex does not get them.
 {
   pkgs,
   lib,
@@ -165,4 +165,13 @@ in
   # directory placed under skills/. The repository is the one the registry pins,
   # so skills-sources-lock still moves it.
   xdg.configFile."claude/skills/mattpocock-skills".source = registrySources.mattpocock.path;
+
+  # pstack the same way, for the work where it goes deeper than mattpocock:
+  # performance (perf-issue, hillclimb, benchmark-checklist) and hard bugs,
+  # through /pstack:poteto-mode. Most of its skills are user-invoked, so they
+  # stay out of the way until called. The Claude Code plugin is the tree its
+  # repository generates under harness/, not pstack/ itself, which is the
+  # Cursor plugin.
+  xdg.configFile."claude/skills/pstack".source =
+    "${registrySources.pstack.path}/harness/pstack/claude-code";
 }

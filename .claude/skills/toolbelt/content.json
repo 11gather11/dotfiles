@@ -185,10 +185,6 @@
 								"kind": "t-new",
 								"text": "今日導入"
 							}
-						},
-						{
-							"name": "grok",
-							"desc": "xAI のエージェント CLI"
 						}
 					]
 				},
@@ -1202,10 +1198,6 @@
 							}
 						},
 						{
-							"name": "grok",
-							"desc": "xAI の CLI"
-						},
-						{
 							"name": "agent-browser",
 							"desc": "エージェント用ブラウザ操作"
 						},
@@ -1734,7 +1726,7 @@
 						},
 						{
 							"name": "llm-agents",
-							"desc": "grok などエージェント CLI の供給元（<code>numtide/llm-agents.nix</code>）"
+							"desc": "codex や herdr などエージェント CLI の供給元（<code>numtide/llm-agents.nix</code>）"
 						},
 						{
 							"name": "nix-claude-code",

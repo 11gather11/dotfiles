@@ -12,8 +12,7 @@ in
   # afterwards puts them back; it is idempotent and leaves other hooks alone.
   # Codex's hooks.json is not generated here, but herdr's integration rewrites
   # it after a change and puts its own hook first, which moshi-hook doctor
-  # reports as out of date, so Codex is reinstalled here too. grok's hooks
-  # directory is Moshi's alone, so installing it once by hand is enough.
+  # reports as out of date, so Codex is reinstalled here too.
   home.activation.installMoshiHooks =
     lib.hm.dag.entryAfter
       [

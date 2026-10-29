@@ -247,7 +247,6 @@ let
   integrations = [
     "claude"
     "codex"
-    "grok"
     "antigravity-cli"
   ];
 

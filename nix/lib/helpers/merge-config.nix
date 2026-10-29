@@ -2,8 +2,7 @@
 # Overlay the keys this repository declares onto a config file the application
 # also writes itself, so a switch sets what it owns and leaves the rest alone.
 # Reach for it where generating the file whole would drop application state —
-# grok's first-run acknowledgements, Claude Code's `/permissions` decisions,
-# the hook trust Codex records.
+# Claude Code's `/permissions` decisions, the hook trust Codex records.
 #
 # Records are merged recursively; lists are replaced, so a list this repository
 # declares is the whole list.

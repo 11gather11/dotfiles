@@ -100,16 +100,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-knycxLrFzFgMkr+F+juSxsPmCQaIOMgAtT4WBL19X28=",
+				"hash": "sha256-/YPVYdRNhOkW09WF63xhSwELNzv/D1cOvQep5taIlVQ=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "768853dc6a23a42fbe0e939b6a02b706614723aa",
+				"revision": "5868f7c05020e047c00e68e4abf9253cce864f41",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/768853dc6a23a42fbe0e939b6a02b706614723aa.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/5868f7c05020e047c00e68e4abf9253cce864f41.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -126,16 +126,16 @@
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-9vShSOGZj383hHiZJ3/TjLVwgRF8/Z8ujMpYf04EuWU=",
+				"hash": "sha256-CiJElxcIcnIGQjbkExTy/Ssf81Fmyq4bVr5X1X3X3lc=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "ed2d6ba89033ba8015591005ed9382cef550417f",
+				"revision": "e44f580f9c4fa3bf268e284ae7706c7954ba31fd",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/ed2d6ba89033ba8015591005ed9382cef550417f.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/e44f580f9c4fa3bf268e284ae7706c7954ba31fd.tar.gz"
 			},
 			"mattpocock": {
 				"branch": "main",

@@ -115,6 +115,13 @@
           StageManagerHideDesktopIcons = true; # Hide desktop icons in Stage Manager
           StageManagerHideWidgets = true; # Hide widgets in Stage Manager
         };
+
+        # TypeWhisper's settings backup (typewhisper/settings-sync.nu) leaves out
+        # per-machine selections, so the dictation engine is pinned here.
+        "com.typewhisper.mac" = {
+          selectedEngine = "qwen3";
+          "plugin.com.typewhisper.qwen3.selectedModel" = "qwen3-asr-1.7b-6bit"; # Recommended for 16 GB+ Macs
+        };
       };
     };
   };

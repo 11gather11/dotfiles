@@ -1,10 +1,10 @@
 <!--
 Canonical dictation instruction (LLM prompt) for TypeWhisper.
 
-TypeWhisper has no HTTP API for creating workflows, so this cannot be synced
-like dictionary.json. It is kept here as the source of truth: paste the body
-below into the "指示" field of a custom workflow whose trigger is "常に"
-(Settings > Workflows), and leave its "微調整" fields empty so the rules are not
+settings-sync.nu splices the body below into the "指示" field of the
+"開発用音声入力" workflow in settings.json and imports it, so edit the prompt
+here and re-run that script rather than editing it in the app. The workflow is a
+custom one triggered "常に"; its "微調整" fields stay empty so the rules are not
 duplicated.
 
 Recommended provider: the OpenAI / ChatGPT plugin with the existing Codex login

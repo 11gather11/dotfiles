@@ -1,0 +1,71 @@
+{
+	"schemaVersion": 1,
+	"appVersion": "1.8.0",
+	"dictionaryEntries": [],
+	"history": [],
+	"hotkeys": {
+		"hybridHotkeys": [
+			{
+				"isDoubleTap": false,
+				"isFn": true,
+				"keyCode": 0,
+				"modifierFlags": 0,
+				"modifierKeyCodes": []
+			}
+		]
+	},
+	"plugins": [
+		{
+			"id": "com.typewhisper.qwen3",
+			"name": "Qwen3 ASR",
+			"version": "1.1.15",
+			"wasEnabled": true
+		},
+		{
+			"id": "com.typewhisper.openai",
+			"name": "OpenAI / ChatGPT",
+			"version": "1.3.6",
+			"wasEnabled": true
+		}
+	],
+	"preferences": {
+		"cancellationBehavior": "doubleEscape",
+		"dictationRecoveryRetentionDays": 30,
+		"dockIconBehaviorWhenMenuBarHidden": "keepVisible",
+		"fileTranscriptionLanguage": "auto",
+		"selectedLanguage": "ja",
+		"showMenuBarIcon": false,
+		"transcriptionNumberNormalizationEnabled": true,
+		"transcriptionNumberNormalizationMinimumValue": 10
+	},
+	"profiles": [],
+	"promptActions": [],
+	"snippets": [],
+	"workflows": [
+		{
+			"behavior": {
+				"cloudModel": "gpt-6-luna",
+				"fineTuning": "",
+				"providerId": "OpenAI",
+				"settings": {
+					"instruction": ""
+				}
+			},
+			"isEnabled": true,
+			"name": "開発用音声入力",
+			"output": {
+				"autoEnter": false,
+				"autoEnterModeRaw": "never"
+			},
+			"sortOrder": 0,
+			"template": "custom",
+			"trigger": {
+				"appBundleIdentifiers": [],
+				"hotkeyBehavior": "startDictation",
+				"hotkeys": [],
+				"kind": "global",
+				"websitePatterns": []
+			}
+		}
+	]
+}

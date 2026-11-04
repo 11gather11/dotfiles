@@ -100,42 +100,42 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-2soHKar4hR2ijiD4pVdSbbnNY6Z/qNmOFfIN4Cpdm4w=",
+				"hash": "sha256-OlNEEl0slPZYouaxTcCg6An4lHJmgD9CeZrjrpZA8gA=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "2d1271baefa026161de333a0da55c0f9e118a07f",
+				"revision": "6682da310c75bed8af340b39cc10b7f71bded155",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/2d1271baefa026161de333a0da55c0f9e118a07f.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/6682da310c75bed8af340b39cc10b7f71bded155.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
-				"hash": "sha256-dORqiMdFOUQVEF6wn1IZiTIcslzO+441A0GZP4KNcOQ=",
+				"hash": "sha256-HFZVX/UYsct8EMtkczBGJNr9RjjDz77zY6SHS1WlKkc=",
 				"repository": {
 					"owner": "ast-grep",
 					"repo": "claude-skill",
 					"type": "GitHub"
 				},
-				"revision": "f2175aff21f20cfb8e2db30c28febeb3a2d42b61",
+				"revision": "0613dc7f82bbfb3b557380b54726b92f73358460",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/ast-grep/claude-skill/archive/f2175aff21f20cfb8e2db30c28febeb3a2d42b61.tar.gz"
+				"url": "https://github.com/ast-grep/claude-skill/archive/0613dc7f82bbfb3b557380b54726b92f73358460.tar.gz"
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-FdrVIoV4nEcvIvPF+16WdjcCRX9nsscw6WkN70u9AQw=",
+				"hash": "sha256-U+CATnXtDti9aFxGWRmO3cfle3jVfRuyiVe70rauxm8=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "1a33048817d06df12882cb881dfc754e7039954a",
+				"revision": "1f2cd0a19588e2c6197c91dd7c71729df1fb6156",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/1a33048817d06df12882cb881dfc754e7039954a.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/1f2cd0a19588e2c6197c91dd7c71729df1fb6156.tar.gz"
 			},
 			"mattpocock": {
 				"branch": "main",
@@ -152,16 +152,16 @@
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-sX6KIElyFreuDPt4zViNis2nuAn9QG0n38z3uejJU98=",
+				"hash": "sha256-4dgaC7yhlVnM7B3s4gg5iqxnqm6TsKwhLbGC/ukhwew=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "ae5650febf4320793844c12c4adaa937f417f8da",
+				"revision": "bb68f2365eceafa0cb2d253112f675acf5f144cc",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/ae5650febf4320793844c12c4adaa937f417f8da.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/bb68f2365eceafa0cb2d253112f675acf5f144cc.tar.gz"
 			}
 		},
 		"version": 8

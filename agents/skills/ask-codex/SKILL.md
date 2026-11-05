@@ -1,6 +1,6 @@
 ---
 name: ask-codex
-description: Gets a Codex second opinion or delegates bulky work to a Codex subagent. Use before a significant approach is settled, or instead of reading pages and long output here.
+description: Gets an independent opinion from Codex, or hands it a task. Use when the user asks to ask Codex, or before a significant approach is settled.
 ---
 
 <!--

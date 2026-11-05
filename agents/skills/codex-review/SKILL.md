@@ -1,6 +1,6 @@
 ---
 name: codex-review
-description: Run a code review using Codex or a native subagent. Use when the user wants a code review of uncommitted changes, a specific commit, or changes against a base branch.
+description: Runs a code review with Codex, or a native subagent inside Codex. Use when the user asks for a review of uncommitted changes, a commit, or a branch against its base.
 ---
 
 Use the review path that matches the current session:

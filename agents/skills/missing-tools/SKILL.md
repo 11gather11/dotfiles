@@ -6,7 +6,7 @@ description: Resolves missing CLI tools. Use when a command is unavailable, a sh
 Use this workflow when a required command is unavailable:
 
 1. Try the project environment: `direnv exec . <command>` — a project-local dev shell usually already has the right version and the environment variables that go with it.
-2. Try comma: `, <command>`.
+2. Try comma: `, <command>`. When several packages provide the command, it runs the one named after it and says so on stderr; if that is wrong, list them with `, -p <command>` and use step 3.
 3. Use `nix run nixpkgs#<package> -- <args>` when a package is known.
 4. Use `nix shell nixpkgs#<package> --command <command>` when a package is known but a temporary shell is required.
 

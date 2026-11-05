@@ -1,5 +1,4 @@
 {
-  # nix-index for command-not-found and comma
+  # nix-index for command-not-found; comma is nix/modules/home/comma.nix
   programs.nix-index.enable = true;
-  programs.nix-index-database.comma.enable = true;
 }

@@ -26,6 +26,7 @@ let
     ../../../../agents/shared/delegate-work.md
     ../../../../agents/shared/git-staging.md
     ../../../../agents/shared/git-worktrees.md
+    ../../../../agents/shared/nix.md
   ];
 
   tomlFormat = pkgs.formats.toml { };

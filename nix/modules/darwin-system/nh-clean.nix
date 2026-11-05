@@ -9,12 +9,22 @@
     # Determinate Nix installs it in the default profile rather than anywhere
     # nix-darwin puts on PATH (nix.enable is false), so without this every run
     # failed with "No output from nix --version command" and nothing was
-    # collected. Strings are taken as-is, hence the explicit bin.
+    # collected. Strings are taken as-is, hence the explicit bin. This replaces
+    # launchd's default PATH, so the system directories go back in: the
+    # collector finds runtime roots with /usr/sbin/lsof.
     path = [
       "/nix/var/nix/profiles/default/bin"
       "/usr/bin"
       "/bin"
+      "/usr/sbin"
+      "/sbin"
     ];
+    # As root, nix opens the store directly and the deletes come from this job.
+    # macOS refuses to remove an .app bundle that has been launched
+    # (com.apple.macl) unless the responsible process holds App Management,
+    # which is granted to determinate-nixd. Going through the daemon makes it
+    # the one doing the deletes.
+    environment.NIX_REMOTE = "daemon";
     serviceConfig = {
       StartCalendarInterval = [
         {

@@ -21,9 +21,10 @@
     ];
     # As root, nix opens the store directly and the deletes come from this job.
     # macOS refuses to remove an .app bundle that has been launched
-    # (com.apple.macl) unless the responsible process holds App Management,
-    # which is granted to determinate-nixd. Going through the daemon makes it
-    # the one doing the deletes.
+    # (com.apple.macl), and the collector stops at the first such failure.
+    # determinate-nixd holds Full Disk Access, granted by hand in System
+    # Settings because TCC cannot be declared; App Management alone was not
+    # enough. Going through the daemon makes it the one doing the deletes.
     environment.NIX_REMOTE = "daemon";
     serviceConfig = {
       StartCalendarInterval = [

@@ -14,6 +14,7 @@
       pkgs.gh-poi
       pkgs.gh-notify
       pkgs.gh-do
+      pkgs.gh-stack
 
       # Custom extensions from overlay
     ];

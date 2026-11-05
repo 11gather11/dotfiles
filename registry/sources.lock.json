@@ -57,6 +57,25 @@
 			},
 			"subdir": "skills"
 		},
+		"gh-stack": {
+			"filter": {
+				"maxDepth": 1,
+				"nameRegex": null
+			},
+			"idPrefix": "gh-stack",
+			"pin": {
+				"at": null,
+				"branch": "main",
+				"owner": "github",
+				"preReleases": false,
+				"releasePrefix": null,
+				"repo": "gh-stack",
+				"submodules": false,
+				"type": "github",
+				"versionUpperBound": null
+			},
+			"subdir": "skills"
+		},
 		"mattpocock": {
 			"filter": {
 				"maxDepth": null,
@@ -136,6 +155,19 @@
 				"submodules": false,
 				"type": "Git",
 				"url": "https://github.com/cloudflare/skills/archive/1f2cd0a19588e2c6197c91dd7c71729df1fb6156.tar.gz"
+			},
+			"gh-stack": {
+				"branch": "main",
+				"hash": "sha256-HJiO7w03capDX2qCmvmXb80KdgtLTB3d2CXq0yYWqDc=",
+				"repository": {
+					"owner": "github",
+					"repo": "gh-stack",
+					"type": "GitHub"
+				},
+				"revision": "bd0a32504f9ae9f795875a9e6bb90ff7408fda08",
+				"submodules": false,
+				"type": "Git",
+				"url": "https://github.com/github/gh-stack/archive/bd0a32504f9ae9f795875a9e6bb90ff7408fda08.tar.gz"
 			},
 			"mattpocock": {
 				"branch": "main",

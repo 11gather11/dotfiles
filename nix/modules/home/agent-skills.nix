@@ -96,6 +96,12 @@ in
           path = "herdr";
         };
 
+        # Stacked PRs: the skill drives the gh-stack extension from gh.nix.
+        gh-stack = {
+          from = "gh-stack";
+          path = "gh-stack";
+        };
+
         # The skill tells an agent to `cargo install suiko` when the CLI is
         # missing, which here would build a second copy beside the one in the
         # store — and fail in any sandbox, having no network.

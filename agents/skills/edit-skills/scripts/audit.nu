@@ -1,14 +1,14 @@
 #!/usr/bin/env nu
 
-# Audit every local skill for the mechanical, countable parts of skill-creator's
-# conventions: SKILL.md length, frontmatter name/description length, and whether
-# references/ and scripts/ exist. Returns one row per skill and flags violations
-# in the `flags` column. Judgement-based checks (duplication, doc links,
-# repo-file pointers) are NOT covered here — see references/audit-checks.md.
+# Audit every local skill for the mechanical, countable parts of the
+# edit-skills skill's conventions: SKILL.md length, frontmatter
+# name/description length, and whether references/ and scripts/ exist.
+# Returns one row per skill and flags violations in the `flags` column.
+# Judgement-based checks (duplication, doc links, repo-file pointers) are NOT
+# covered here; see SKILL.md.
 
 # Thresholds. Hard limits (marked `!` in output) come from Anthropic's
-# frontmatter validation; soft limits encode skill-creator guidance.
-# See references/audit-checks.md.
+# frontmatter validation; soft limits encode the SKILL.md guidance.
 const LINE_SOFT = 150 # consider splitting into references/ above this
 const LINE_HARD = 500 # Anthropic hard ceiling for the SKILL.md body
 const NAME_MAX = 64 # frontmatter name hard limit
@@ -115,9 +115,9 @@ def main [skills_dir?: path, --json]: nothing -> string {
     let issues = $rows | get flags | flatten | length
 
     let summary = if $issues > 0 {
-        $"Flagged ($issues) item\(s\). '!' = hard violation, others = review against references/audit-checks.md."
+        $"Flagged ($issues) item\(s\). '!' = hard violation, others = review against SKILL.md."
     } else {
-        'No mechanical violations. Still run the judgement checks in references/audit-checks.md.'
+        'No mechanical violations. Still run the judgement checks in SKILL.md.'
     }
     print --stderr $summary
 

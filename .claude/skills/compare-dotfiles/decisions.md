@@ -18,18 +18,23 @@
 
 ## 意図的に違うもの
 
-- **Codex のモデル**（2026-09-17）— こちらは `gpt-5.6-sol` + `high`。ryoppippi は `luna` + `max`、
-  BurntSushi は `sol` + `max`。土台を上げ、深さは `/model` で足す方針。理由は `codex.nix` のコメント
-- **設定ファイルの書き方**（2026-09-16）— Codex / Claude Code / grok の3つとも、共通の Nushell
-  スクリプトで「宣言したキーだけマージ」。ryoppippi は Codex だけ同じ方式、Claude Code は別
+- **Codex のモデル**（2026-09-17、2026-11-06 訂正）— こちらは `gpt-6.1-sol` + `medium`。ryoppippi は
+  luna を既定にし、sol high が指揮して luna max のサブエージェントが実装する。土台を上げ、深さは
+  `/model` で足す方針。理由は `codex.nix` のコメント
+- **設定ファイルの書き方**（2026-09-16、2026-11-06 訂正）— Codex と Claude Code を、共通の Nushell
+  スクリプトで「宣言したキーだけマージ」（grok はもう無い）。ryoppippi は Codex だけ同じ方式
 - **skill の構成**（2026-09-16）— レビューは `codex-review` 1本と PR ゲートの組み合わせ。
   lambdalisue のような `-loop` 変種や `pr-address` は持たない
 - **flake の分割方針**（2026-09-17）— apps は `flake/apps.nix` 1枚、helpers は `nix/lib/` と
   modules の外。ryoppippi は `flake/apps/` と `flake/hosts/` に分け helpers を `modules/lib/` に置く
 - **ビルドフラグ**（2026-09-17）— darwin でも `--print-build-logs --show-trace` を常時付けない。
-  デバッグ時だけ付けるのは `claude/rules/nix.md` の決め事。ryoppippi は常時付与
+  デバッグ時だけ付けるのは `claude/rules/nix.md` の決め事。ryoppippi も `bdd14a13` でやめ、差は消えた
 - **fish キャッシュの削除先**（2026-09-17）— `/tmp` 固定。macOS の `$TMPDIR` は `/var/folders`
-  配下で `FISH_CACHE_DIR` と一致せず何も消えない。理由は `nix/flake/apps.nix` のコメント
+  配下で `FISH_CACHE_DIR` と一致せず何も消えない。理由は `nix/flake/apps.nix` のコメント。
+  ryoppippi は `f4cca74c` で実行時キャッシュそのものをやめ、hook を Nix で conf.d に生成している
+  （2026-11-06 確認。乗り換えるかは未検討）
+- **code-comments の既定**（2026-11-06）— ryoppippi は「既定はコメントを書かない、JSDoc は公開 API だけ」
+  （`2dce2929`、`44a7911c`）。こちらはユーザーの方針（why を書く、export に JSDoc）なので寄せない
 - **Execution Safety を2ルールで持つ**（2026-09-18）— 向こうは1行に畳んでいる。こちらが分けている
   のは2つ目（外部への効果は1回ずつ承認が要る／1回の承認は次に及ばない）が効くから。理由は `81103a04`
 - **`git-staging.md` の巻き込み禁止の理由**（2026-09-18）— 向こうは `codex.nix` を名指しするが、
@@ -49,6 +54,25 @@
   挙げるが、その skill に `Key Files` 節も `references/` も**向こうでも**存在しない。こちらは
   実在する `codex-review` と `tdd` を指す。行数や本数は書かない（同じ腐り方をするため）。
   上流に伝えれば差分は消える
+
+## 採ったもの
+
+- **git hook の switch を main 限定**（2026-11-06、提案 A）— `8ef5b706`。hook は全 worktree で共有され、
+  worker の commit がマージ前の構成を適用していた
+- **zsh の `NO_EQUALS`**（2026-11-06、提案 C の一部）— `echo ===` が「== not found」で落ちていた
+
+## 保留中の提案（2026-11-06）
+
+採否を決めたら上の節へ移す。
+
+- **B. 調べものの委譲先を native subagent に**（`aab3f38f`）— delegate-work.md が `codex exec` を指している
+- **C. `fish -lc` の指示を外す**（`2d0203f4`）— 同じ commit の zsh `NO_EQUALS` は 2026-11-06 に採用済み
+- **D. worktree の subagent には1回1コマンド**（`2d0203f4`）
+- **E. comma の非対話ラッパー**（`75dc7e78`）
+- **F. skill の drift 解消** — tdd、vitest（snapshot 禁止）、fix-ci、merge-main、pr-apply-review、
+  create-pr、commit を寄せる。council は削除、create-commits-and-push は統合。名前は変えない
+- **G. How to Work 節と description の型**（`65fd3123`、`fada853f`）
+- **H. nix.md を agents/shared に移して Codex にも配る**
 
 ## こちらが先行しているもの
 

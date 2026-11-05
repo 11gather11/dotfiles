@@ -21,11 +21,11 @@
 	},
 	{
 		"repo": "liby/dotfiles",
-		"note": "herdr を agent skill として書いており、こちらの herdr skill と直接比較できる。chezmoi 運用で更新も速い"
+		"note": "herdr から Rex へ移行（2026-10）。Claude Code / Codex の設定値に請求額などの根拠を添えて書き、authority や compaction の指示が厚い。chezmoi 運用で更新も速い"
 	},
 	{
 		"repo": "rlch/dotfiles",
-		"note": "Herdr の Vim 風 pane 操作、workspace / worktree 運用、Neovim とのキー競合対策が充実"
+		"note": "herdr・Neovim を捨て自作 IDE（abyme）に一本化（2026-11）。PreToolUse の guard hook と、常時読み込みの指示を skill へ逃がす書き方を見る"
 	},
 	{
 		"repo": "sei40kr/dotfiles",

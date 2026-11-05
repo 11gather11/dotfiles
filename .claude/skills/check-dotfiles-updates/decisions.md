@@ -47,29 +47,44 @@ Artifact のページは毎回その回の結果に差し替わる。だから�
 | 2026-10-18 | herdr-gpui                      | 削除      | 試用の結果、使わないことにした。試用中に分かったこと: ウィンドウ背景の透過が未対応（penso/herdr-gpui#134 が open）。再検討するならその対応後                                                                                                                                                                                                                                                     |
 | 2026-10-18 | Codex の effort                 | medium    | high から下げた（lead もサブエージェントも）。medium は OpenAI が Sol の出発点に挙げる段。深く読ませたいレビューは `/model` で上げる                                                                                                                                                                                                                                                             |
 | 2026-10-18 | pstack                          | 採用      | 最適化と難しいバグ用（`/pstack:poteto-mode`）。土台は mattpocock を継続。Claude Code では grok への振り分けが効かない。並列実行は issue-harness のまま                                                                                                                                                                                                                                           |
+| 2026-11-06 | git hook の switch を main 限定 | 採用      | ryoppippi 8ef5b706。worktree での commit でマージ前の構成が適用されていた。post-* の4つに `onlyOnMain`、detached HEAD も飛ばす                                                                                                                                                                                                                                                                   |
+| 2026-11-06 | zsh の NO_EQUALS                | 採用      | ryoppippi 2d0203f4。エージェントの `echo ===` が「== not found」で落ちていた。`fish -lc` の指示は compare-dotfiles の提案 C に残す                                                                                                                                                                                                                                                               |
+| 2026-11-06 | includeGitInstructions          | 保留      | 見送りを勧めた。得るのは commit skill との重複解消だけ。組み込みの安全規則（--no-verify、force push、git config、interactive）を commit skill が持たない。入れるなら agents/shared に数行足してから。署名は includeCoAuthoredBy = false なので無関係                                                                                                                                             |
+| 2026-11-06 | Claude Code の追加キー          | 保留      | `promptCacheTtl` はこのセッションが既に 1h で効果が疑わしい。`autoCompactWindow` は 1M での根拠が無い（liby は 350K）。`tui = "fullscreen"` は 4/24、困っていなければ不要                                                                                                                                                                                                                        |
+| 2026-11-06 | permissions.deny                | 保留      | 09-23 の保留のまま。実装するなら Bash パターンではなく PreToolUse hook にする: rlch の guard.py は `git -C dir stash` がパターンをすり抜けるのが理由、liby は `Bash(*name*)` の誤爆で deny を外した                                                                                                                                                                                              |
+| 2026-11-06 | nix min-free                    | 保留      | 3/24。この機械は Determinate Nix（`nix.enable = false`）で nix.settings が効かない。宣言には determinate の darwin module に nix.custom.conf を任せる必要がある（kclejeune 方式）。daemon の自動 GC が動いているかを先に確かめる                                                                                                                                                                 |
+| 2026-11-06 | Chrome タブ掃除                 | 保留      | colonelpanic8 の指示＋Stop hook（1/24）。こちらで困った実績がまだ無い                                                                                                                                                                                                                                                                                                                            |
+| 2026-11-06 | jj                              | 報告のみ  | 5/24 に増えた（compare-dotfiles で 09-16 に見送ったときは 3/19）。lambdalisue は agent の運用ごと移した。こちらの前提は変わっていない                                                                                                                                                                                                                                                            |
+| 2026-11-06 | watchlist の rlch / liby        | note 変更 | どちらも herdr を離れた（rlch は自作 IDE、liby は Rex）。指示文と Claude の設定が厚いので、監視は続ける                                                                                                                                                                                                                                                                                          |
 
 ## 採用数
 
 その回に watchlist 全体で数えた数。分母は監視対象の件数。
 
-| 日付       | ツール                   | 採用        | 備考                                                                                               |
-| ---------- | ------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| 2026-09-20 | herdr                    | 6/24        | Mic92 / mozumasu / shunk031 / technicalpickles / rlch / liby。この6件は herdr を見るために選んだ枠 |
-| 2026-09-21 | herdr                    | 9/24        | 設定ファイルを持つのは5人、プラグインまで積むのは Mic92 と technicalpickles の2人だけ              |
-| 2026-09-21 | mise                     | 9/24        | 素の grep だと 20/24 出るが大半は promise / premise の誤検出                                       |
-| 2026-09-21 | opencode                 | 9/24        | こちらは未導入                                                                                     |
-| 2026-09-21 | 日本語 AI 臭 lint        | 2/24        | shunk031（textlint preset-ai-words-ja）/ mozumasu（suiko）                                         |
-| 2026-09-21 | worktrunk                | 2/24        | technicalpickles / kclejeune。こちらは採用済み                                                     |
-| 2026-09-23 | herdr                    | 9/24        | 前回と同じ                                                                                         |
-| 2026-09-23 | context7                 | 7/24        | CLI 化（MCP をやめて skill）は liby のみ。Mic92 は context7-cli。technicalpickles は誤検出で除外   |
-| 2026-09-23 | ponytail                 | 3/24        | mozumasu / shunk031 / sei40kr。何をするものかの説明はどのリポジトリにも無い                        |
-| 2026-09-23 | arto                     | 3/24        | ryoppippi / mozumasu / lambdalisue                                                                 |
-| 2026-09-23 | GPT-6（Codex）           | 2/24        | liby / colonelpanic8。こちらは gpt-5.6-sol                                                         |
-| 2026-10-07 | herdr                    | 9/24        | 横ばい。`--hidden` 抜きだと 7/24 に見える（commands.md を修正済み）                                |
-| 2026-10-07 | opencode                 | 9/24        | 横ばい                                                                                             |
-| 2026-10-07 | context7                 | 8/24        | +1（nikolovlazar）                                                                                 |
-| 2026-10-07 | actionlint               | 6/24        | zizmor 2/24。こちらも採用                                                                          |
-| 2026-10-07 | disable-model-invocation | 6/24        | こちらも採用                                                                                       |
-| 2026-10-07 | cmux / aerospace         | 5/24 / 6/24 | こちらは未導入。提案していない                                                                     |
-| 2026-10-07 | fnox                     | 4/24        | kclejeune が shell activation を追加                                                               |
-| 2026-10-07 | direnv-instant / felis   | 2/24 / 2/24 | felis は lambdalisue と mozumasu                                                                   |
+| 日付       | ツール                   | 採用        | 備考                                                                                                        |
+| ---------- | ------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| 2026-09-20 | herdr                    | 6/24        | Mic92 / mozumasu / shunk031 / technicalpickles / rlch / liby。この6件は herdr を見るために選んだ枠          |
+| 2026-09-21 | herdr                    | 9/24        | 設定ファイルを持つのは5人、プラグインまで積むのは Mic92 と technicalpickles の2人だけ                       |
+| 2026-09-21 | mise                     | 9/24        | 素の grep だと 20/24 出るが大半は promise / premise の誤検出                                                |
+| 2026-09-21 | opencode                 | 9/24        | こちらは未導入                                                                                              |
+| 2026-09-21 | 日本語 AI 臭 lint        | 2/24        | shunk031（textlint preset-ai-words-ja）/ mozumasu（suiko）                                                  |
+| 2026-09-21 | worktrunk                | 2/24        | technicalpickles / kclejeune。こちらは採用済み                                                              |
+| 2026-09-23 | herdr                    | 9/24        | 前回と同じ                                                                                                  |
+| 2026-09-23 | context7                 | 7/24        | CLI 化（MCP をやめて skill）は liby のみ。Mic92 は context7-cli。technicalpickles は誤検出で除外            |
+| 2026-09-23 | ponytail                 | 3/24        | mozumasu / shunk031 / sei40kr。何をするものかの説明はどのリポジトリにも無い                                 |
+| 2026-09-23 | arto                     | 3/24        | ryoppippi / mozumasu / lambdalisue                                                                          |
+| 2026-09-23 | GPT-6（Codex）           | 2/24        | liby / colonelpanic8。こちらは gpt-5.6-sol                                                                  |
+| 2026-10-07 | herdr                    | 9/24        | 横ばい。`--hidden` 抜きだと 7/24 に見える（commands.md を修正済み）                                         |
+| 2026-10-07 | opencode                 | 9/24        | 横ばい                                                                                                      |
+| 2026-10-07 | context7                 | 8/24        | +1（nikolovlazar）                                                                                          |
+| 2026-10-07 | actionlint               | 6/24        | zizmor 2/24。こちらも採用                                                                                   |
+| 2026-10-07 | disable-model-invocation | 6/24        | こちらも採用                                                                                                |
+| 2026-10-07 | cmux / aerospace         | 5/24 / 6/24 | こちらは未導入。提案していない                                                                              |
+| 2026-10-07 | fnox                     | 4/24        | kclejeune が shell activation を追加                                                                        |
+| 2026-10-07 | direnv-instant / felis   | 2/24 / 2/24 | felis は lambdalisue と mozumasu                                                                            |
+| 2026-11-06 | herdr                    | 10/24       | +1。新規は craftzdog / typecraft-dev / dustinlyons / nikolovlazar。liby が離脱、rlch は離脱後も文字列が残る |
+| 2026-11-06 | opencode / context7      | 9/24 / 8/24 | 横ばい                                                                                                      |
+| 2026-11-06 | jj                       | 5/24        | ryoppippi / Mic92 / sei40kr / mitchellh / lambdalisue                                                       |
+| 2026-11-06 | tui fullscreen / pstack  | 4/24 / 4/24 | こちらは pstack のみ採用                                                                                    |
+| 2026-11-06 | OmniWM / pi / min-free   | 3/24 ずつ   | OmniWM は aerospace からの移行先（rlch / lambdalisue / ryoppippi）                                          |
+| 2026-11-06 | herdr-app                | 2/24        | 公式 GUI。kclejeune / typecraft-dev。kclejeune は herdr-gpui を後継の sheprd に替えた                       |

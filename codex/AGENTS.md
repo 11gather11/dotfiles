@@ -2,20 +2,6 @@
 
 - Always communicate in Japanese
 
-## Python Execution
-
-When executing Python scripts, always use `uv` instead of `python` directly:
-
-```bash
-# Use uv to run Python scripts
-uv run script.py
-
-# Or for inline execution
-uv run python -c "print('hello')"
-```
-
-This ensures consistent Python environment management without requiring global Python installations.
-
 ## Browser Automation
 
 - In Codex Desktop, automatically use the installed Browser plugin (`@Browser`) for tasks that require opening, navigating, inspecting, testing, screenshotting, or verifying web pages, even when the user does not mention the plugin explicitly.

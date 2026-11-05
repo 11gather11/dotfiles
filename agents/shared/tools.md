@@ -4,7 +4,6 @@ Use these tools instead of their standard alternatives:
 
 | Tool             | Replaces | Description         |
 | ---------------- | -------- | ------------------- |
-| `fish`           | bash     | Environment shell   |
 | `rg`             | grep     | Fast search         |
 | `fd`             | find     | File finder         |
 | `bat`            | cat      | Syntax highlighting |
@@ -12,6 +11,7 @@ Use these tools instead of their standard alternatives:
 | `dust`           | du       | Disk usage          |
 | `typos`          | -        | Spell checker       |
 | `bunx` / `bun x` | npx      | Package runner      |
+| `uv run`         | python   | Python runner       |
 | `jq`             | -        | JSON processor      |
 | `gh`             | -        | GitHub operations   |
 
@@ -19,8 +19,11 @@ For code pattern searches (constructs, structure, not plain text), use the `ast-
 
 ## Shell
 
-- Fish bootstraps the environment; it is not necessarily the syntax shell. Run simple commands as `fish -lc '<command>'` so PATH and exports are initialised.
-- If a command uses Bash-specific syntax, fragile quoting, heredocs, arrays, inline environment assignments, or command substitutions, nest it rather than asking Fish to parse it: `fish -lc 'bash -lc "<posix command>"'`.
+Fish bootstraps the environment; it is not necessarily the syntax shell.
+
+- Claude Code: run commands directly. Its zsh already has the Nix PATH, and `zsh/zshenv` loads direnv. Use `fish -lc '<command>'` only when a tool is on Fish's PATH but not found here.
+- Codex: use `zsh -lc '<command>'`, which loads direnv. If a tool is only on Fish's PATH, resolve it with `fish -lc 'command -v <tool>'` and call the absolute path.
+- Commands already start in the working directory, so don't add a redundant `cd <path> &&`. For another directory, use the harness's working-directory parameter where it has one, or the command's own option (`git -C`, `nix --flake`, `pnpm -C`).
 - For complex multi-line commands, prefer an existing script, or create one with the right shebang and invoke it with the appropriate interpreter.
 
 ## Reading Other Repositories

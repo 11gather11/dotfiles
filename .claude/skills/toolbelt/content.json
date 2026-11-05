@@ -1767,6 +1767,10 @@
 					"note": "このリポジトリで書いたもの。<code>enableAll</code> なので、ディレクトリを置けば入る。",
 					"items": [
 						{
+							"name": "address-pr-review",
+							"desc": "PR のレビューコメント（inline のものも）を取ってきて対応する"
+						},
+						{
 							"name": "ask-codex",
 							"desc": "実装方針やレビューについて Codex に第二意見を求める"
 						},
@@ -1779,16 +1783,12 @@
 							"desc": "変更を revert 可能な単位に割って Conventional Commits にする"
 						},
 						{
-							"name": "council",
-							"desc": "並列エージェントでコードベースの一領域を多角的に調べる"
-						},
-						{
-							"name": "create-commits-and-push",
-							"desc": "コミットして push まで。PR は作らない"
-						},
-						{
 							"name": "create-pr",
 							"desc": "ブランチを切ってコミット・push・PR 作成まで通す"
+						},
+						{
+							"name": "edit-skills",
+							"desc": "スキルと指示文の置き場所と書き方。コレクション全体の監査もここ"
 						},
 						{
 							"name": "empirical-prompt-tuning",
@@ -1797,6 +1797,10 @@
 						{
 							"name": "fix-ci",
 							"desc": "CI が赤いとき、gh でログを取って原因を追い、直す"
+						},
+						{
+							"name": "japanese-summary",
+							"desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
 						},
 						{
 							"name": "merge-main",
@@ -1811,32 +1815,24 @@
 							"desc": "このリポジトリの既定スクリプト言語。新しいスクリプトを書くとき"
 						},
 						{
-							"name": "pr-apply-review",
-							"desc": "PR のレビューコメントを取ってきて適用する"
-						},
-						{
 							"name": "react-server-components",
 							"desc": "<code>'use client'</code> の位置を Next.js / React の文書に照らして監査"
-						},
-						{
-							"name": "session-summary-japanese",
-							"desc": "セッションを日本語で要約する。残作業の引き継ぎも含む"
-						},
-						{
-							"name": "skill-creator",
-							"desc": "スキルを新規作成・改訂する。SKILL.md の作法に沿わせる"
-						},
-						{
-							"name": "skill-maintenance",
-							"desc": "スキル全体を監査する。重複・説明の質・長さ"
 						},
 						{
 							"name": "tdd",
 							"desc": "execute-inspect-adjust と t-wada 流 Red-Green-Refactor。<b>テストランナーを実行時に検出する</b>ので、回す側はこちら"
 						},
 						{
-							"name": "you-might-not-need-an-effect",
+							"name": "typescript",
+							"desc": "<code>satisfies</code> で型を確かめ、<code>as</code> を避ける TypeScript の書き方"
+						},
+						{
+							"name": "useeffect",
 							"desc": "不要な useEffect を react.dev の基準で洗う"
+						},
+						{
+							"name": "vitest",
+							"desc": "振る舞いを確かめる Vitest のテストを書く。snapshot は使わない"
 						}
 					]
 				},
@@ -2037,8 +2033,8 @@
 						},
 						{
 							"name": "remaining-todo",
-							"desc": "残作業の引き継ぎ。session-summary-japanese が内容を完全に含んでいた",
-							"expand": "→ session-summary-japanese"
+							"desc": "残作業の引き継ぎ。japanese-summary（旧 session-summary-japanese） が内容を完全に含んでいた",
+							"expand": "→ japanese-summary"
 						},
 						{
 							"name": "herdr-tab-smart-rename",
@@ -2053,6 +2049,16 @@
 						{
 							"name": "herdr-reviewr",
 							"desc": "エージェントの差分をレビューし、行コメントを送り返す（<code>prefix+e</code>）。hunk が同じ仕事を、プレビルドバイナリの固定なしで引き受けた"
+						},
+						{
+							"name": "council",
+							"desc": "並列エージェントでの調査。今のエージェントは自分から並列に調べるので、上流（ryoppippi）が削除したのに合わせた",
+							"expand": "→ 削除"
+						},
+						{
+							"name": "create-commits-and-push",
+							"desc": "中身は commit への1行の委譲だった",
+							"expand": "→ commit（push=true）"
 						}
 					]
 				}

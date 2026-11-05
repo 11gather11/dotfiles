@@ -1,3 +1,7 @@
+# Agents run their commands through zsh, where a leading `=` expands to a
+# command's path: `echo ===` fails with "== not found" instead of printing.
+setopt NO_EQUALS
+
 # Enter the project dev environment in non-interactive zsh invocations (e.g.
 # agent-spawned shells), which never reach the interactive direnv hook.
 if command -v direnv >/dev/null 2>&1 && [ -f .envrc ]; then

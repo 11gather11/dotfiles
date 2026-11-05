@@ -78,7 +78,8 @@
   改名し、Grok・Cursor・T3 まで扱うよう一般化した。こちらの中身は Codex 専用で、codex-review は PR ゲート
   （`codex-review-gate.sh`、checks.nix）に名前で繋がっている。名前のほうが実態に合うので残した
 - **react-server-components の Next.js のリンク**（2026-11-06）— 上流版は古いリンクに戻っていた。`69174cd5` の修正を維持
-- **create-pr の stacked PR**（2026-11-06）— 上流は `gh-stack` skill 前提。こちらには無いので落とした
+- **create-pr の stacked PR**（2026-11-06）— 一度は gh-stack が無いので落としたが、同じ日に gh-stack の
+  拡張機能と skill を入れて戻した。上流と同じ形
 - **japanese-summary のトリガー**（2026-11-06）— 上流は「in japanese」で発火する。常に日本語で話すこちらでは
   発火しないので、要約全般と引き継ぎのトリガーを残した（`5f1e97fa`）
 - **missing-tools の順番**（2026-11-06）— 上流は comma を先にしたが、direnv を先にする理由は `105b6bb6` にある

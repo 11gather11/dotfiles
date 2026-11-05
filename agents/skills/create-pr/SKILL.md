@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: Branches, commits, pushes, and opens a pull request. Use when the user asks to create, open, or file a PR.
+description: Branches, commits, pushes, and opens a pull request or a stack of PRs. Use when the user asks to create, open, or file a PR.
 ---
 
 # Create PR
@@ -25,7 +25,11 @@ independent work into separate PRs; stack only work that depends on another PR.
    bodies with `--body-file -`.
 5. For a visible change, attach real screenshots or short videos with
    `gh pr create --attach` (see `gh pr create --help`); never invent media.
-6. Publish: `git push -u origin <branch>` and `gh pr create --base <target-branch>`,
-   using the requested target, or the repository default when unspecified.
+6. Publish:
+   - Ordinary PR: `git push -u origin <branch>` and `gh pr create --base <target-branch>`
+     using the requested target, or the repository default when unspecified.
+   - Stacked PRs (when asked, or the branch is already stacked): use the
+     `gh-stack` skill, verifying parent-child ancestry, and report every PR URL
+     from bottom to top.
 7. Report the PR URL. Don't call it ready until checks and review feedback have
    been looked at.

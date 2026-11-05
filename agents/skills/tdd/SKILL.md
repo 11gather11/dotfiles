@@ -1,29 +1,42 @@
 ---
 name: tdd
-description: Guides execute-inspect-adjust development and t-wada Red-Green-Refactor TDD. Use for exploratory implementation or when stable behaviour needs an executable test-first contract.
+description: Red-Green-Refactor TDD. Use when the user asks for TDD, a failing test, or a regression test.
 ---
 
-Use TDD when a behaviour should become an executable contract. For unfamiliar APIs, prototypes, and data exploration, use execute-inspect-adjust first; not every probe needs a test.
+# TDD
 
-Before writing a test, identify the public interface and the seam where its behaviour can be observed. When `GLOSSARY.md` or relevant ADRs exist, read them so test names and interfaces use the project's vocabulary.
+Use TDD when a behaviour should become an executable contract. For unfamiliar
+APIs, prototypes, and data exploration, execute-inspect-adjust first; not every
+probe needs a test.
 
-For test design and anti-patterns, read [`references/testing.md`](references/testing.md). For test doubles and system boundaries, read [`references/mocking.md`](references/mocking.md).
+No new test beats a bad test. Skip one that would need broad harness setup,
+brittle mocks, slow end-to-end infrastructure, production-only state, or
+unrelated fixture churn, or that would be deleted once it proved the fix. Verify
+with the closest executable check instead: a targeted script, a reproduction
+command, browser automation, or a focused existing test run.
+
+Before writing a test, find the public interface and the seam where its
+behaviour is observable. Where `CONTEXT.md` or ADRs exist, use their vocabulary.
+For judging tests and anti-patterns, read
+[references/testing.md](references/testing.md); for test doubles, read
+[references/mocking.md](references/mocking.md). For Vitest, use the
+`vitest` skill.
 
 ## Cycle
 
-1. Sketch behaviours as placeholder tests, identify their public seams, and choose one slice. Start bug fixes with a regression test.
-2. **Red** — Write the smallest failing test and confirm the expected failure.
-3. **Green** — Write the minimum production code that passes it.
-4. **Refactor** — Improve test and production code while keeping tests green.
-5. Run affected tests after each green and refactor step, then repeat.
+1. Sketch behaviours as placeholder tests and pick one slice. For a bug, use the
+   narrowest check already exercising that path; if there is none, reproduce it
+   with a script rather than building a harness.
+2. **Red** — write the smallest failing test and confirm it fails as expected.
+3. **Green** — write the minimum code that passes it.
+4. **Refactor** — improve test and code while staying green; run affected tests
+   after each step, then repeat.
 
-Keep each test focused on one observable behaviour; do not weaken tests to make the build pass.
+Work in vertical slices — one seam, one test, one minimal implementation — and
+never weaken a test to make the build pass.
 
-## Rules
+## Report
 
-- Test through a public interface at an agreed seam, not through private methods or implementation details.
-- Work in vertical slices: one seam, one test, and one minimal implementation at a time. Do not write all tests first and all production code afterwards.
-- Avoid implementation-coupled and tautological tests; expected values should come from an independent source of truth.
-- Mock only system boundaries. For HTTP APIs, prefer request-level interception such as MSW over mocking `fetch`, an API client, or an internal module.
-
-For runner-specific syntax, read the matching file in `references/`.
+Report the evidence, not just the outcome: the check that failed before the
+change and how, the run that passes after it, and nearby tests run. If no
+failing-before evidence was possible, say why and name the closest check used.

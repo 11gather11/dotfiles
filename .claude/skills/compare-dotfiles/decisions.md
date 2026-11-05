@@ -57,22 +57,35 @@
 
 ## 採ったもの
 
-- **git hook の switch を main 限定**（2026-11-06、提案 A）— `8ef5b706`。hook は全 worktree で共有され、
+2026-11-06 の比較で出た提案 A〜H はすべて採った。
+
+- **git hook の switch を main 限定**（A）— `8ef5b706`。hook は全 worktree で共有され、
   worker の commit がマージ前の構成を適用していた
-- **zsh の `NO_EQUALS`**（2026-11-06、提案 C の一部）— `echo ===` が「== not found」で落ちていた
+- **zsh の `NO_EQUALS`、`fish -lc` をやめる、`cd &&` をやめる**（C）— `2d0203f4`。Codex は `zsh -lc`
+- **調べものは自分の native subagent へ**（B）— `aab3f38f`。`codex exec` 経由だと普通の調べものでも
+  Codex が起動していた。ask-codex は別ベンダーの意見を聞く用途に絞った
+- **worktree の subagent には1回1コマンド**（D）— `2d0203f4`
+- **comma の非対話ラッパー**（E）— `75dc7e78`。こちらでも `, hello` が "Failed to open tty" で止まっていた
+- **skill を上流に寄せる**（F）— tdd、vitest、fix-ci、merge-main、create-pr、commit、nushell、
+  react-server-components。改名は address-pr-review、typescript、vitest、useeffect、japanese-summary、
+  edit-skills（skill-creator と skill-maintenance を統合）。council と create-commits-and-push は削除
+- **How to Work 節と description の型**（G）— `65fd3123`、`fada853f`。How to Work は `agents/shared/` の断片
+- **nix.md を Codex にも配る**（H）— `agents/shared/nix.md`
 
-## 保留中の提案（2026-11-06）
+## 採ったが、こちらの部分を残したもの
 
-採否を決めたら上の節へ移す。
-
-- **B. 調べものの委譲先を native subagent に**（`aab3f38f`）— delegate-work.md が `codex exec` を指している
-- **C. `fish -lc` の指示を外す**（`2d0203f4`）— 同じ commit の zsh `NO_EQUALS` は 2026-11-06 に採用済み
-- **D. worktree の subagent には1回1コマンド**（`2d0203f4`）
-- **E. comma の非対話ラッパー**（`75dc7e78`）
-- **F. skill の drift 解消** — tdd、vitest（snapshot 禁止）、fix-ci、merge-main、pr-apply-review、
-  create-pr、commit を寄せる。council は削除、create-commits-and-push は統合。名前は変えない
-- **G. How to Work 節と description の型**（`65fd3123`、`fada853f`）
-- **H. nix.md を agents/shared に移して Codex にも配る**
+- **`codex-review` と `ask-codex` の名前**（2026-11-06）— 上流は `cross-model-review` と `ask-other-agent` に
+  改名し、Grok・Cursor・T3 まで扱うよう一般化した。こちらの中身は Codex 専用で、codex-review は PR ゲート
+  （`codex-review-gate.sh`、checks.nix）に名前で繋がっている。名前のほうが実態に合うので残した
+- **react-server-components の Next.js のリンク**（2026-11-06）— 上流版は古いリンクに戻っていた。`69174cd5` の修正を維持
+- **create-pr の stacked PR**（2026-11-06）— 上流は `gh-stack` skill 前提。こちらには無いので落とした
+- **japanese-summary のトリガー**（2026-11-06）— 上流は「in japanese」で発火する。常に日本語で話すこちらでは
+  発火しないので、要約全般と引き継ぎのトリガーを残した（`5f1e97fa`）
+- **missing-tools の順番**（2026-11-06）— 上流は comma を先にしたが、direnv を先にする理由は `105b6bb6` にある
+- **edit-skills の「In This Repository」**（2026-11-06）— 上流の `metadata.agents` と `agents/AGENTS.md` は
+  こちらに無い。shared 断片は claude/CLAUDE.md と codex.nix で繋ぐ
+- **delegate-work の実装の委譲**（2026-11-06）— 上流は「指示を書くほうが安ければ実装も任せる」。こちらは
+  「repo の編集はすべてここ」のまま（ユーザーの方針）
 
 ## こちらが先行しているもの
 

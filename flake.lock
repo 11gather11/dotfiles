@@ -374,11 +374,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793527794,
-        "narHash": "sha256-ZCz0zE+Lgb3hBn+u3n39Txegdw3jI/SVkQjR+TjClh4=",
+        "lastModified": 1793689940,
+        "narHash": "sha256-8wXyxIUWNbCdhopBG8wR4HuuKCJZO5NajcRYv+KnRM0=",
         "owner": "ryoppippi",
         "repo": "nix-bun",
-        "rev": "4170f2a531122ac75aa45d823bd69e6e9a77563f",
+        "rev": "17037c999d9846ea0784e92d094f4bec231a2855",
         "type": "github"
       },
       "original": {

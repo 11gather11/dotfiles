@@ -46,6 +46,8 @@
       "discord"
       "ghostty"
       "google-chrome"
+      # herdr's official desktop app, on trial. Updates itself (auto_updates).
+      "herdr-app"
       "karabiner-elements"
       "microsoft-teams"
       "raycast"

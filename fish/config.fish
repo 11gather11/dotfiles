@@ -81,7 +81,10 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
     # cache rebuilt under `fish -lc` from zsh or bash got zsh syntax.
     if test (uname -m) = arm64
         echo $(/opt/homebrew/bin/brew shellenv fish) >>$CONFIG_CACHE_TMP
-        echo "set -gx PATH /opt/homebrew/opt/llvm/bin $PATH" >>$CONFIG_CACHE_TMP
+        # Prepend rather than write out $PATH: a snapshot froze whichever
+        # shell rebuilt the cache into every later one, including a PATH that
+        # a GUI app had read back from a login shell with escape codes in it.
+        echo "fish_add_path --global --move /opt/homebrew/opt/llvm/bin" >>$CONFIG_CACHE_TMP
     else
         echo $(/usr/local/bin/brew shellenv fish) >>$CONFIG_CACHE_TMP
     end
@@ -114,9 +117,12 @@ if not test -f "$CONFIG_CACHE"; or test "$FISH_CONFIG" -nt "$CONFIG_CACHE"
 
     mv $CONFIG_CACHE_TMP $CONFIG_CACHE
 
-    set_color brmagenta --bold --underline
-    echo "config cache updated"
-    set_color normal
+    # Interactive only, and on stderr: apps read a login shell's stdout to
+    # learn its environment (Herdr.app reads PATH that way), and the message
+    # with its colour codes ended up inside the value.
+    if status is-interactive
+        echo (set_color brmagenta --bold --underline)"config cache updated"(set_color normal) >&2
+    end
 end
 source $CONFIG_CACHE
 

@@ -15,10 +15,11 @@
 # Import runs in "replace" mode: workflows with the same name are overwritten,
 # so editing the prompt and re-running this updates the app. Nothing is deleted.
 #
-# The backup format deliberately omits secrets and per-machine selections. The
-# ChatGPT login has to be imported once in the app (OpenAI / ChatGPT > Codex
-# ログインをインポート), and the engine and Qwen3 model choice are set by
-# nix/modules/darwin-system/defaults.nix.
+# The backup format deliberately omits secrets and per-machine selections. Sign
+# in to ChatGPT once in the app with OpenAI / ChatGPT > ブラウザでログイン, not
+# "Codex ログインをインポート": the import copies Codex's refresh token, and the
+# first time the Codex CLI rotates it, TypeWhisper's copy stops working. The
+# engine and Qwen3 model choice are set by nix/modules/darwin-system/defaults.nix.
 #
 # The TypeWhisper HTTP API must be enabled in Settings > Advanced. The port and
 # bearer token come from $TYPEWHISPER_PORT and $TYPEWHISPER_API_TOKEN, falling

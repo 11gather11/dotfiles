@@ -7,8 +7,9 @@ here and re-run that script rather than editing it in the app. The workflow is a
 custom one triggered "常に"; its "微調整" fields stay empty so the rules are not
 duplicated.
 
-Recommended provider: the OpenAI / ChatGPT plugin with the existing Codex login
-imported, using a light model, set as the global LLM fallback. The transcription
+Recommended provider: the OpenAI / ChatGPT plugin signed in with its own
+browser login (see settings-sync.nu for why not the Codex import), using a light
+model, set as the global LLM fallback. The transcription
 engine is Qwen3 ASR, which TypeWhisper does not pass dictionary terms to, so this
 prompt is what turns misheard words such as 炎 back into Hono. Apple
 Intelligence or a local MLX model keeps everything on-device instead, but with

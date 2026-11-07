@@ -43,6 +43,8 @@ const cases = [
     "an optional-only failure stops"
     "a worker merging the base keeps the head"
     "a queue nobody can move stops as stalled"
+    "a failure the worker judged not its own is rerun once"
+    "a check judged not their own on two PRs is flaky"
 ]
 
 def run-case [name: string] {
@@ -204,6 +206,59 @@ def run-case [name: string] {
                 (pr 2 skipped | update worker_state busy)
             ]
             assert equal $w.stop null
+            # A PR merged outside the queue drops; the next pass finds it empty
+            assert equal (decide [
+                (pr 1 merged)
+            ]).stop null
+        }
+        "a failure the worker judged not its own is rerun once" => {
+            let judged = pr 1 ci-failed
+            | update verdict { insert failed [{name: e2e, run: "9"}] }
+            | update asks [
+                {kind: fix, sha: s1}
+            ]
+            | insert said "ENOTEMPTY in cleanup"
+            let d = decide [$judged]
+            assert equal (actions-of $d) ["1:rerun"]
+            assert equal ($d.actions.0.runs) ["9"]
+            assert equal $d.stop null
+            # Failing again on the same head is not rerun a second time
+            let again = decide [
+                ($judged | update asks { append {kind: rerun, sha: s1} })
+            ]
+            assert equal $again.stop.result flaky
+            assert equal $again.stop.checks [e2e]
+        }
+        "a check judged not their own on two PRs is flaky" => {
+            let judged = pr 2 ci-failed
+            | update verdict { insert failed [{name: e2e, run: "12"}] }
+            | update asks [
+                {kind: fix, sha: s1}
+            ]
+            | insert said "timeout"
+            let d = decide [$judged] [
+                {
+                    check: e2e
+                    pr: 1
+                    sha: s0
+                    run: "9"
+                    reason: "ENOTEMPTY"
+                }
+            ]
+            # The rerun still goes ahead; the harness files the flake meanwhile
+            assert equal (actions-of $d) ["2:rerun"]
+            assert equal $d.stop.result flaky
+            # The PR's own earlier failure does not count
+            let own = decide [$judged] [
+                {
+                    check: e2e
+                    pr: 2
+                    sha: s0
+                    run: "8"
+                    reason: "x"
+                }
+            ]
+            assert equal $own.stop null
         }
     }
 }

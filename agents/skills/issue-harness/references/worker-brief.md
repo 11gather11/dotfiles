@@ -33,8 +33,10 @@ The harness may merge main into your branch on GitHub, so:
 When you finish:
 
 - List work you leave for later in a "Deferred" section of the PR body, one
-  item each, naming the issue that owns it if one does. You cannot write
-  issues or issue comments; the harness files them before it lands the PR.
+  item each, naming the issue that owns it if one does. It is for work outside
+  this issue: whatever this PR needs to be right, such as pulling in files CI
+  generated for it, is yours to finish. You cannot write issues or issue
+  comments; the harness files them before it lands the PR.
 - Open the PR with `Closes #<issue>` and stop there, without waiting for CI,
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that

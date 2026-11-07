@@ -33,9 +33,11 @@ waits only for receipt. Without `--wait` a dropped prompt goes unnoticed, and th
 
 ## CI failures
 
-The queue sends each failure to its worker first. You decide when the worker
-stops without pushing (`no-progress`), or when you land by hand. Decide whose
-failure it is from the failed log:
+The queue sends each failure to its worker first, and reruns the failed jobs
+once when the worker answers that the failure is not the PR's. You decide when
+the worker stops without either (`no-progress`), when the queue reports
+`flaky`, or when you land by hand. Decide whose failure it is from the failed
+log:
 
 - **Caused by the PR**: send the worker the failing job name and the lines that
   matter.
@@ -45,14 +47,17 @@ capture a stable screenshot`) that names no line of the PR. A real
   off in a screenshot; a load failure moves between tests and runs.
 - **Unrelated and intermittent** (code the PR does not touch, passed before),
   including load:
-  `gh run rerun <run> --failed`, once. If no issue covers it yet
+  `gh run rerun <run> --failed`, once (the queue has done so on `flaky`).
+  A flake gets an issue rather than another rerun, which would only hide it.
+  If no issue covers it yet
   (`gh issue list --search "<test name>"`), file one with the repository's
   triage label. Leave it for the user to schedule rather than starting a worker
   for it in this batch, unless the user has left you to run the batch through
   unattended: then start a `diagnosing-bugs` worker for it, so the flake does
   not keep stalling the issues behind it.
-- **Fails again, or fails the same way on main**: main is broken. Stop landing
-  and bring it to the user.
+- **Fails again after the rerun**: look at main's latest run. Failing the same
+  way there means main is broken: stop landing and bring it to the user.
+  Otherwise it is a flake as above, and the PR waits for its fix.
 
 ## Checks the base does not require
 

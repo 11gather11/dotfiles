@@ -16,10 +16,16 @@ export const max_merge_asks = 5
 #   stacked: bool     # its base is the branch of another open PR
 #   worker: string?   # herdr agent of the PR's worktree, null when none
 #   worker_state: string  # watch's states: working busy blocked stopped gone
-#   asks: list<record>    # earlier asks to this worker: {kind, sha}
+#   asks: list<record>    # earlier asks to this worker: {kind, sha}, kind
+#                         # merge, fix or rerun
+#   said: string?         # after a fix ask on this head, the worker's
+#                         # NOT-THIS-PR line: it judged the failure not its own
+#
+# `history` holds the failures workers judged not their PR's, one record per
+# failed check: {check, pr, sha, run, reason}.
 #
 # Returns `{actions, stop}`. Each action is `{pr, action, reason}` with action
-# one of: land, ask-merge, ask-fix, wait, skip, drop. `stop` is null, or the
+# one of: land, ask-merge, ask-fix, rerun, wait, skip, drop. `stop` is null, or the
 # first item the rules cannot settle: `{pr, result, detail, next}`; actions
 # after it are still listed, for a dry run to show. A queue where nothing can
 # move and no worker is at work stops as `stalled`, rather than passing over
@@ -33,19 +39,19 @@ export const max_merge_asks = 5
 # @example
 # decide [{pr: 1, verdict: {result: would-merge, sha: a}, stacked: false, worker: kn-1, worker_state: stopped, asks: []}]
 # # => {actions: [{pr: 1, action: land, reason: "..."}], stop: null}
-export def decide [items: list<record>]: nothing -> record {
+export def decide [items: list<record>, history: list<record> = []]: nothing -> record {
     mut head_taken = false
     mut actions = []
     mut stop: any = null
     for it in $items {
-        let d = decide-one $it $head_taken
+        let d = decide-one $it $head_taken $history
         if $d.head { $head_taken = true }
-        $actions = $actions | append {pr: $it.pr, action: $d.action, reason: $d.reason}
+        $actions = $actions | append {pr: $it.pr, action: $d.action, reason: $d.reason, runs: ($d.runs? | default [])}
         if $d.stop != null and $stop == null {
             $stop = $d.stop | insert pr $it.pr | insert agent $it.worker | insert sha ($it.verdict.sha? | default null)
         }
     }
-    let moving = $actions | any {|a| $a.action in [land ask-merge ask-fix wait] }
+    let moving = $actions | any {|a| $a.action in [land ask-merge ask-fix rerun wait drop] }
     let at_work = $items | any {|i| $i.worker_state in [working busy] }
     if $stop == null and not $moving and not $at_work and ($items | is-not-empty) {
         let why = $actions | where action == skip | each {|a| $"#($a.pr): ($a.reason)" } | str join "; "
@@ -62,7 +68,7 @@ export def decide [items: list<record>]: nothing -> record {
 }
 
 # One PR's decision. `head` says whether this PR took the head position.
-def decide-one [it: record, head_taken: bool]: nothing -> record {
+def decide-one [it: record, head_taken: bool, history: list<record>]: nothing -> record {
     let v = $it.verdict
     let sha = $v.sha? | default null
     let r = {|action: string, reason: string| {
@@ -136,7 +142,11 @@ def decide-one [it: record, head_taken: bool]: nothing -> record {
 
     match $v.result {
         ci-failed => {
-            if (do $asked_here fix) { return (do $no_progress fix) }
+            if (do $asked_here fix) {
+                let said = $it.said? | default null
+                if $said == null { return (do $no_progress fix) }
+                return (not-this-pr $it $said $history)
+            }
             if (do $asked fix | length) >= $max_fix_asks {
                 return (
                     (do
@@ -210,4 +220,50 @@ def decide-one [it: record, head_taken: bool]: nothing -> record {
             )
         }
     }
+}
+
+# A CI failure the worker judged not its PR's. The failed jobs run again once
+# per head commit; rerunning more would hide a flake rather than show it.
+# A check that failed this way on another PR too is reported as `flaky` at
+# once, while its rerun goes ahead: the flake needs an issue whether or not
+# this PR gets through.
+def not-this-pr [it: record, said: string, history: list<record>]: nothing -> record {
+    let v = $it.verdict
+    let failed = $v.failed? | default []
+    let checks = $failed | get -o name | default [] | uniq
+    let runs = $failed | get -o run | default [] | compact | uniq
+    let names = $checks | str join ", "
+    let file = "file an issue for the flaky test if none covers it, and get it fixed by a `diagnosing-bugs` worker, per triage.md"
+    if ($it.asks | any {|a| $a.kind == "rerun" and $a.sha == $v.sha }) {
+        return {
+            action: stop
+            reason: "failed again after a rerun"
+            head: false
+            stop: {
+                result: flaky
+                detail: $"($names) failed again after a rerun; ($it.worker) judged it not this PR's: ($said)"
+                next: $"if it fails the same way on the base, the base is broken: bring it to the user. Otherwise ($file); `queue.nu remove ($it.pr)` until that fix lands, then queue it again"
+                checks: $checks
+                runs: $runs
+            }
+        }
+    }
+    let pr = $it.pr
+    let earlier = $history | where {|h| $h.pr != $pr and $h.check in $checks }
+    let rerun = {
+        action: rerun
+        reason: $"($it.worker) judged it not this PR's: ($said)"
+        head: false
+        stop: null
+        runs: $runs
+    }
+    if ($earlier | is-empty) { return $rerun }
+    let seen = $earlier | each {|e| $"#($e.pr) run ($e.run? | default '?'): ($e.reason)" } | uniq | str join "; "
+    $rerun | merge {stop: {
+        result: flaky
+        detail: $"($names) also failed on other PRs, each judged not that PR's: ($seen). This PR's worker: ($said)"
+        next: $"($file). The failed jobs were rerun once; run queue.nu again"
+        checks: $checks
+        runs: $runs
+    }}
 }

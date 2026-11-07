@@ -103,8 +103,11 @@ Done when the worker is working again, or its case is with the user.
 Before a PR goes in the queue, check what no script can judge:
 
 - The PR body leaves no spec decision open.
-- Its "Deferred" section, if any, is filed: workers cannot write issues, so
-  open one per item (or comment on the issue that owns it) and link it back.
+- Its "Deferred" section holds only work outside the issue. Anything the
+  worker can still do in this PR, such as pulling in what CI generated, goes
+  back to the worker instead.
+- The rest is filed: workers cannot write issues, so open one per item (or
+  comment on the issue that owns it) and link it back.
 
 Then queue it and keep the queue running in the background:
 
@@ -117,13 +120,17 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/queue.nu
 head, the first PR whose worker is free, is asked to merge the base or
 brought up to date, because every landing moves the base again. A PR behind
 the head lands only when it needs no update. A CI failure goes back to its
-worker once per head commit, wherever the PR stands. It returns when:
+worker once per head commit, wherever the PR stands; when the worker answers
+that it is not the PR's, the failed jobs are rerun once for that commit. It
+returns when:
 
 - `done`: the queue is empty.
 - `blocked`, `no-progress`: a worker waits on a prompt, or stopped after an
-  ask without pushing. Read its last turn: a question, or its judgement that
-  the failure is not the PR's. Settle it per triage.md, then run the queue
-  again.
+  ask without pushing or answering that the failure is not the PR's. Read its
+  last turn, settle it per triage.md, then run the queue again.
+- `flaky`: a failure judged not the PR's failed again after its rerun, or the
+  same check was judged so on another PR too. `checks`, `runs` and `detail`
+  carry the evidence; handle it as a flake per triage.md.
 - `send-back-limit`, `conflict-limit`: bring the issue to the user.
 - `optional-failed`: only checks the base does not require failed. Per
   triage.md, let that head land with `queue.nu allow-optional <pr>`, or send
@@ -132,6 +139,8 @@ worker once per head commit, wherever the PR stands. It returns when:
   stacked PR whose lower PR is not queued. Follow `next`.
 - `timeout`: run it again.
 - anything else: follow `next`.
+
+Its `landed` holds the PR numbers this run landed; `queue.nu list` has the rest.
 
 `queue.nu --dry-run` shows what each PR would get, changing nothing. To land
 one PR by hand, under `no-land`, or to stack PRs, read

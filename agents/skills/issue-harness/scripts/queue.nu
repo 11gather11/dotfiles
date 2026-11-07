@@ -12,12 +12,16 @@ const land_script = path self land.nu
 # same, so a quiet pass costs one `gh pr list`; this bounds how stale it gets.
 const verdict_ttl = 10min
 const prompt_timeout_ms = "30000"
+# What a worker writes, at the start of a line, when it judges a CI failure
+# not its PR's. The queue reads it rather than guessing from free text.
+const not_this_pr_mark = "NOT-THIS-PR:"
 
 # Run the queue until every PR has landed or the harness is needed.
 #
-# Prints one JSON line last: `{result, pr, agent, sha, detail, next, landed}`.
-# `result` is `done` when the queue is empty, otherwise what stopped it
-# (`blocked`, `no-progress`, `ci-failed` …, or `timeout`).
+# Prints one JSON line last: `{result, pr, agent, sha, detail, next, landed}`,
+# `landed` being the PR numbers this run landed (queue-state.json keeps the
+# rest). `result` is `done` when the queue is empty, otherwise what stopped it
+# (`blocked`, `no-progress`, `flaky`, `ci-failed` …, or `timeout`).
 # Exit status: 0 done; 2 the harness has to act; 1 error.
 #
 # @example
@@ -124,7 +128,9 @@ def load-state [repo: string]: nothing -> record {
         asks: {}
         landed: []
         dropped: []
+        not_this_pr: []
     }
+    | default [] not_this_pr
 }
 
 def save-state [repo: string, st: record] {
@@ -256,7 +262,11 @@ def snapshot [repo: string, st: record, cache: record]: nothing -> record {
                 $v
             }
         }
-        $items = $items | append {pr: $n, verdict: $verdict, base: $p.baseRefName, stacked: $stacked, allow_optional: $allow, worker: $worker, worker_state: $ws, asks: $asks}
+        let fix_asked = $asks | any {|a| $a.kind == "fix" and $a.sha == $verdict.sha }
+        let said = if $verdict.result == ci-failed and $fix_asked and $ws == stopped {
+            not-this-pr-of $worker $verdict.sha
+        }
+        $items = $items | append {pr: $n, verdict: $verdict, base: $p.baseRefName, stacked: $stacked, allow_optional: $allow, worker: $worker, worker_state: $ws, asks: $asks, said: $said}
     }
     {items: $items, cache: $cache}
 }
@@ -269,7 +279,32 @@ def merge-ask [base: string]: nothing -> string {
 # The prompt sending a CI failure back to its worker.
 def fix-ask [v: record]: nothing -> string {
     let failed = $v.failed? | default [] | each {|f| $"($f.name) \(run ($f.run? | default '?')\): ($f.link)" } | str join "; "
-    $"CI failed on ($v.sha | str substring 0..7): ($failed). Read `gh run view <run> --log-failed` for each. If this PR, alone or merged with the base, caused it, fix the cause, push, and end your turn with the PR URL. If it is not this PR's \(a timeout on a loaded runner, a job that never started\), do not push or rerun: end your turn with one line saying why."
+    $"CI failed on ($v.sha | str substring 0..<7): ($failed). Read `gh run view <run> --log-failed` for each. If this PR, alone or merged with the base, caused it, fix the cause, push, and end your turn with the PR URL. If it is not this PR's \(a timeout on a loaded runner, a test that fails on code this PR does not touch\), do not push or rerun: end your turn with a line of its own that starts with ($not_this_pr_mark) and says why, naming the failing test. The queue then reruns the failed jobs once."
+}
+
+# The reason after `not_this_pr_mark` in the worker's reply to the fix ask for
+# `sha`, or null. Only the reply is searched: the ask quotes the mark, and a
+# wrapped line of it can start with the mark too.
+def not-this-pr-of [agent: string, sha: string]: nothing -> oneof<string, nothing> {
+    let r = ^herdr agent read $agent --source recent-unwrapped --lines 400 | complete
+    if $r.exit_code != 0 { return null }
+    $r.stdout | lines | not-this-pr-in $sha
+}
+
+# `not-this-pr-of` on a screen already read.
+export def not-this-pr-in [sha: string]: list<string> -> oneof<string, nothing> {
+    let screen = $in | enumerate
+    let asked = $screen | where ($it.item | str starts-with $"❯ CI failed on ($sha | str substring 0..<7):") | last
+    if $asked == null { return null }
+    let reply = $screen | skip ($asked.index + 1) | skip until {|l| $l.item | str starts-with "⏺" }
+    $reply
+    | get item
+    | each { str trim | str replace --regex '^⏺\s*' '' }
+    | where ($it | str starts-with $not_this_pr_mark)
+    | last
+    | if $in == null { null } else {
+        str substring ($not_this_pr_mark | str length).. | str trim
+    }
 }
 
 # Sends `text` and waits only for its receipt. The ask is recorded before this
@@ -283,7 +318,7 @@ def dry-run [repo: string]: nothing -> record {
     if (setting-on $repo no-land) { return (no-land-result) }
     let st = load-state $repo
     let snap = snapshot $repo $st {}
-    let d = decide $snap.items
+    let d = decide $snap.items $st.not_this_pr
     {
         result: dry-run
         plan: (
@@ -324,7 +359,7 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
                 landed: $landed
             }
         }
-        let d = decide $snap.items
+        let d = decide $snap.items $st.not_this_pr
         # A stop is returned after the pass's other actions: one worker waiting
         # on the harness holds up no other PR
         let by_pr = $snap.items | reduce --fold {} {|it, acc| $acc | insert ($it.pr | into string) $it }
@@ -345,6 +380,33 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
                     )
                     $cache = $cache | reject -o $key
                 }
+                rerun => {
+                    # Recorded first, as for an ask: a rerun that fails to
+                    # start shows up as `flaky`, not as a second rerun
+                    let at = date now | format date "%+"
+                    let sha = $item.verdict.sha
+                    $st = $st
+                    | upsert asks { upsert $key { default [] | append {kind: rerun, sha: $sha, at: $at} } }
+                    | update not_this_pr {
+                        append ($item.verdict.failed | each {|f| {check: $f.name, pr: $a.pr, sha: $sha, run: ($f.run? | default null), reason: $item.said, at: $at} })
+                    }
+                    save-state $repo $st
+                    for run in $a.runs {
+                        let r = ^gh run rerun $run --failed | complete
+                        if $r.exit_code != 0 {
+                            return {
+                                result: rerun-failed
+                                pr: $a.pr
+                                agent: $item.worker
+                                sha: $sha
+                                detail: $"gh run rerun ($run) --failed: ($r.stderr | str trim)"
+                                next: "rerun it by hand or bring it to the user, then run queue.nu again"
+                                landed: $landed
+                            }
+                        }
+                    }
+                    $cache = $cache | reject -o $key
+                }
             }
         }
         save-state $repo $st
@@ -356,12 +418,13 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
             $cache = $cache | reject -o ($to_land.pr | into string)
             match $r.result {
                 landed => {
-                    $landed = $landed | append (
-                        $r
-                        | select pr sha detail
-                        | merge ($r | select -o optional_failed cleanup_error)
-                    )
-                    $st = $st | update landed { append {pr: $to_land.pr, sha: $r.sha, at: (date now | format date "%+")} } | update dropped { append $to_land.pr | uniq }
+                    $landed = $landed | append $to_land.pr
+                    $st = $st | update landed {
+                        append (
+                            {pr: $to_land.pr, sha: $r.sha, at: (date now | format date "%+")}
+                            | merge ($r | select -o optional_failed cleanup_error)
+                        )
+                    } | update dropped { append $to_land.pr | uniq }
                     save-state $repo $st
                     # The next PR may land at once
                     if $d.stop == null { continue }

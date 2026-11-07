@@ -188,7 +188,10 @@ in
     # holds rather than nested two levels down as ~/work/ghq was.
     #
     # ~/.gitconfig.ai-signing names the repositories that sign with the AI key,
-    # one `includeIf "gitdir:<repo>/"` section each. It is untracked for the
+    # one `includeIf "gitdir:<repo>/"` section each. Those sections also rewrite
+    # GitHub's SSH URLs to HTTPS, because SSH authentication goes through
+    # 1Password and would wait for Touch ID just as signing did, and an agent
+    # cannot tell that from the remote URL. The file is untracked for the
     # same reason as the work file: some of those repositories are private,
     # and listing them here would publish their names. Included after the main
     # settings, so its signingkey wins.

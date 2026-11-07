@@ -3,7 +3,9 @@
 Commits are signed by default with a key in 1Password's agent, so each
 signature waits for Touch ID. Repositories agents commit to sign with the
 passphrase-less `~/.ssh/ai_signing` instead, chosen per repository by the
-untracked `~/.gitconfig.ai-signing`. The setup is explained in
+untracked `~/.gitconfig.ai-signing`. The same file sends their GitHub traffic
+over HTTPS whatever the remote URL says, since SSH authentication also goes
+through 1Password. The setup is explained in
 `~/ghq/github.com/11gather11/dotfiles/nix/modules/home/programs/git/default.nix`.
 
 - When signing hangs or fails, run `git config --show-origin user.signingkey`

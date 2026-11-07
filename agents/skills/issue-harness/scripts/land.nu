@@ -3,11 +3,13 @@
 # date, merges, pulls and removes the worker's worktree. Stops with a classified
 # result wherever the harness has to decide. Prints one JSON record.
 
+use harness.nu [setting-on]
+
 const gh_tries = 3
 const gh_delay = 5sec
 const poll_tries = 6
 const poll_delay = 10sec
-const pr_fields = "number,state,isDraft,mergeable,headRefOid,headRefName,baseRefName,url"
+const pr_fields = "number,state,isDraft,isCrossRepository,mergeable,headRefOid,headRefName,baseRefName,url"
 const check_fields = "name,state,bucket,workflow,link,completedAt"
 
 # Error code that marks "GitHub or the remote could not be read", as opposed to
@@ -18,13 +20,14 @@ const unknown_code = "land::unknown"
 # Prints one JSON line with `result`, `pr`, `sha`, `detail` and `next`.
 # Exit status: 0 landed, merged or would-*; 2 the harness has to act; 1 error.
 def main [
-    pr?: string     # PR number or URL
-    --agent: string # herdr agent of the worker, to find its worktree
-    --dry-run       # classify and report what would happen; change nothing
+    pr?: string        # PR number or URL
+    --agent: string    # herdr agent of the worker, to find its worktree
+    --dry-run          # classify and report what would happen; change nothing
+    --allow-optional   # land although checks the base branch does not require failed
 ] {
     let r = try {
-        if $pr == null { error make {msg: "usage: land.nu <pr> [--agent <name>] [--dry-run]"} }
-        land $pr $agent $dry_run
+        if $pr == null { error make {msg: "usage: land.nu <pr> [--agent <name>] [--dry-run] [--allow-optional]"} }
+        land $pr $agent $dry_run $allow_optional
     } catch {|e|
         if $e.details.code? == $unknown_code {
             (report
@@ -151,11 +154,37 @@ def effective-checks [checks: table]: nothing -> table {
     | flatten
 }
 
-# Sums up a head's checks: `none`, `pending`, `failed` or `passed`, with the
-# failed checks and the run each belongs to.
+# The check names the base branch requires, from its rulesets and its classic
+# protection together; empty when neither can be read or neither requires any.
+# `gh pr checks --required` cannot stand in: it lists only required checks
+# that already exist on the head, and a job that `needs` others is created
+# late, so it would report "none required" exactly while one is outstanding.
+def required-checks [base: string]: nothing -> list<string> {
+    let rules = ^gh api $"repos/{owner}/{repo}/rules/branches/($base)" | complete
+    let from_rules = if $rules.exit_code == 0 {
+        $rules.stdout
+        | from json
+        | where type == "required_status_checks"
+        | get -o parameters.required_status_checks
+        | flatten
+        | get -o context
+        | default []
+    } else { [] }
+    let branch = ^gh api $"repos/{owner}/{repo}/branches/($base)" | complete
+    let from_protection = if $branch.exit_code == 0 {
+        $branch.stdout | from json | get -o protection.required_status_checks.contexts | default []
+    } else { [] }
+    $from_rules | append $from_protection | uniq
+}
+
+# Sums up a head's checks: `none`, `pending`, `failed`, `optional-failed` or
+# `passed`, with the failed checks and the run each belongs to.
 # Skipped is a pass: a docs-only PR skips the heavy jobs on purpose.
-def classify-checks [checks: table]: nothing -> record {
+# A required check that is not on the head yet counts as pending, and a
+# failure only in checks the base does not require is `optional-failed`.
+def classify-checks [checks: table, required: list<string> = []]: nothing -> record {
     let eff = effective-checks $checks
+    let missing = $required | where $it not-in ($eff | get -o name | default [])
     let failed = $eff
     | where bucket not-in ["pass" "skipping" "pending"]
     | each {|c|
@@ -164,18 +193,21 @@ def classify-checks [checks: table]: nothing -> record {
             workflow: $c.workflow
             link: $c.link
             run: ($c.link | parse --regex 'actions/runs/(?<run>\d+)' | get -o 0.run)
+            required: ($c.name in $required)
         }
     }
     let status = if ($eff | is-empty) {
         "none"
-    } else if ($eff | any {|c| $c.bucket == "pending" }) {
+    } else if ($eff | any {|c| $c.bucket == "pending" }) or ($missing | is-not-empty) {
         "pending"
-    } else if ($failed | is-not-empty) {
-        "failed"
-    } else {
+    } else if ($failed | is-empty) {
         "passed"
+    } else if ($required | is-not-empty) and ($failed | all {|c| not $c.required }) {
+        "optional-failed"
+    } else {
+        "failed"
     }
-    {status: $status, failed: $failed}
+    {status: $status, failed: $failed, missing: $missing}
 }
 
 # Runs git and returns its trimmed stdout, raising on failure.
@@ -289,16 +321,14 @@ def clean-up [repo: string, branch: string, agent]: nothing -> record {
     )
 }
 
-# The harness's machine-local settings for `repo`, resolved as spawn.nu does.
-def state-dir [repo: string]: nothing -> string {
-    $env.XDG_STATE_HOME?
-    | default ($env.HOME | path join .local/state)
-    | path join harness ($repo | path basename)
-}
-
 # Walks the PR through every check in precedence order and acts on the first
 # that applies.
-def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
+def land [
+    pr_arg: string
+    agent
+    dry_run: bool
+    allow_optional: bool
+]: nothing -> record {
     # The main checkout, even when called from a linked worktree
     let repo = git rev-parse --path-format=absolute --git-common-dir | path dirname
     cd $repo
@@ -335,8 +365,8 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
     # A repository that merges by hand stops here, before update-branch, the
     # merge or worktree removal, and before the draft check: its PRs stay
     # drafts until a person reviews them
-    if (state-dir $repo | path join no-land | path exists) {
-        let ci = classify-checks (read-checks $pr_arg)
+    if (setting-on $repo no-land) {
+        let ci = classify-checks (read-checks $pr_arg) (required-checks $base)
         return (
             do
                 $say
@@ -344,6 +374,19 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
                 $"($pr.url) is merged by hand in this repository; CI ($ci.status)"
                 "merging is the user's: if CI failed, triage it as for ci-failed; if pending or none, wait on CI and run land.nu again; once it passed, report the PR URL and CI result to the user"
             | insert ci $ci
+        )
+    }
+    # Merging runs the PR's code on the base; that is the author's call for a
+    # PR from someone else's fork, never the harness's. Under no-land nothing
+    # merges, so such a PR still gets its CI verdict above
+    if $pr.isCrossRepository {
+        return (
+            (do
+                $say
+                fork
+                $"($pr.url) comes from a fork"
+                "bring it to the user; the harness lands only branches of this repository"
+            )
         )
     }
     if $pr.isDraft {
@@ -379,7 +422,9 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
         }
     }
 
-    let checks = classify-checks (read-checks $pr_arg)
+    # Read only once the PR got this far: the queue asks land.nu about every
+    # PR it holds, and a draft or a conflict needs no required checks
+    let checks = classify-checks (read-checks $pr_arg) (required-checks $base)
     match $checks.status {
         "none" => {
             return (
@@ -392,11 +437,12 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
             )
         }
         "pending" => {
+            let missing = if ($checks.missing | is-empty) { "" } else { $"; required but not reported yet: ($checks.missing | str join ', ')" }
             return (
                 (do
                     $say
                     pending
-                    "checks are still running"
+                    $"checks are still running($missing)"
                     $"`gh pr checks ($n) --watch --fail-fast` in the background, then land.nu again"
                 )
             )
@@ -408,7 +454,20 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
                 | insert failed $checks.failed
             )
         }
+        "optional-failed" if not $allow_optional => {
+            let names = $checks.failed | get name | str join ", "
+            return (
+                do $say optional-failed $"every required check passed; checks the base does not require failed: ($names)" "read the failed log: if the job never ran (runner minutes, no runner) or the failure is not this PR's, land.nu again with --allow-optional; if the PR caused it, send it back as for ci-failed"
+                | insert failed $checks.failed
+            )
+        }
     }
+    # Kept on the record so the batch summary can name what was let through
+    let optional = if $checks.status == "optional-failed" {
+        {
+            optional_failed: ($checks.failed | get name)
+        }
+    } else { {} }
 
     let drift = base-drift $repo $pr
     if $drift.moved and ($drift.overlap | is-not-empty) {
@@ -446,6 +505,7 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
                 "mergeable, checks pass, and the base does not overlap"
                 $"run land.nu without --dry-run to squash-merge at ($sha)"
             )
+            | merge $optional
         )
     }
 
@@ -486,5 +546,6 @@ def land [pr_arg: string, agent, dry_run: bool]: nothing -> record {
         $"squash-merged ($pr.url) at ($sha)"
         "nothing; note the merge for the batch summary"
     )
+    | merge $optional
     | merge (clean-up $repo $pr.headRefName $agent)
 }

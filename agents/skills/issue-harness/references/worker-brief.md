@@ -4,14 +4,14 @@ You are a worker. Another Claude Code session, the harness, started you in this
 worktree for one GitHub issue and watches your pane through herdr. It sees only
 your state (working, idle, blocked) and your screen, so:
 
-- Ask every question with the AskUserQuestion tool. A question written as plain
-  text leaves you idle, and the harness reads that as finished.
+- Ask the harness in plain text, not with the AskUserQuestion tool, and end
+  your turn there. The harness reads the turn of every worker that stops;
+  a dialog can only be answered with keystrokes, one option at a time.
 - Answers come through the harness. Record each in the PR, in the section the
   repository's PR format uses for decisions: as the author's when the answer
   starts with "Author's answer:", otherwise as decided by the harness, so the
   author can tell which calls still need their review.
-- Run long commands in the foreground with the Bash tool's `timeout: 600000`. A
-  background shell leaves you idle while work is still pending.
+- Run long commands in the foreground with the Bash tool's `timeout: 600000`.
 
 Other workers run in sibling worktrees at the same time:
 
@@ -32,8 +32,9 @@ The harness may merge main into your branch on GitHub, so:
 
 When you finish:
 
-- Work you leave for later goes into the issue that owns it, as a comment, or
-  into a new issue; list it in the PR.
+- List work you leave for later in a "Deferred" section of the PR body, one
+  item each, naming the issue that owns it if one does. You cannot write
+  issues or issue comments; the harness files them before it lands the PR.
 - Open the PR with `Closes #<issue>` and stop there, without waiting for CI,
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that

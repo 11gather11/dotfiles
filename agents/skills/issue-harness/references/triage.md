@@ -2,6 +2,8 @@
 
 ## Questions and permission prompts
 
+Workers ask in plain text and stop; answer with a prompt.
+
 Answer a question yourself only when something already decides it: the issue,
 its parent spec, the ADRs, GLOSSARY.md, or a rule in the repository's CLAUDE.md
 for settling open questions (such as following a reference product). Otherwise
@@ -9,7 +11,7 @@ bring it to the user, with the options and your recommendation.
 
 Answer a permission prompt only within what the user's settings already allow.
 
-On the worker's screen:
+A permission prompt, or a dialog a worker opened anyway, is answered on its screen:
 
 - Pick an option with `herdr agent send-keys <name> <number>`, then read the
   screen again before the next key.
@@ -31,11 +33,18 @@ waits only for receipt. Without `--wait` a dropped prompt goes unnoticed, and th
 
 ## CI failures
 
-Decide whose failure it is from the failed log:
+The queue sends each failure to its worker first. You decide when the worker
+stops without pushing (`no-progress`), or when you land by hand. Decide whose
+failure it is from the failed log:
 
 - **Caused by the PR**: send the worker the failing job name and the lines that
   matter.
-- **Unrelated and intermittent** (code the PR does not touch, passed before):
+- **Load, not code**: a timeout on a busy runner (`Test timed out`, `Could not
+capture a stable screenshot`) that names no line of the PR. A real
+  difference fails the same way each run, such as the same number of pixels
+  off in a screenshot; a load failure moves between tests and runs.
+- **Unrelated and intermittent** (code the PR does not touch, passed before),
+  including load:
   `gh run rerun <run> --failed`, once. If no issue covers it yet
   (`gh issue list --search "<test name>"`), file one with the repository's
   triage label. Leave it for the user to schedule rather than starting a worker
@@ -44,3 +53,18 @@ Decide whose failure it is from the failed log:
   not keep stalling the issues behind it.
 - **Fails again, or fails the same way on main**: main is broken. Stop landing
   and bring it to the user.
+
+## Checks the base does not require
+
+`optional-failed` means every required check passed and only others failed.
+Read the failed job. If it never ran (hosted-runner minutes used up, no
+runner online) or fails the same way on main, it says nothing about the PR:
+let it land (`queue.nu allow-optional <pr>`, or `land.nu --allow-optional`
+by hand) and file the job's breakage as an issue if none
+covers it. If the PR caused it, send it back as for any failure.
+
+## After the base was merged in
+
+A PR whose base was merged in on GitHub (`updated`) can conflict in meaning
+where no line conflicts: a key added twice, a reference to something the base
+renamed. Only its next CI run catches that, so wait for it before landing.

@@ -27,6 +27,7 @@ let
     ../../../../agents/shared/delegate-work.md
     ../../../../agents/shared/git-staging.md
     ../../../../agents/shared/git-worktrees.md
+    ../../../../agents/shared/git-signing.md
     ../../../../agents/shared/nix.md
   ];
 

@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   helpers,
   ...
 }:
@@ -21,6 +22,21 @@ let
   # Aliases file path (copied to Nix store to preserve original formatting)
   # Nix's toGitINI quotes all values, which breaks some tools like 'bit'
   aliasesFile = ./aliases;
+
+  # The default key lives in 1Password's agent, so every signature waits for
+  # Touch ID. That is the point in repositories a person works in, and a dead
+  # stop in ones an agent commits to unattended — those sign with a
+  # passphrase-less key instead, under the same identity. Its copy is kept in
+  # 1Password as Personal/ai-signing-mac.
+  humanSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHp5tBXsTVMpQWj77wktrQFJeSN0GM4NHfpPNf8Pkw9Z";
+  aiSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICsQElwJ3Vl2sC1fztV6xexzd56IFcrxAxpC4JES3UA0";
+
+  # Without it `git log --show-signature` cannot tell a good signature from an
+  # unknown one. Both keys sign as the same person.
+  allowedSigners = pkgs.writeText "git-allowed-signers" ''
+    ${user.email} namespaces="git" ${humanSigningKey}
+    ${user.email} namespaces="git" ${aiSigningKey}
+  '';
 in
 {
   # Delta pager configuration (used by git)
@@ -34,21 +50,25 @@ in
     enable = true;
 
     signing = {
-      key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHp5tBXsTVMpQWj77wktrQFJeSN0GM4NHfpPNf8Pkw9Z";
+      key = humanSigningKey;
       signByDefault = true;
       format = "ssh";
     };
 
-    # macOS's own ssh-keygen, not the one in nixpkgs. The key lives in
-    # 1Password's agent, and after openssh went to 10.5 the Nix build stopped
-    # being able to talk to it — "communication with agent failed" on every
-    # commit, while /usr/bin/ssh-keygen signed the same data with the same key.
-    # home-manager otherwise points this at the openssh it installs.
-    settings.gpg.ssh.program = "/usr/bin/ssh-keygen";
-
     lfs.enable = true;
 
     settings = {
+      gpg.ssh = {
+        # macOS's own ssh-keygen, not the one in nixpkgs. The key lives in
+        # 1Password's agent, and after openssh went to 10.5 the Nix build
+        # stopped being able to talk to it — "communication with agent failed"
+        # on every commit, while /usr/bin/ssh-keygen signed the same data with
+        # the same key. home-manager otherwise points this at the openssh it
+        # installs.
+        program = "/usr/bin/ssh-keygen";
+        allowedSignersFile = "${allowedSigners}";
+      };
+
       user = {
         name = user.username;
         inherit (user) email;
@@ -166,11 +186,18 @@ in
     #
     # ~/ghq-work is the work root, sitting next to ~/ghq and named for what it
     # holds rather than nested two levels down as ~/work/ghq was.
+    #
+    # ~/.gitconfig.ai-signing names the repositories that sign with the AI key,
+    # one `includeIf "gitdir:<repo>/"` section each. It is untracked for the
+    # same reason as the work file: some of those repositories are private,
+    # and listing them here would publish their names. Included after the main
+    # settings, so its signingkey wins.
     includes = [
       {
         condition = "gitdir:~/ghq-work/";
         path = "~/.gitconfig.work";
       }
+      { path = "~/.gitconfig.ai-signing"; }
       { path = "${aliasesFile}"; }
     ];
 

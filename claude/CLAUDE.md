@@ -21,4 +21,6 @@ Personal preferences that apply to all projects.
 
 @~/.config/claude/shared/git-worktrees.md
 
+@~/.config/claude/shared/git-signing.md
+
 @~/.config/claude/shared/nix.md

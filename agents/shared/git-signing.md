@@ -9,7 +9,10 @@ through 1Password. The setup is explained in
 `~/ghq/github.com/11gather11/dotfiles/nix/modules/home/programs/git/default.nix`.
 
 - When signing hangs or fails, run `git config --show-origin user.signingkey`
-  to see which key was chosen and where from, before changing anything
+  to see which key was chosen and where from, before changing anything. If the
+  AI key is the one chosen and still reaches 1Password, it is listed in
+  `ssh-add -l`: ssh-keygen prefers the agent's copy of a key, and the key must
+  not be served there. Tell the user rather than unsetting `SSH_AUTH_SOCK`
 - Never set `commit.gpgsign` or `user.signingkey` in a repository's
   `.git/config` to get past it. That is the scattered per-repository setup this
   replaced, and an unsigned commit is not an acceptable result

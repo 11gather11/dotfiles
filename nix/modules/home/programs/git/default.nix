@@ -27,9 +27,12 @@ let
   # Touch ID. That is the point in repositories a person works in, and a dead
   # stop in ones an agent commits to unattended — those sign with a
   # passphrase-less key instead, under the same identity. Its copy is kept in
-  # 1Password as Personal/ai-signing-mac.
+  # 1Password as Agent Keys/ai-signing-mac. That vault is deliberately absent
+  # from the SSH agent's agent.toml: ssh-keygen signs through the agent
+  # whenever the agent holds the key it was given, so serving it there sent
+  # every agent's signature back through 1Password.
   humanSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHp5tBXsTVMpQWj77wktrQFJeSN0GM4NHfpPNf8Pkw9Z";
-  aiSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICsQElwJ3Vl2sC1fztV6xexzd56IFcrxAxpC4JES3UA0";
+  aiSigningKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFuEw9UUnJQ0EVrAQ25WpRrKg5W6CZtGyxLn05R5ouYI";
 
   # Without it `git log --show-signature` cannot tell a good signature from an
   # unknown one. Both keys sign as the same person.

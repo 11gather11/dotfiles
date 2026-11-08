@@ -38,6 +38,21 @@ directory name). Repository rules belong in the repository's CLAUDE.md.
 
 queue.nu keeps its own state beside them (`queue.json`, `queue-state.json`).
 
+## 0. Set up
+
+Once per repository, and again after its rules or CI change:
+
+```bash
+nix shell nixpkgs#nushell --command <skill-dir>/scripts/setup.nu
+```
+
+It checks what the scripts take for granted (herdr, required checks, squash
+merges, no approval needed to merge, the agent signing key, the repository's
+CLAUDE.md) and suggests the markers that fit. It changes nothing: bring each
+`next` that is the user's call (signing, rulesets, a marker) to them.
+
+Done when it returns `ok`.
+
 ## 1. Start
 
 ```bash

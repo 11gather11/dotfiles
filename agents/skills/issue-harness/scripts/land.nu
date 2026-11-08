@@ -3,7 +3,7 @@
 # date, merges, pulls and removes the worker's worktree. Stops with a classified
 # result wherever the harness has to decide. Prints one JSON record.
 
-use harness.nu [setting-on]
+use harness.nu [setting-on required-checks]
 
 const gh_tries = 3
 const gh_delay = 5sec
@@ -183,29 +183,6 @@ def effective-checks [checks: table]: nothing -> table {
         if ($ran | is-empty) { $g.items } else { $ran }
     }
     | flatten
-}
-
-# The check names the base branch requires, from its rulesets and its classic
-# protection together; empty when neither can be read or neither requires any.
-# `gh pr checks --required` cannot stand in: it lists only required checks
-# that already exist on the head, and a job that `needs` others is created
-# late, so it would report "none required" exactly while one is outstanding.
-def required-checks [base: string]: nothing -> list<string> {
-    let rules = ^gh api $"repos/{owner}/{repo}/rules/branches/($base)" | complete
-    let from_rules = if $rules.exit_code == 0 {
-        $rules.stdout
-        | from json
-        | where type == "required_status_checks"
-        | get -o parameters.required_status_checks
-        | flatten
-        | get -o context
-        | default []
-    } else { [] }
-    let branch = ^gh api $"repos/{owner}/{repo}/branches/($base)" | complete
-    let from_protection = if $branch.exit_code == 0 {
-        $branch.stdout | from json | get -o protection.required_status_checks.contexts | default []
-    } else { [] }
-    $from_rules | append $from_protection | uniq
 }
 
 # Sums up a head's checks: `none`, `pending`, `failed`, `optional-failed` or

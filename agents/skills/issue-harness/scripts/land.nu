@@ -10,7 +10,10 @@ const gh_delay = 5sec
 const poll_tries = 6
 const poll_delay = 10sec
 const pr_fields = "number,state,isDraft,isCrossRepository,mergeable,headRefOid,headRefName,baseRefName,url"
-const check_fields = "name,state,bucket,workflow,link,completedAt"
+# How long after leaving draft a PR may go without its full CI before land.nu
+# suspects the workflow does not run on `ready_for_review`.
+const ready_grace = 10min
+const check_fields = "name,state,bucket,workflow,link,startedAt,completedAt"
 
 # Error code that marks "GitHub or the remote could not be read", as opposed to
 # a bug or a bad argument
@@ -122,6 +125,34 @@ def read-pr [pr: string, --tries: int = 6]: nothing -> record {
     }
     sleep $poll_delay
     read-pr $pr --tries ($tries - 1)
+}
+
+# When the PR last left draft, or null when it never was one.
+def ready-at [pr: int]: nothing -> any {
+    let q = 'query($owner: String!, $repo: String!, $n: Int!) { repository(owner: $owner, name: $repo) { pullRequest(number: $n) { timelineItems(itemTypes: [READY_FOR_REVIEW_EVENT], last: 1) { nodes { ... on ReadyForReviewEvent { createdAt } } } } } }'
+    let v = (gh-read
+        "read when the PR left draft"
+        [api graphql -F "owner={owner}" -F "repo={repo}" -F $"n=($pr)" -f $"query=($q)"]
+        {|r| gh-ok-json $r }
+    )
+    $v | get -o data.repository.pullRequest.timelineItems.nodes.0.createdAt | if $in == null { null } else { into datetime }
+}
+
+# The head's checks that count. Under `draft-prs` the repository runs light
+# jobs on drafts and skips the rest, and a skipped required check reads as
+# passed; until the full run is created, that draft run is all the head has.
+# So there only checks started after the PR last left draft count. Elsewhere a
+# PR readied after its full CI ran gets no new run, and all of its checks count.
+def head-checks [
+    pr: string
+    n: int
+    base: string
+    draft_prs: bool
+]: nothing -> record {
+    let ready = if $draft_prs { ready-at $n }
+    let checks = read-checks $pr
+    | where {|c| $ready == null or $c.startedAt? == null or ($c.startedAt | into datetime) >= $ready }
+    classify-checks $checks (required-checks $base) | insert ready_at $ready
 }
 
 # Reads the checks on the PR's current head.
@@ -366,12 +397,13 @@ def land [
     # merge or worktree removal, and before the draft check: its PRs stay
     # drafts until a person reviews them
     if (setting-on $repo no-land) {
-        let ci = classify-checks (read-checks $pr_arg) (required-checks $base)
+        let ci = head-checks $pr_arg $n $base (setting-on $repo draft-prs)
+        let draft = if $pr.isDraft { " on the draft's jobs; the full CI runs once it is ready" } else { "" }
         return (
             do
                 $say
                 manual-land
-                $"($pr.url) is merged by hand in this repository; CI ($ci.status)"
+                $"($pr.url) is merged by hand in this repository; CI ($ci.status)($draft)"
                 "merging is the user's: if CI failed, triage it as for ci-failed; if pending or none, wait on CI and run land.nu again; once it passed, report the PR URL and CI result to the user"
             | insert ci $ci
         )
@@ -395,7 +427,11 @@ def land [
                 $say
                 draft
                 $"($pr.url) is a draft"
-                "wait for the worker to mark it ready, then land.nu again"
+                (if (setting-on $repo draft-prs) {
+                    $"workers open drafts here: `queue.nu add ($n)` marks it ready, or by hand `gh pr ready ($n)`, then land.nu again"
+                } else {
+                    "wait for the worker to mark it ready, then land.nu again"
+                })
             )
         )
     }
@@ -424,14 +460,19 @@ def land [
 
     # Read only once the PR got this far: the queue asks land.nu about every
     # PR it holds, and a draft or a conflict needs no required checks
-    let checks = classify-checks (read-checks $pr_arg) (required-checks $base)
+    let checks = head-checks $pr_arg $n $base (setting-on $repo draft-prs)
+    # A workflow that does not run on `ready_for_review` leaves a readied PR
+    # with nothing new, which looks the same as CI that has not started yet
+    let not_started = if $checks.ready_at != null and ((date now) - $checks.ready_at) > $ready_grace {
+        $"; nothing required started in the ($ready_grace) since it left draft: check that the workflow runs on `ready_for_review`"
+    } else { "" }
     match $checks.status {
         "none" => {
             return (
                 (do
                     $say
                     no-checks
-                    "no checks are registered on the head yet"
+                    $"no checks are registered on the head yet($not_started)"
                     $"wait ~30 s and run land.nu again, or `gh pr checks ($n) --watch --fail-fast`"
                 )
             )
@@ -442,7 +483,7 @@ def land [
                 (do
                     $say
                     pending
-                    $"checks are still running($missing)"
+                    $"checks are still running($missing)(if ($checks.missing | is-empty) { '' } else { $not_started })"
                     $"`gh pr checks ($n) --watch --fail-fast` in the background, then land.nu again"
                 )
             )

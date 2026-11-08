@@ -47,9 +47,21 @@ def main [
 }
 
 # Queue PRs after the harness has read them: no spec decision left open, and
-# deferred work filed as issues.
+# deferred work filed as issues. Under `draft-prs` workers open drafts, on
+# which the repository runs only light jobs; queuing a PR is approving it, so
+# this marks it ready and its full CI starts.
 def "main add" [...prs: int] {
     let repo = main-checkout
+    if (setting-on $repo draft-prs) {
+        for n in $prs {
+            let v = ^gh pr view $n --json isDraft | complete
+            if $v.exit_code != 0 { error make {msg: $"gh pr view ($n): ($v.stderr | str trim)"} }
+            if ($v.stdout | from json).isDraft {
+                let r = ^gh pr ready $n | complete
+                if $r.exit_code != 0 { error make {msg: $"gh pr ready ($n): ($r.stderr | str trim)"} }
+            }
+        }
+    }
     let st = load-state $repo
     let q = load-queue $repo
     save-queue $repo ($q | update prs { append $prs | uniq | where $it not-in $st.dropped })

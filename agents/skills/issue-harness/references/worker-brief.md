@@ -24,6 +24,16 @@ Other workers run in sibling worktrees at the same time:
   the check failed. Run the same command again.
 - Stop any server you start before you finish.
 
+CI runners are shared by every worker and may cost money, so push less:
+
+- Before each push, run the repository's lint and type check locally (the
+  commands its CLAUDE.md or task runner names); CI is not where to find them.
+- Push at milestones, such as a finished step with its tests passing or the
+  PR, not after each small fix: every push runs every job, and a push during
+  a run cancels it.
+- Push only this branch. Do not push a throwaway branch, or push just to show a
+  failing test in CI; show red with the local test output.
+
 The harness may merge main into your branch on GitHub, so:
 
 - Run `git pull --no-rebase` before every push.

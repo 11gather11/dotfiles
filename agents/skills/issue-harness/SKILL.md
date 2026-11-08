@@ -28,12 +28,13 @@ the background.
 Machine-local, in `~/.local/state/harness/` (`<repo>` is the checkout's
 directory name). Repository rules belong in the repository's CLAUDE.md.
 
-| File                 | Default | Effect                                                                                                                 |
-| -------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `max-workers`        | 4       | Workers running on this machine.                                                                                       |
-| `<repo>/max-workers` | machine | Workers running in this repository.                                                                                    |
-| `<repo>/brief.md`    | none    | Appended to the worker brief, for what the repository cannot publish (local data paths). Coming last, it can override. |
-| `<repo>/no-land`     | absent  | A person merges: land.nu reports the CI verdict instead of merging, and queue.nu does not run.                         |
+| File                 | Default | Effect                                                                                                                                                                                                               |
+| -------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `max-workers`        | 4       | Workers running on this machine.                                                                                                                                                                                     |
+| `<repo>/max-workers` | machine | Workers running in this repository.                                                                                                                                                                                  |
+| `<repo>/brief.md`    | none    | Appended to the worker brief, for what the repository cannot publish (local data paths). Coming last, it can override.                                                                                               |
+| `<repo>/no-land`     | absent  | A person merges: land.nu reports the CI verdict instead of merging, and queue.nu does not run.                                                                                                                       |
+| `<repo>/draft-prs`   | absent  | Workers open drafts, on which the repository runs light jobs only. `queue.nu add` marks a PR ready, and land.nu counts only checks started after that. Place it once the repository's CI runs on `ready_for_review`. |
 
 queue.nu keeps its own state beside them (`queue.json`, `queue-state.json`).
 

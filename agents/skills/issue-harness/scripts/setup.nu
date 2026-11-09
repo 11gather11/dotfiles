@@ -1,16 +1,20 @@
 #!/usr/bin/env nu
-# Checks what the harness takes for granted in a repository before its first
-# batch, and which settings fit it. Changes nothing: the settings are markers
+# Checks what the harness takes for granted in a repository, which settings
+# fit it, and which migrations (references/migrations.md) it has not done yet.
+# Changes nothing but its own record of migrations: the settings are markers
 # the user places, and the repository's rules are theirs.
 
 use harness.nu [state-dir setting-on main-checkout required-checks]
 
+const migrations_file = path self ../references/migrations.md
+
 # Check the repository of the current directory.
 #
-# Prints one JSON line last: `{result, repo, checks, settings}`. `result` is
-# `ok` or `needs-attention`; each check is `{name, ok, detail}`, or
-# `{name, ok, next}` when it fails, and
-# `settings` lists the markers in `~/.local/state/harness/<repo>/` that fit.
+# Prints one JSON line last: `{result, repo, checks, settings, migrations}`.
+# `result` is `ok` or `needs-attention`; each check is `{name, ok, detail}`,
+# or `{name, ok, next}` when it fails; `settings` lists the markers in
+# `~/.local/state/harness/<repo>/` that fit; `migrations` the steps this
+# repository has not caught up on, each `{id, title, steps}`.
 # Exit status: 0 ok; 2 something needs attention; 1 error.
 #
 # @example
@@ -25,9 +29,32 @@ def main [] {
     })
 }
 
+# Record migration `id` as done in this repository.
+#
+# @example
+# setup.nu migrated 2026-11-09-drop-draft-prs
+def "main migrated" [id: string] {
+    let repo = main-checkout
+    if $id not-in (all-migrations | get id) {
+        {
+            result: error
+            detail: $"no migration ($id) in references/migrations.md"
+        } | to json --raw | print
+        exit 1
+    }
+    let done = done-migrations $repo | append $id | uniq
+    save-done $repo $done
+    {
+        result: ok
+        migrated: $id
+        pending: (all-migrations | where id not-in $done | get id)
+    } | to json --raw | print
+}
+
 def check-all []: nothing -> record {
     let repo = main-checkout
     cd $repo
+    let pending = pending-migrations $repo
     let gh = ^gh repo view --json nameWithOwner,defaultBranchRef,squashMergeAllowed | complete
     if $gh.exit_code != 0 {
         error make {msg: $"gh repo view: ($gh.stderr | str trim); log in with `gh auth login` and run it from a GitHub checkout"}
@@ -35,9 +62,7 @@ def check-all []: nothing -> record {
     let info = $gh.stdout | from json
     let base = $info.defaultBranchRef.name
     let approvals = required-approvals $base
-    let draft_trigger = workflows-run-on-ready $repo
     let no_land = setting-on $repo no-land
-    let draft_prs = setting-on $repo draft-prs
 
     let checks = [
         (
@@ -73,11 +98,6 @@ def check-all []: nothing -> record {
             "the repository has its own instructions"
             "write the repository's CLAUDE.md: the checks to pass before a PR and the PR format; the worker brief defers to it"
         )
-        (
-            check "draft-prs trigger" (not $draft_prs or $draft_trigger)
-            (if $draft_prs { "draft-prs is set and a workflow runs on ready_for_review" } else { "draft-prs is not set" })
-            "draft-prs is set but no workflow runs on `ready_for_review`: a readied PR gets no full CI and the queue waits forever. Add the trigger, or remove the marker"
-        )
     ]
 
     let state = state-dir $repo
@@ -85,17 +105,20 @@ def check-all []: nothing -> record {
         (if $approvals > 0 and not $no_land {
             {marker: no-land, why: "merging needs an approval the harness cannot give", place: $"touch ($state)/no-land"}
         })
-        (if $draft_trigger and not $draft_prs {
-            {marker: draft-prs, why: "a workflow runs on ready_for_review; if drafts run light jobs only, workers can open drafts", place: $"touch ($state)/draft-prs"}
-        })
     ] | compact
 
+    let checks = $checks | append (
+        check "migrations" ($pending | is-empty)
+        "nothing to catch up on"
+        "carry out each entry of `migrations`, then record it with `setup.nu migrated <id>`"
+    )
     let failing = $checks | where not ok
     {
         result: (if ($failing | is-empty) { "ok" } else { "needs-attention" })
         repo: $info.nameWithOwner
         checks: $checks
         settings: $settings
+        migrations: $pending
         next: (
             if ($failing | is-empty) { "start workers with spawn.nu" } else { "settle each check that is not ok, then run setup.nu again" }
         )
@@ -131,15 +154,51 @@ def required-approvals [base: string]: nothing -> int {
     $from_rules | append $from_classic | append 0 | math max
 }
 
-# Whether any workflow lists `ready_for_review` among its triggers.
-def workflows-run-on-ready [repo: string]: nothing -> bool {
-    let dir = $repo | path join .github workflows
-    if not ($dir | path exists) { return false }
-    glob $"($dir)/*.{yml,yaml}" | any {|f| open --raw $f | str contains "ready_for_review" }
-}
-
 # Whether commits in `repo` pick the agent signing key, which needs no Touch ID.
 def signs-for-agents [repo: string]: nothing -> bool {
     let r = ^git -C $repo config --show-origin user.signingkey | complete
     $r.exit_code == 0 and ($r.stdout | str contains "ai-signing")
+}
+
+# Every migration in references/migrations.md, oldest first: a `## <id> <title>`
+# heading and the steps under it.
+def all-migrations []: nothing -> table {
+    open --raw $migrations_file
+    | split row "\n## "
+    | skip 1
+    | each {|sec|
+        let lines = $sec | lines
+        let head = $lines | first | parse --regex '^(?<id>\S+)\s+(?<title>.+)$' | first
+        {id: $head.id, title: $head.title, steps: ($lines | skip 1 | str join "\n" | str trim)}
+    }
+}
+
+def migrated-file [repo: string]: nothing -> string {
+    state-dir $repo | path join migrated
+}
+
+def done-migrations [repo: string]: nothing -> list<string> {
+    let f = migrated-file $repo
+    if ($f | path exists) {
+        open --raw $f | lines | where $it != ""
+    } else { [] }
+}
+
+def save-done [repo: string, ids: list<string>] {
+    mkdir (state-dir $repo)
+    $ids | str join "\n" | save --force (migrated-file $repo)
+}
+
+# The migrations `repo` has not done. A repository the harness has never run
+# in has nothing to catch up on, so its record starts with every migration.
+def pending-migrations [repo: string]: nothing -> table {
+    let all = all-migrations
+    let dir = state-dir $repo
+    let used = ($dir | path exists) and (ls $dir | where name !~ '/migrated$' | is-not-empty)
+    if not (migrated-file $repo | path exists) and not $used {
+        save-done $repo ($all | get id)
+        return []
+    }
+    let done = done-migrations $repo
+    $all | where id not-in $done
 }

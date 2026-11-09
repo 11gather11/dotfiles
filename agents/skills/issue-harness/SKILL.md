@@ -28,19 +28,18 @@ the background.
 Machine-local, in `~/.local/state/harness/` (`<repo>` is the checkout's
 directory name). Repository rules belong in the repository's CLAUDE.md.
 
-| File                 | Default | Effect                                                                                                                                                                                                               |
-| -------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `max-workers`        | 4       | Workers running on this machine.                                                                                                                                                                                     |
-| `<repo>/max-workers` | machine | Workers running in this repository.                                                                                                                                                                                  |
-| `<repo>/brief.md`    | none    | Appended to the worker brief, for what the repository cannot publish (local data paths). Coming last, it can override.                                                                                               |
-| `<repo>/no-land`     | absent  | A person merges: land.nu reports the CI verdict instead of merging, and queue.nu does not run.                                                                                                                       |
-| `<repo>/draft-prs`   | absent  | Workers open drafts, on which the repository runs light jobs only. `queue.nu add` marks a PR ready, and land.nu counts only checks started after that. Place it once the repository's CI runs on `ready_for_review`. |
+| File                 | Default | Effect                                                                                                                 |
+| -------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `max-workers`        | 4       | Workers running on this machine.                                                                                       |
+| `<repo>/max-workers` | machine | Workers running in this repository.                                                                                    |
+| `<repo>/brief.md`    | none    | Appended to the worker brief, for what the repository cannot publish (local data paths). Coming last, it can override. |
+| `<repo>/no-land`     | absent  | A person merges: land.nu reports the CI verdict instead of merging, and queue.nu does not run.                         |
 
 queue.nu keeps its own state beside them (`queue.json`, `queue-state.json`).
 
 ## 0. Set up
 
-Once per repository, and again after its rules or CI change:
+At the start of every batch:
 
 ```bash
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/setup.nu
@@ -49,7 +48,9 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/setup.nu
 It checks what the scripts take for granted (herdr, required checks, squash
 merges, no approval needed to merge, the agent signing key, the repository's
 CLAUDE.md) and suggests the markers that fit. It changes nothing: bring each
-`next` that is the user's call (signing, rulesets, a marker) to them.
+`next` that is the user's call (signing, rulesets, a marker) to them. It also
+lists `migrations`, changes to this skill the repository has not caught up
+on: carry out each one's steps, then record it with `setup.nu migrated <id>`.
 
 Done when it returns `ok`.
 

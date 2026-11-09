@@ -4,9 +4,6 @@
 # Prints one JSON line describing the worker, or why it could not start.
 
 const worker_brief = path self ../references/worker-brief.md
-# Under `draft-prs` the repository runs only light jobs on drafts; the harness
-# marks a PR ready when it queues it.
-const draft_note = "Open the PR as a draft (`gh pr create --draft`), and leave it a draft: the harness marks it ready when it queues it, which starts the full CI."
 
 # The caller runs this under a 600 s Bash timeout, and a killed script prints
 # nothing at all, so every wait below is bounded and the bounds add up to
@@ -241,9 +238,6 @@ def context [name: string]: nothing -> record {
     let brief = $state | path join $"($name).brief.md"
     [
         (open --raw $worker_brief)
-        (
-            if ($state | path join draft-prs | path exists) { $draft_note } else { "" }
-        )
         (if ($local_brief | path exists) { open --raw $local_brief } else { "" })
     ]
     | str join "\n\n"

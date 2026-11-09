@@ -28,9 +28,9 @@ CI runners are shared by every worker and may cost money, so push less:
 
 - Before each push, run the repository's lint and type check locally (the
   commands its CLAUDE.md or task runner names); CI is not where to find them.
-- Push at milestones, such as a finished step with its tests passing or the
-  PR, not after each small fix: every push runs every job, and a push during
-  a run cancels it.
+- Do not push while you work. Push once, when the PR is ready to open, and
+  after that only the fixes the harness sends you: every push runs every job,
+  and a push during a run cancels it.
 - Push only this branch. Do not push a throwaway branch, or push just to show a
   failing test in CI; show red with the local test output.
 

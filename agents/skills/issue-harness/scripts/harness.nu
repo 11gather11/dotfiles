@@ -122,3 +122,41 @@ export def required-checks [base: string]: nothing -> list<string> {
     } else { [] }
     $from_rules | append $from_protection | uniq
 }
+
+# Runs the repository's integration check, the command in
+# `~/.local/state/harness/<repo>/check`, in `dir` under the machine-wide heavy
+# lock that workers' whole-machine checks also take, so two never load the
+# machine at once. Output goes to `logs/<label>.log` in the state directory.
+#
+# Returns `{ok, detail, log}`; a lock wait that ran out is not ok either, and
+# says so.
+export def heavy-check [repo: string, dir: string, label: string]: nothing -> record {
+    let cmd_file = state-dir $repo | path join check
+    if not ($cmd_file | path exists) {
+        error make {msg: $"no integration check: write the command to run before a merge into ($cmd_file), e.g. `just check`"}
+    }
+    let cmd = open --raw $cmd_file | str trim
+    let logs = state-dir $repo | path join logs
+    mkdir $logs
+    let log = $logs | path join $"($label).log"
+    let lock = state-dir $repo | path dirname | path join heavy.lock
+    let locker = if (which lockf | is-not-empty) { [lockf -k -t 300 $lock] } else { [flock -w 300 $lock] }
+    let r = do {
+        cd $dir
+        ^($locker | first) ...($locker | skip 1) sh -c $cmd
+    } | complete
+    $"$ ($cmd)\n($r.stdout)\n($r.stderr)" | save --force $log
+    match $r.exit_code {
+        0 => {
+            ok: true
+            detail: $"($cmd) passed"
+            log: $log
+        }
+        75 => {ok: false, detail: "the heavy lock stayed taken for 5 minutes; run it again", log: $log}
+        $c => {
+            ok: false
+            detail: $"($cmd) failed \(exit ($c)\): ($r.stdout | lines | last 15 | str join '\n')"
+            log: $log
+        }
+    }
+}

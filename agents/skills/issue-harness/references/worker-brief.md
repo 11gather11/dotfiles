@@ -47,6 +47,12 @@ When you finish:
   this issue: whatever this PR needs to be right, such as pulling in files CI
   generated for it, is yours to finish. You cannot write issues or issue
   comments; the harness files them before it lands the PR.
+- Before you open the PR, have Codex review the branch against the
+  repository's standards and the issue:
+  `nix shell nixpkgs#nushell --command <skill-dir>/scripts/review.nu <issue>`,
+  in the background (it takes minutes). Fix what is this PR's to fix. Then run
+  `codex-review-run --base <base branch>`: `gh pr create` refuses a commit it
+  has not covered, so run it last, after your final commit.
 - Open the PR with `Closes #<issue>` and stop there, without waiting for CI,
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that

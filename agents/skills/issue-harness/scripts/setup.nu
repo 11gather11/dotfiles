@@ -105,6 +105,12 @@ def check-all []: nothing -> record {
         (if $approvals > 0 and not $no_land {
             {marker: no-land, why: "merging needs an approval the harness cannot give", place: $"touch ($state)/no-land"}
         })
+        (if not ($state | path join check | path exists) {
+            {marker: check, why: "a spec's tickets merge into its integration branch only after this command passes (references/spec.md); write what can run on this machine", place: $"echo 'just check' > ($state)/check"}
+        })
+        (if not ($repo | path join docs agents issue-tracker.md | path exists) {
+            {marker: null, why: "/to-tickets and the review read the repository's tracker setup", place: "run /mattpocock-skills:setup-matt-pocock-skills before working a spec"}
+        })
     ] | compact
 
     let checks = $checks | append (

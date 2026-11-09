@@ -4,6 +4,7 @@
 # Prints one JSON line describing the worker, or why it could not start.
 
 const worker_brief = path self ../references/worker-brief.md
+const skill_dir = path self ..
 
 # The caller runs this under a 600 s Bash timeout, and a killed script prints
 # nothing at all, so every wait below is bounded and the bounds add up to
@@ -53,9 +54,10 @@ def main [
     prompt: string # first prompt, usually one line naming the issue
     --force # start even when the capacity limits say to wait
     --base: string # branch to cut a new branch from, at its latest on origin; the default branch when omitted
+    --spec: int # a ticket of this spec: cut from its local integration branch, and brief the worker not to push
 ]: nothing -> nothing {
     let outcome = try {
-        spawn $name $branch $prompt $force $base
+        spawn $name $branch $prompt $force $base $spec
     } catch {|e| {
         exit: 1
         out: {
@@ -77,8 +79,9 @@ def spawn [
     prompt: string
     force: bool
     base: oneof<string, nothing>
+    spec: oneof<int, nothing>
 ]: nothing -> record {
-    let ctx = step setup { context $name }
+    let ctx = step setup { context $name $spec }
 
     let existing = step worktree { worktree-of $ctx.repo $branch }
     step name { check-name $name $existing }
@@ -104,7 +107,13 @@ def spawn [
         ] | ignore
     }
     let path = step worktree {
-        $existing | default { create-worktree $ctx.repo $branch $base }
+        $existing | default {
+            if $ctx.spec_branch != null {
+                create-worktree $ctx.repo $branch $ctx.spec_branch --local
+            } else {
+                create-worktree $ctx.repo $branch $base
+            }
+        }
     }
     let ws = step workspace { workspace-for $path $branch ($existing != null) }
     let pane = step workspace {
@@ -225,7 +234,7 @@ def ms [d: duration]: nothing -> string {
 
 # Resolves the main checkout and the per-repo state directory, and writes the
 # brief this worker's Claude is started with.
-def context [name: string]: nothing -> record {
+def context [name: string, spec: oneof<int, nothing>]: nothing -> record {
     # The main checkout, even when called from a linked worktree
     let repo = external [git rev-parse --path-format=absolute --git-common-dir] | str trim | path dirname
     let root = $env.XDG_STATE_HOME? | default ($env.HOME | path join .local/state) | path join harness
@@ -236,10 +245,17 @@ def context [name: string]: nothing -> record {
     # repository cannot publish (local data paths, private hosts)
     let local_brief = $state | path join brief.md
     let brief = $state | path join $"($name).brief.md"
+    let spec_branch = if $spec != null {
+        let f = $state | path join $"spec-($spec).json"
+        if not ($f | path exists) { error make {msg: $"spec #($spec) was not started: run spec.nu start ($spec)"} }
+        (open $f).branch
+    }
     [
-        (open --raw $worker_brief)
+        (open --raw $worker_brief | str replace --all "<skill-dir>" $skill_dir)
+        (if $spec_branch != null { spec-note $spec $spec_branch } else { "" })
         (if ($local_brief | path exists) { open --raw $local_brief } else { "" })
     ]
+    | where $it != ""
     | str join "\n\n"
     | save --force $brief
 
@@ -248,7 +264,28 @@ def context [name: string]: nothing -> record {
         root: $root
         state: $state
         brief: $brief
+        spec_branch: $spec_branch
     }
+}
+
+# What changes for a worker on one ticket of a spec. It comes after the shared
+# brief and overrides its push, PR and review steps: the harness merges the
+# ticket into the integration branch, and the spec reaches the base as one PR.
+def spec-note [spec: int, branch: string]: nothing -> string {
+    $"## One ticket of spec #($spec)
+
+Your branch was cut from `($branch)`, the local integration branch of spec
+#($spec); it is not on GitHub. This overrides the shared steps on pushing, the
+PR and the review:
+
+- Do not push, open a PR, or run review.nu or codex-review-run. Nothing of
+  this branch goes to GitHub; the harness reviews the whole spec at the end.
+- Merge the local branch `($branch)` \(not origin\) when the harness asks,
+  and before you finish.
+- When you finish: commit everything, make the last commit's message carry a
+  `Decisions:` and a `Deferred:` section \(the harness copies them into the
+  spec's PR\), and end your turn with one line: `DONE`, or what you are stuck
+  on."
 }
 
 # The checkout path of `branch`'s worktree, or null when it has none.
@@ -346,7 +383,12 @@ def memory-pressure []: nothing -> oneof<int, nothing> {
 # Makes the worktree for `branch` and returns its path. The branch can
 # outlive its worktree, and `--create` refuses an existing branch.
 # `base` applies only to a new branch, so a rerun reuses what the first run cut.
-def create-worktree [repo: string, branch: string, base: oneof<string, nothing>]: nothing -> string {
+def create-worktree [
+    repo: string
+    branch: string
+    base: oneof<string, nothing>
+    --local # base is a local branch: a spec's integration branch, never pushed
+]: nothing -> string {
     let has_branch = (^git -C $repo show-ref --verify --quiet $"refs/heads/($branch)" | complete).exit_code == 0
     if $has_branch {
         external [
@@ -355,6 +397,18 @@ def create-worktree [repo: string, branch: string, base: oneof<string, nothing>]
             $repo
             switch
             $branch
+            --no-cd
+        ] | ignore
+    } else if $local {
+        external [
+            wt
+            -C
+            $repo
+            switch
+            --create
+            $branch
+            --base
+            $base
             --no-cd
         ] | ignore
     } else if $base == null {

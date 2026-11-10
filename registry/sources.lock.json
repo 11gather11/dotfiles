@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-xppokNfDsGM33r2n66H+KLlRVfd1nKTGuhccpGqOC3Y=",
+				"hash": "sha256-CS0+visLp4S49ljH/zZTkyPdqtzRAtfuvZZJeS3HqZo=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "edc992b1a3ded1433558c8931d5d5f484ae89846",
+				"revision": "f423bb090ccdcadd0de587dd77eed3430d93a306",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/edc992b1a3ded1433558c8931d5d5f484ae89846.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/f423bb090ccdcadd0de587dd77eed3430d93a306.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -145,16 +145,16 @@
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-7Ve/k9sXKzeWDleR73+JWxjKti8vOMYNB3kwJRDh7go=",
+				"hash": "sha256-m/2XzXQ6/gGzeWrdFsnUy7OjHAvKb+a0Q4NjZ868Bdc=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "6eb6c781aa9b6438e0c7307bd102788a75fe1a6d",
+				"revision": "cbf893b954222276bf1af57e5f23379231e0efb9",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/6eb6c781aa9b6438e0c7307bd102788a75fe1a6d.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/cbf893b954222276bf1af57e5f23379231e0efb9.tar.gz"
 			},
 			"gh-stack": {
 				"branch": "main",
@@ -184,16 +184,16 @@
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-TDuZ1v+taPdqyvvCs1VHUjtpSy8zHxhQKJv/kIPTpK8=",
+				"hash": "sha256-DoRP9+wI2pjlU3BmNPC90ei7v6qBP9vbpmCq5pHCrCk=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "6b0300214a09fd6029cfb7077043125758cd1fd2",
+				"revision": "de8ee15dd1194627d21eb5fcd41cb1873208dabb",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/6b0300214a09fd6029cfb7077043125758cd1fd2.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/de8ee15dd1194627d21eb5fcd41cb1873208dabb.tar.gz"
 			}
 		},
 		"version": 8

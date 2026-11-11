@@ -176,19 +176,4 @@ in
 
     file."${codexHomeDir}/AGENTS.md".text = agentsMdText;
   };
-
-  # GUI-launched processes do not read the shell profile, so publish
-  # CODEX_HOME to the launchd session at login.
-  launchd.agents.codex-home = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        "/bin/launchctl"
-        "setenv"
-        "CODEX_HOME"
-        codexHomeDir
-      ];
-      RunAtLoad = true;
-    };
-  };
 }

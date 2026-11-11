@@ -74,7 +74,9 @@ in
 
     # Only restore if lock file has been updated
     if [[ ! -f "$LAZY_LOCK_TIMESTAMP" ]] || [[ "$LAZY_LOCK" -nt "$LAZY_LOCK_TIMESTAMP" ]]; then
-      ${lib.getExe pkgs.bash} \
+      # Activation's PATH has no git. Without it Lazy.nvim can neither fetch
+      # nor check out, yet still writes the lock from the current checkouts.
+      PATH="${lib.makeBinPath [ pkgs.git ]}:$PATH" ${lib.getExe pkgs.bash} \
         ${./check.sh} \
         "${nvimDotfilesDir}" \
         "$LAZY_DIR" \

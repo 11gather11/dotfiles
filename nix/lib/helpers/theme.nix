@@ -19,6 +19,7 @@
 #   vivid     `vivid generate catppuccin-mocha` in fish/config.fish
 #   Neovim    nvim/lua/plugins/colorscheme.lua
 #   starship  the catppuccin-powerline preset, in programs/starship.nix
+#   herdr-app herdr-app/themes/catppuccin-mocha.json, Ghostty's palette
 _: {
   # Ghostty's bundled theme, by display name.
   ghostty = "Catppuccin Mocha";

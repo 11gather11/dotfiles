@@ -26,6 +26,16 @@ export XDG_CONFIG_HOME="$(dirname "$NVIM_DOTFILES_DIR")"
 
 echo "📦 Running Lazy! $ACTION..."
 
+# Lazy.nvim ends every run by writing lazy-lock.json from whatever is checked
+# out, and a restore whose fetch failed still exits cleanly. The lock is then
+# rewritten with the old revisions, undoing the update that was just pulled.
+# A restore must never change the lock, so keep a copy to put back.
+if [[ $ACTION == restore ]]; then
+  LOCK_BEFORE="$(mktemp)"
+  trap 'rm -f "$LOCK_BEFORE"' EXIT
+  cp "$LAZY_LOCK" "$LOCK_BEFORE"
+fi
+
 "$NVIM_BIN" --headless "+Lazy! $ACTION" +qa
 
 # `--headless` reports a failed startup command on stderr and still exits 0, so
@@ -37,6 +47,14 @@ echo "📦 Running Lazy! $ACTION..."
 "$NVIM_BIN" --headless \
   -c 'lua local ok, lazy = pcall(require, "lazy"); if not ok or #lazy.plugins() == 0 then vim.cmd("cq") end' \
   -c 'qa'
+
+# Leave the timestamp untouched, so the lock stays newer than it and the next
+# switch tries the restore again.
+if [[ $ACTION == restore ]] && ! cmp -s "$LOCK_BEFORE" "$LAZY_LOCK"; then
+  cp "$LOCK_BEFORE" "$LAZY_LOCK"
+  echo "⚠️  Lazy! restore did not reach the revisions in lazy-lock.json; kept the lock and will retry on the next switch." >&2
+  exit 0
+fi
 
 mkdir -p "$LAZY_DIR"
 touch "$LAZY_LOCK_TIMESTAMP"

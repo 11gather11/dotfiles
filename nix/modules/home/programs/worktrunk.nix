@@ -18,8 +18,14 @@ let
   # the same life a herdr one has: a workspace appears when it is created and
   # goes when it is removed.
   #
-  # Guarded on HERDR_ENV, which herdr sets in its panes and which wt passes
-  # through to hooks; outside herdr there is no server to talk to.
+  # herdr-app is the same story: it shows a worktree as a space nested under
+  # its repository's, but only once a space exists for it, and wt never tells
+  # it. So in a herdr-app terminal (herdr-core sets HC_TERMINAL_ID) the hooks
+  # open and close a space there instead; in a herdr pane (HERDR_ENV) they
+  # talk to herdr as before. Outside both there is no server to talk to.
+  #
+  # herdr-app is not on runtimeInputs: the app installs its own CLI into
+  # ~/.local/bin, which is on PATH, and no package here provides it.
   wt-herdr = pkgs.writeShellApplication {
     name = "wt-herdr";
     runtimeInputs = [
@@ -28,6 +34,38 @@ let
       pkgs.git
     ];
     text = ''
+      if [ -n "''${HC_TERMINAL_ID:-}" ]; then
+        command -v herdr-app >/dev/null || exit 0
+        case "$1" in
+          open)
+            # issue-harness opens a worker's space itself, with Claude as its
+            # only terminal; a space opened here would add a shell beside it.
+            if [ -n "''${HARNESS_WORKER:-}" ]; then
+              exit 0
+            fi
+            path="$2"
+            branch="$3"
+            # space.new selects the space it makes; the worktree should appear
+            # without taking the screen from whoever ran `wt`, as herdr's
+            # --no-focus does, so the space shown before is selected again.
+            shown="$(herdr-app ls | jq -r 'first(.spaces[] | select(.active) | .id) // empty')"
+            herdr-app "do" space.new --folder "$path" --name "$branch" >/dev/null
+            if [ -n "$shown" ]; then
+              herdr-app "do" space.select --id "$shown" >/dev/null
+            fi
+            ;;
+          close)
+            path="$2"
+            # A space's folder is where its first terminal is now, which may be
+            # below the checkout's root.
+            herdr-app ls \
+              | jq -r --arg p "$path" '.spaces[] | select(.folder == $p or (.folder | startswith($p + "/"))) | .id' \
+              | while read -r id; do herdr-app "do" space.close --id "$id" --confirmed true >/dev/null; done
+            ;;
+        esac
+        exit 0
+      fi
+
       [ -n "''${HERDR_ENV:-}" ] || exit 0
 
       case "$1" in

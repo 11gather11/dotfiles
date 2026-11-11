@@ -51,7 +51,9 @@ jobs:
           # are built.
           const PINNED = ['nix/overlays' 'nix/packages']
           # Plugins that publish releases, so the pin follows the newest tag.
-          const TAGGED = [herdr-auto-title herdr-pluck herdr-worktrunk herdr-nvim herdr-sesh]
+          # material-icon-theme is an npm package; nix-update reads its versions
+          # from the registry.
+          const TAGGED = [herdr-auto-title herdr-pluck herdr-worktrunk herdr-nvim herdr-sesh material-icon-theme]
           # Plugins with no tags at all; the pin follows the default branch.
           const BRANCH = [herdr-command-palette herdr-keymap]
 

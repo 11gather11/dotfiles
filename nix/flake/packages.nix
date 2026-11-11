@@ -13,6 +13,7 @@
           herdr-pluck
           herdr-sesh
           herdr-worktrunk
+          material-icon-theme
           ;
       };
 

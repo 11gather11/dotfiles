@@ -3,6 +3,7 @@ let
   # Import all overlay files in this directory
   overlayFiles = [
     ./claude-code.nix
+    ./herdr-app.nix
     ./herdr-plugins.nix
     ./writing-tools.nix
   ];

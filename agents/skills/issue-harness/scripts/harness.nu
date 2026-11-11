@@ -28,7 +28,43 @@ export def main-checkout []: nothing -> string {
     ^git rev-parse --path-format=absolute --git-common-dir | str trim | path dirname
 }
 
-# The herdr agent whose directory is the worktree of `branch`, or null when no
+# Where the workers run: `hc` (herdr-core, the terminals herdr-app shows) when
+# the harness itself runs in one of its terminals, else `herdr`, the TUI. A
+# harness started in either finds and drives its workers in the same one, so
+# the two never see each other's.
+export def current-mux []: nothing -> string {
+    if ($env.HC_TERMINAL_ID? | is-not-empty) { "hc" } else { "herdr" }
+}
+
+# The named agents running in `mux`, as `{name, cwd, status}`. Workers are
+# named when they start; an unnamed terminal is not one. Empty when `mux` is
+# not running.
+export def agents-in [mux: string]: nothing -> list<record> {
+    match $mux {
+        hc => {
+            let r = ^hc ls --json | complete
+            if $r.exit_code != 0 { return [] }
+            $r.stdout
+            | from json
+            | get terminals
+            | where ($it.name? | is-not-empty)
+            # `hc ls` carries no status; each worker's comes from `hc get`
+            | each {|t| {name: $t.name, cwd: $t.cwd, status: (agent-get $t.name hc).status?} }
+        }
+        herdr => {
+            let r = ^herdr agent list | complete
+            if $r.exit_code != 0 { return [] }
+            $r.stdout
+            | from json
+            | get result.agents
+            | where ($it.name? | is-not-empty)
+            | each {|a| {name: $a.name, cwd: $a.cwd, status: $a.agent_status} }
+        }
+        _ => (error make {msg: $"unknown multiplexer: ($mux)"})
+    }
+}
+
+# The agent whose directory is the worktree of `branch`, or null when no
 # worktree or no agent holds it.
 export def worker-of [repo: string, branch: string]: nothing -> oneof<string, nothing> {
     let path = ^git -C $repo worktree list --porcelain
@@ -38,32 +74,32 @@ export def worker-of [repo: string, branch: string]: nothing -> oneof<string, no
     | where branch? == $"refs/heads/($branch)"
     | get -o 0.worktree
     if $path == null { return null }
-    let r = ^herdr agent list | complete
-    if $r.exit_code != 0 { return null }
-    $r.stdout
-    | from json
-    | get result.agents
-    | where $it.name? != null and ($it.cwd == $path or ($it.cwd | str starts-with $"($path)/"))
+    agents-in (current-mux)
+    | where $it.cwd == $path or ($it.cwd | str starts-with $"($path)/")
     | get -o 0.name
 }
 
 # Classifies a worker for the harness:
-# - `working`: herdr says so.
+# - `working`: the multiplexer says so.
 # - `busy`: idle or done, but a background shell or monitor is still running.
 # - `blocked`: a permission prompt or a dialog waits for an answer.
 # - `stopped`: the turn is over; read the screen for a PR URL or a question.
 # - `gone`: no such agent, as after land.nu removed its worktree.
 # `footer` carries the lines the decision was read from.
-export def worker-state [name: string]: nothing -> record {
-    let r = ^herdr agent get $name | complete
-    if $r.exit_code != 0 {
+export def worker-state [
+    name: string
+    --mux: string  # where the worker runs; default: current-mux
+]: nothing -> record {
+    let mux = $mux | default (current-mux)
+    let agent = agent-get $name $mux
+    if $agent == null {
         return {
             state: gone
             agent_status: null
             footer: []
         }
     }
-    let status = $r.stdout | from json | get result.agent.agent_status
+    let status = $agent.status
     match $status {
         working => {
             return {
@@ -80,15 +116,19 @@ export def worker-state [name: string]: nothing -> record {
             }
         }
     }
-    let footer = footer-of $name
+    let footer = footer-of $name $mux
     let state = if ($footer | any {|l| $l =~ $background_footer }) { "busy" } else { "stopped" }
     {state: $state, agent_status: $status, footer: $footer}
 }
 
 # The lines below the last prompt line (`❯`) of the visible screen: the
 # status bar where Claude Code lists background shells and monitors.
-def footer-of [name: string]: nothing -> list<string> {
-    let r = ^herdr agent read $name --source visible | complete
+def footer-of [name: string, mux: string]: nothing -> list<string> {
+    # `hc read` prints the screen alone unless asked for history.
+    let r = match $mux {
+        hc => (^hc read $name | complete)
+        _ => (^herdr agent read $name --source visible | complete)
+    }
     if $r.exit_code != 0 { return [] }
     let screen = $r.stdout | lines
     let prompt = $screen | enumerate | where ($it.item | str trim | str starts-with "❯") | last
@@ -98,6 +138,100 @@ def footer-of [name: string]: nothing -> list<string> {
         $screen | skip ($prompt.index + 1)
     }
     $footer | str trim | where $it != "" and not ($it | str starts-with "─")
+}
+
+# ── talking to a worker ──
+# What the harness does to a worker, once for both multiplexers: the scripts
+# call these, and worker.nu hands them to the harness itself.
+
+# `{status, cwd, where}` of the agent `name` in `mux`, or null when it is not
+# running. `where` is herdr's pane or hc's terminal address. hc's status is the
+# program's own OSC 7501 report, null until it sends one; herdr's is its
+# reading of the agent.
+export def agent-get [name: string, mux: string]: nothing -> oneof<record, nothing> {
+    match $mux {
+        hc => {
+            let r = ^hc get $name --json | complete
+            if $r.exit_code != 0 { return null }
+            let t = $r.stdout | from json
+            if $t.state != "live" { return null }
+            {
+                status: ($t.status?.state?)
+                cwd: $t.cwd
+                where: $t.address
+            }
+        }
+        _ => {
+            let r = ^herdr agent get $name | complete
+            if $r.exit_code != 0 { return null }
+            let a = $r.stdout | from json | get result.agent
+            {status: $a.agent_status, cwd: $a.cwd, where: $a.pane_id}
+        }
+    }
+}
+
+# The last `lines` lines of the worker's screen and history, soft-wrapped
+# lines joined where the multiplexer can. Empty when it cannot be read.
+export def read-worker [
+    name: string
+    --lines: int = 40
+    --mux: string  # default: current-mux
+]: nothing -> string {
+    let mux = $mux | default (current-mux)
+    let r = match $mux {
+        hc => (^hc read $name --lines $lines | complete)
+        _ => (
+            ^herdr agent read $name --source recent-unwrapped --lines $lines
+            | complete
+        )
+    }
+    if $r.exit_code == 0 { $r.stdout } else { "" }
+}
+
+# Types `text` into the worker and presses enter, then waits only for its
+# receipt: the worker `working`, or `blocked` on a permission its first step
+# needs. Returns the status it ended on; null when it was gone or the wait ran
+# out, which does not prove the prompt was lost.
+export def prompt-worker [
+    name: string
+    text: string
+    --timeout: duration = 30sec
+    --mux: string  # default: current-mux
+]: nothing -> oneof<string, nothing> {
+    let mux = $mux | default (current-mux)
+    match $mux {
+        hc => {
+            # hc send refuses a blocked terminal, as a prompt should not answer
+            # a permission it never read
+            if (^hc send $name $text | complete).exit_code != 0 { return null }
+            let deadline = (date now) + $timeout
+            loop {
+                let status = (agent-get $name hc).status?
+                if $status in [working blocked] { return $status }
+                if (date now) + 1sec > $deadline { return null }
+                sleep 1sec
+            }
+        }
+        _ => {
+            let ms = $timeout / 1ms | into int | into string
+            ^herdr agent prompt $name $text --wait --until working --until blocked --timeout $ms | complete | ignore
+            (agent-get $name herdr).status?
+        }
+    }
+}
+
+# Presses keys in the worker: a menu option's number, `esc`, `enter`.
+export def press-keys [
+    name: string
+    keys: list<string>
+    --mux: string  # default: current-mux
+]: nothing -> nothing {
+    let mux = $mux | default (current-mux)
+    let r = match $mux {
+        hc => (^hc keys $name ...$keys | complete)
+        _ => (^herdr agent send-keys $name ...$keys | complete)
+    }
+    if $r.exit_code != 0 { error make {msg: $"keys to ($name): ($r.stderr | str trim)"} }
 }
 
 # The check names the base branch requires, from its rulesets and its classic

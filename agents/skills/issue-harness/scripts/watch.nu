@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 # Waits on several workers at once and returns as soon as one of them needs
-# the harness. Unlike `herdr agent wait`, a worker whose turn ended while a
+# the harness. Unlike a plain wait on the agent, a worker whose turn ended while a
 # background shell or monitor still runs counts as working.
 
 use harness.nu [worker-state]
@@ -15,7 +15,7 @@ use harness.nu [worker-state]
 # @example
 # watch.nu kn-1109 kn-1112 kn-1124
 def main [
-    ...agents: string           # herdr agent names
+    ...agents: string           # worker names
     --interval: duration = 30sec # time between two reads of every pane
     --timeout: duration = 2hr    # give up and report `timeout`
 ] {

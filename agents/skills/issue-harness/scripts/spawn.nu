@@ -2,6 +2,12 @@
 # Starts one worker: a wt worktree, the herdr workspace its post-start hook
 # opens, Claude Code in that workspace's first pane, and the first prompt.
 # Prints one JSON line describing the worker, or why it could not start.
+#
+# From a herdr-app terminal the worker goes to herdr-core instead: the hook
+# opens a herdr-app space for the worktree, and Claude starts as a named
+# herdr-core terminal labelled into a tab of that space.
+
+use harness.nu [current-mux agents-in agent-get prompt-worker]
 
 const worker_brief = path self ../references/worker-brief.md
 const skill_dir = path self ..
@@ -49,7 +55,7 @@ const memory_critical = 4
 # the same arguments: an existing worktree, workspace or Claude is reused, and
 # a worker already working is not prompted again.
 def main [
-    name: string # herdr agent name, unique among live agents, e.g. pg-264
+    name: string # worker name, unique among live agents and terminals, e.g. pg-264
     branch: string # worktree branch, e.g. issue-264-lint
     prompt: string # first prompt, usually one line naming the issue
     --force # start even when the capacity limits say to wait
@@ -82,9 +88,10 @@ def spawn [
     spec: oneof<int, nothing>
 ]: nothing -> record {
     let ctx = step setup { context $name $spec }
+    let mux = current-mux
 
     let existing = step worktree { worktree-of $ctx.repo $branch }
-    step name { check-name $name $existing }
+    step name { check-name $name $existing $mux }
 
     if not $force {
         let cap = step capacity { capacity $ctx $name }
@@ -95,6 +102,11 @@ def spawn [
             }
         }
     }
+
+    # In herdr-app the worker gets a space of its own with Claude as its only
+    # terminal (start-hc), so wt's post-start hook must not open one with a
+    # shell for the same worktree; this tells it so.
+    load-env (if $mux == hc { {HARNESS_WORKER: "1"} } else { {} })
 
     step pull {
         external [
@@ -115,28 +127,35 @@ def spawn [
             }
         }
     }
-    let ws = step workspace { workspace-for $path $branch ($existing != null) }
-    let pane = step workspace {
-        herdr-ok [pane list --workspace $ws] | get panes.0.pane_id
+    let ws = if $mux == hc {
+        step start { start-hc $name $path $branch $ctx.brief }
+    } else {
+        let ws = step workspace { workspace-for $path $branch ($existing != null) }
+        let pane = step workspace {
+            herdr-ok [pane list --workspace $ws] | get panes.0.pane_id
+        }
+        step start { start-agent $pane $name $ctx.brief }
+        $ws
     }
 
-    step start { start-agent $pane $name $ctx.brief }
-    let status = step ready { wait-ready $name }
+    let status = step ready {
+        if $mux == hc { wait-ready-hc $name } else { wait-ready $name }
+    }
     # A rerun after an attempt whose prompt did land must not send it twice
     if $status != working {
-        step prompt { send-prompt $name $prompt }
+        step prompt { send-prompt $name $prompt $mux }
     }
 
     let agent = step prompt {
-        herdr-ok [agent get $name] | get agent
+        agent-get $name $mux | default { error make {msg: $"($name) is gone after its prompt"} }
     }
     let worker = {
         name: $name
         branch: $branch
         workspace: $ws
-        pane: $pane
+        pane: $agent.where
         worktree: $agent.cwd
-        status: $agent.agent_status
+        status: $agent.status
     }
     {
         exit: 0
@@ -307,12 +326,11 @@ def worktree-of [repo: string, branch: string]: nothing -> oneof<string, nothing
 
 # Fails when `name` is live but is not this branch's worker: herdr names are
 # unique, so the start would fail anyway, after a worktree had been made.
-def check-name [name: string, worktree: oneof<string, nothing>]: nothing -> nothing {
-    let r = herdr-try [agent get $name]
-    if not $r.ok { return }
-    let cwd = $r.result.agent.cwd
-    if $worktree == null or not ($cwd | str starts-with $worktree) {
-        error make {msg: $"agent name ($name) is already in use in pane ($r.result.agent.pane_id) \(($cwd)\)"}
+def check-name [name: string, worktree: oneof<string, nothing>, mux: string]: nothing -> nothing {
+    let a = agent-get $name $mux
+    if $a == null { return }
+    if $worktree == null or not ($a.cwd | str starts-with $worktree) {
+        error make {msg: $"agent name ($name) is already in use in ($a.where) \(($a.cwd)\)"}
     }
 }
 
@@ -320,11 +338,14 @@ def check-name [name: string, worktree: oneof<string, nothing>]: nothing -> noth
 # memory pressure. `error` is null when there is room for one more.
 def capacity [ctx: record, name: string]: nothing -> record {
     # idle and done workers are waiting on review and use no CPU. The worker
-    # being (re)started is not counted against itself.
-    let workers = herdr-ok [agent list]
-    | get agents
-    | where ($it.name? | default "") =~ $worker_name and $it.name != $name
-    | where agent_status in [working blocked]
+    # being (re)started is not counted against itself. Workers in both
+    # multiplexers count: the limits are about this machine's load, and a
+    # harness in the herdr TUI and one in herdr-app share it.
+    let workers = [herdr hc]
+    | each {|m| agents-in $m }
+    | flatten
+    | where $it.name =~ $worker_name and $it.name != $name
+    | where status in [working blocked]
     # wt puts worktrees beside the main checkout as `<repo>.<branch>`
     let in_repo = $workers | where cwd == $ctx.repo or ($it.cwd | str starts-with $"($ctx.repo).")
 
@@ -568,10 +589,18 @@ def wait-ready [name: string]: nothing -> string {
     herdr-ok [agent get $name] | get agent.agent_status
 }
 
-# Sends the first prompt and confirms it landed. herdr's wait only confirms
+# Sends the first prompt and confirms it landed. The wait only confirms
 # receipt, and it can time out or stall although the prompt arrived, so the
 # agent's state decides; the prompt is never sent a second time.
-def send-prompt [name: string, prompt: string]: nothing -> nothing {
+def send-prompt [name: string, prompt: string, mux: string]: nothing -> nothing {
+    if $mux == hc {
+        prompt-worker $name $prompt --timeout $prompt_timeout --mux hc | ignore
+        let status = (agent-get $name hc).status?
+        if $status not-in [working blocked] {
+            error make {msg: $"prompt not confirmed \(status ($status)\)"}
+        }
+        return
+    }
     let r = herdr-try [
         agent
         prompt
@@ -591,5 +620,90 @@ def send-prompt [name: string, prompt: string]: nothing -> nothing {
     let status = herdr-ok [agent get $name] | get agent.agent_status
     if $status not-in [working blocked] {
         error make {msg: $"prompt not confirmed \(status ($status)\): ($r.code): ($r.message)"}
+    }
+}
+
+# ── herdr-core (a harness in herdr-app) ──
+
+# Starts Claude as the herdr-core terminal `name` in the worktree, in a
+# herdr-app space of its own, and returns that space's id. Claude is the
+# space's only terminal: labelled with a space and tab id herdr-app does not
+# know yet, a terminal makes that space and tab itself. The ids come from the
+# name, so a rerun finds the space and the terminal an earlier attempt made;
+# check-name has already refused a terminal that is someone else's.
+#
+# It runs through the login shell, not directly: herdr-core starts programs
+# with its own environment, which has neither the session variables Claude
+# Code's config lives by nor the worktree's direnv environment, and the login
+# shell loads both before it hands over to Claude.
+def start-hc [
+    name: string
+    path: string
+    branch: string
+    brief: string
+]: nothing -> string {
+    let id = $name | str replace --all --regex '[^a-z0-9]' ''
+    let space = $"spworker($id)"
+    if (agent-get $name hc) == null {
+        let shell = $env.SHELL? | default /bin/sh
+        external [
+            hc
+            run
+            --bg
+            --keep
+            --no-parent
+            --name
+            $name
+            --cwd
+            $path
+            --label
+            $"herdr.space=($space)"
+            --label
+            $"herdr.tab=tbworker($id)"
+            --
+            $shell
+            -l
+            -c
+            $"exec claude --append-system-prompt-file '($brief)'"
+        ] | ignore
+    }
+    let shown = poll-until ((date now) + $workspace_budget) $workspace_poll {
+        external [herdr-app ls] | from json | get spaces | where id == $space | get -o 0
+    }
+    | default { error make {msg: $"herdr-app showed no space for ($name) after ($workspace_budget)"} }
+    # Named after the branch, as wt-herdr names the spaces it opens: an
+    # unnamed space is called after its repository, which every worker shares.
+    if $shown.name != $branch {
+        external [
+            herdr-app
+            do
+            space.rename
+            --id
+            $space
+            --name
+            $branch
+        ] | ignore
+    }
+    $space
+}
+
+# Waits until `name` can take a prompt and returns its status, or the status
+# it is `working` in when an earlier attempt prompted it. Claude reports its
+# status once its interface is up, after the login shell has loaded direnv and
+# the Nix shell, which is why this allows the whole start budget.
+def wait-ready-hc [name: string]: nothing -> string {
+    let status = poll-until ((date now) + $start_budget) 2sec {
+        let a = agent-get $name hc
+        if $a == null { error make {msg: $"($name) exited while starting; read it with `hc read ($name)`"} }
+        if $a.status in [idle done working blocked] { $a.status }
+    }
+    match $status {
+        null => (
+            error make {msg: $"($name) reported no status after ($start_budget); read it with `hc read ($name)`"}
+        )
+        blocked => (
+            error make {msg: $"($name) is blocked before its first prompt \(a trust or login dialog\); read it with `worker.nu read ($name)`"}
+        )
+        _ => $status
     }
 }

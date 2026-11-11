@@ -3,11 +3,11 @@
 # ticket, this is where a ticket is checked: the commit is pinned, the
 # repository's integration check runs on it, and only that commit is merged.
 
-use harness.nu [main-checkout worker-of worker-state heavy-check]
+use harness.nu [main-checkout worker-of worker-state heavy-check prompt-worker]
 use spec.nu [load-spec save-spec git-out taken-tickets read-graph]
 use spec-rules.nu [frontier]
 
-const prompt_timeout_ms = "30000"
+const prompt_timeout = 30sec
 
 # Integrate `branch` (a ticket's `issue-<n>-…`, or a fix branch) into spec
 # `spec`'s integration branch.
@@ -121,7 +121,7 @@ def integrate [spec: int, branch: string]: nothing -> record {
 
     # The branch stays until the spec lands: the merge points at it, and it is
     # the only copy of the work outside this Mac's integration branch. wt's
-    # remove hook closes the worker's herdr workspace.
+    # remove hook closes the worker's herdr workspace or herdr-app space.
     let rm = ^wt -C $repo remove --no-delete-branch --format=json $path | complete
     let graph = read-graph $spec
     let f = frontier $graph.tickets ($s.integrated | each { $in.ticket } | compact) (
@@ -159,5 +159,5 @@ def worktree-path [repo: string, branch: string]: nothing -> oneof<string, nothi
 
 # Sends `text` and waits only for its receipt.
 def ask [agent: string, text: string] {
-    ^herdr agent prompt $agent $text --wait --until working --until blocked --timeout $prompt_timeout_ms | complete | ignore
+    prompt-worker $agent $text --timeout $prompt_timeout | ignore
 }

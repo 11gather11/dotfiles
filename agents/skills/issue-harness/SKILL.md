@@ -1,6 +1,6 @@
 ---
 name: issue-harness
-description: Runs GitHub issues, or the tickets /to-tickets split a spec into, as separate Claude Code workers in herdr panes, one worktree each, and supervises them through to merge. Use when implementing issues or a spec in parallel, or acting as the harness for workers.
+description: Runs GitHub issues, or the tickets /to-tickets split a spec into, as separate Claude Code workers in herdr or herdr-app terminals, one worktree each, and supervises them through to merge. Use when implementing issues or a spec in parallel, or acting as the harness for workers.
 ---
 
 You are the harness. Workers implement; you start them, wait on them, triage
@@ -18,6 +18,11 @@ prints one JSON line last; keep that line when you trim output. Run spawn.nu,
 land.nu and spec.nu in the foreground with the Bash tool's `timeout: 600000`
 (a script killed by the default timeout leaves no output), and watch.nu,
 queue.nu, integrate.nu and review.nu in the background.
+
+Workers run where you do: in herdr panes when you run in the herdr TUI, in
+herdr-core terminals (shown in herdr-app) when you run in a herdr-app
+terminal. Reach them with `worker.nu`, which goes to the same place, never with
+`herdr` or `hc` directly.
 
 ## Settings
 
@@ -88,7 +93,7 @@ holds a PR.
 
 ## 3. Triage
 
-Read before you act: `herdr agent read <name> --lines 40`.
+Read before you act: `worker.nu read <name> --lines 40`.
 
 - **blocked**: a permission prompt. Answer it or bring it to the user, per
   [`references/triage.md`](references/triage.md).
@@ -103,7 +108,7 @@ Read before you act: `herdr agent read <name> --lines 40`.
 Send every prompt so that only its receipt is awaited:
 
 ```bash
-herdr agent prompt pg-264 "<text>" --wait --until working --until blocked --timeout 30000
+nix shell nixpkgs#nushell --command <skill-dir>/scripts/worker.nu prompt pg-264 "<text>"
 ```
 
 Done when the worker is working again, or its case is with the user.

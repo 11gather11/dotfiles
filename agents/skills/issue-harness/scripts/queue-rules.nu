@@ -14,7 +14,7 @@ export const max_merge_asks = 5
 #   pr: int
 #   verdict: record   # land.nu --dry-run's record; `result` is what counts
 #   stacked: bool     # its base is the branch of another open PR
-#   worker: string?   # herdr agent of the PR's worktree, null when none
+#   worker: string?   # agent of the PR's worktree, null when none
 #   worker_state: string  # watch's states: working busy blocked stopped gone
 #   asks: list<record>    # earlier asks to this worker: {kind, sha}, kind
 #                         # merge, fix or rerun
@@ -131,7 +131,7 @@ def decide-one [it: record, head_taken: bool, history: list<record>]: nothing ->
         $halt
         no-progress
         $"($it.worker) stopped after the ($kind) ask without pushing"
-        $"read its last turn with `herdr agent read ($it.worker) --lines 40`; answer it, or settle the failure per triage.md"
+        $"read its last turn with `worker.nu read ($it.worker)`; answer it, or settle the failure per triage.md"
     ) }
     let no_worker = {|need: string| (do
         $halt

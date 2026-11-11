@@ -1,6 +1,6 @@
 ---
 name: ask-gather
-description: Ask which skill or flow fits your situation on this machine. Matt Pocock's map (ask-matt), with herdr workers, wt worktrees, Codex reviews and one CI run per spec.
+description: Ask which skill or flow fits your situation on this machine. Matt Pocock's map (ask-matt), with harness workers, wt worktrees, Codex reviews and one CI run per spec.
 disable-model-invocation: true
 ---
 
@@ -15,10 +15,10 @@ Matt's skills are namespaced: `/mattpocock-skills:<name>`.
 
 ## Where the flow differs
 
-- **Implementers are herdr workers, not subagents.** Each is a full Claude Code
-  session in its own herdr pane and wt worktree: the user can open it and talk
-  to it, and it runs with the user's hooks. `/issue-harness` starts and
-  supervises them.
+- **Implementers are workers, not subagents.** Each is a full Claude Code
+  session in its own terminal (a herdr pane, or a herdr-app tab) and wt
+  worktree: the user can open it and talk to it, and it runs with the user's
+  hooks. `/issue-harness` starts and supervises them.
 - **A spec goes through `/issue-harness`, not `/implement-spec`.** After
   `/to-tickets`, give `/issue-harness` the spec's issue number. Its tickets
   merge into one local integration branch after a local check, and the spec

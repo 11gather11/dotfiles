@@ -3,7 +3,7 @@
 # date, merges, pulls and removes the worker's worktree. Stops with a classified
 # result wherever the harness has to decide. Prints one JSON record.
 
-use harness.nu [setting-on required-checks]
+use harness.nu [setting-on required-checks agent-get current-mux]
 
 const gh_tries = 3
 const gh_delay = 5sec
@@ -21,7 +21,7 @@ const unknown_code = "land::unknown"
 # Exit status: 0 landed, merged or would-*; 2 the harness has to act; 1 error.
 def main [
     pr?: string        # PR number or URL
-    --agent: string    # herdr agent of the worker, to find its worktree
+    --agent: string    # the worker's agent name, to find its worktree
     --dry-run          # classify and report what would happen; change nothing
     --allow-optional   # land although checks the base branch does not require failed
 ] {
@@ -225,20 +225,15 @@ def base-drift [repo: string, pr: record]: nothing -> record {
     {moved: true, overlap: $overlap}
 }
 
-# Finds the worker's worktree: the herdr agent's directory when one is named,
+# Finds the worker's worktree: the agent's directory when one is named,
 # else the worktree checked out on the PR's branch. Errors when neither is a
 # linked worktree of this repository, so the main checkout is never removed.
 def find-worktree [repo: string, branch: string, agent]: nothing -> string {
-    let from_agent = if $agent != null {
-        let r = ^herdr agent get $agent | complete
-        if $r.exit_code == 0 {
-            let cwd = $r.stdout | from json | get -o result.agent.cwd
-            if $cwd != null {
-                ^git -C $cwd rev-parse --show-toplevel
-                | complete
-                | if $in.exit_code == 0 { $in.stdout | str trim }
-            }
-        }
+    let cwd = if $agent != null { (agent-get $agent (current-mux)).cwd? }
+    let from_agent = if $cwd != null {
+        ^git -C $cwd rev-parse --show-toplevel
+        | complete
+        | if $in.exit_code == 0 { $in.stdout | str trim }
     }
     let path = if $from_agent != null {
         $from_agent
@@ -270,7 +265,7 @@ def clean-up [repo: string, branch: string, agent]: nothing -> record {
     let pull_error = if $pull.exit_code != 0 { $"git pull --ff-only: ($pull.stderr | str trim)" }
     let removed = try {
         let path = find-worktree $repo $branch $agent
-        # wt's remove hook also closes the worker's herdr workspace
+        # wt's remove hook also closes the worker's herdr workspace or herdr-app space
         let r = ^wt -C $repo remove --format=json $path | complete
         if $r.exit_code != 0 {
             {

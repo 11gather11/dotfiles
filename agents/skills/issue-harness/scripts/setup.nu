@@ -4,7 +4,7 @@
 # Changes nothing but its own record of migrations: the settings are markers
 # the user places, and the repository's rules are theirs.
 
-use harness.nu [state-dir setting-on main-checkout required-checks]
+use harness.nu [state-dir setting-on main-checkout required-checks current-mux]
 
 const migrations_file = path self ../references/migrations.md
 
@@ -67,10 +67,10 @@ def check-all []: nothing -> record {
     let checks = [
         (
             (check
-                "herdr"
-                ($env.HERDR_ENV? == "1")
-                "this session runs inside herdr"
-                "start the harness from a herdr pane; workers are started and read through it"
+                "multiplexer"
+                ($env.HERDR_ENV? == "1" or ($env.HC_TERMINAL_ID? | is-not-empty))
+                $"this session runs inside ((current-mux)); workers start there"
+                "start the harness from a herdr pane or a herdr-app terminal; workers are started and read through it"
             )
         )
         (

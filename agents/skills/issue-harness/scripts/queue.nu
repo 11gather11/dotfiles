@@ -2,16 +2,25 @@
 # The landing queue. The harness adds PRs it has read and approved; this
 # lands them one after another, asks their workers to merge the base or fix CI,
 # and returns only when the harness is needed. The decisions are in
-# queue-rules.nu; this file reads GitHub and herdr and carries them out.
+# queue-rules.nu; this file reads GitHub and the workers and carries them out.
 
-use harness.nu [state-dir setting-on main-checkout worker-of worker-state]
+use harness.nu [
+    state-dir
+    setting-on
+    main-checkout
+    worker-of
+    worker-state
+    current-mux
+    read-worker
+    prompt-worker
+]
 use queue-rules.nu [decide]
 
 const land_script = path self land.nu
 # A land.nu verdict is reused while the PR, its checks and the base look the
 # same, so a quiet pass costs one `gh pr list`; this bounds how stale it gets.
 const verdict_ttl = 10min
-const prompt_timeout_ms = "30000"
+const prompt_timeout = 30sec
 # What a worker writes, at the start of a line, when it judges a CI failure
 # not its PR's. The queue reads it rather than guessing from free text.
 const not_this_pr_mark = "NOT-THIS-PR:"
@@ -52,7 +61,12 @@ def "main add" [...prs: int] {
     let repo = main-checkout
     let st = load-state $repo
     let q = load-queue $repo
-    save-queue $repo ($q | update prs { append $prs | uniq | where $it not-in $st.dropped })
+    let added = $prs | where $it not-in $st.dropped
+    # Which multiplexer's harness queued each PR, so a view of one harness
+    # (herdr-app's panel) leaves out the other's queue and landings.
+    let mux = current-mux
+    let muxes = $added | reduce --fold $q.mux {|n, acc| $acc | upsert ($n | into string) $mux }
+    save-queue $repo ($q | update prs { append $added | uniq } | update mux $muxes)
     main list
 }
 
@@ -115,6 +129,9 @@ def load-queue [repo: string]: nothing -> record {
     open-for $repo (queue-file $repo) {
         prs: []
         allow_optional: {}
+        # PR number => the multiplexer whose harness queued it. A PR missing
+        # here was queued before this was recorded, from the herdr TUI.
+        mux: {}
     }
 }
 
@@ -138,7 +155,7 @@ def save-state [repo: string, st: record] {
     $st | to json | save --force (state-file $repo)
 }
 
-# ── reading GitHub and herdr ──
+# ── reading GitHub and the workers ──
 
 const list_fields = "number,headRefOid,headRefName,baseRefName,mergeable,isDraft,statusCheckRollup"
 
@@ -286,9 +303,7 @@ def fix-ask [v: record]: nothing -> string {
 # `sha`, or null. Only the reply is searched: the ask quotes the mark, and a
 # wrapped line of it can start with the mark too.
 def not-this-pr-of [agent: string, sha: string]: nothing -> oneof<string, nothing> {
-    let r = ^herdr agent read $agent --source recent-unwrapped --lines 400 | complete
-    if $r.exit_code != 0 { return null }
-    $r.stdout | lines | not-this-pr-in $sha
+    read-worker $agent --lines 400 | lines | not-this-pr-in $sha
 }
 
 # `not-this-pr-of` on a screen already read.
@@ -310,7 +325,7 @@ export def not-this-pr-in [sha: string]: list<string> -> oneof<string, nothing> 
 # Sends `text` and waits only for its receipt. The ask is recorded before this
 # runs, so a prompt that did not land shows up as no-progress, not as a loop.
 def ask [agent: string, text: string]: nothing -> nothing {
-    ^herdr agent prompt $agent $text --wait --until working --until blocked --timeout $prompt_timeout_ms | complete | ignore
+    prompt-worker $agent $text --timeout $prompt_timeout | ignore
 }
 
 # One pass in dry-run form: every PR's verdict and decision, nothing changed.
@@ -421,7 +436,12 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
                     $landed = $landed | append $to_land.pr
                     $st = $st | update landed {
                         append (
-                            {pr: $to_land.pr, sha: $r.sha, at: (date now | format date "%+")}
+                            {
+                                pr: $to_land.pr
+                                sha: $r.sha
+                                at: (date now | format date "%+")
+                                mux: ((load-queue $repo).mux | get -o ($to_land.pr | into string) | default "herdr")
+                            }
                             | merge ($r | select -o optional_failed cleanup_error)
                         )
                     } | update dropped { append $to_land.pr | uniq }

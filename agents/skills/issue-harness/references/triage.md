@@ -13,23 +13,22 @@ Answer a permission prompt only within what the user's settings already allow.
 
 A permission prompt, or a dialog a worker opened anyway, is answered on its screen:
 
-- Pick an option with `herdr agent send-keys <name> <number>`, then read the
-  screen again before the next key.
+- Pick an option with `worker.nu keys <name> <number>`, then read the screen
+  again (`worker.nu read <name>`) before the next key.
 - With two or more questions a "Review your answers" screen follows. Send `1`
   (Submit) there, or nothing is answered.
 - To give an answer that is not one of the options, including the user's own
-  answer, close the dialog with `herdr agent send-keys <name> esc` and send the
+  answer, close the dialog with `worker.nu keys <name> esc` and send the
   answer as a prompt. Start it with "Author's answer:" when it is the user's, so
   the worker records it as theirs rather than yours.
 
 ## Prompts
 
-`herdr agent prompt --wait` on its own waits for the whole turn to end, which
-blocks you for as long as the worker works; `--until working --until blocked`
-waits only for receipt. Without `--wait` a dropped prompt goes unnoticed, and the next
-`agent wait` returns at once on the old `idle`. `agent_prompt_stalled` or
-`timeout` does not prove the prompt was lost: check `herdr agent get` and
-`herdr agent read` before sending it again.
+`worker.nu prompt` waits only for the prompt's receipt (the worker
+`working`, or `blocked` on a permission), never for the whole turn, so it does
+not hold you for as long as the worker works. Exit 1 means the receipt was not
+seen, which does not prove the prompt was lost: check `worker.nu get` and
+`worker.nu read` before sending it again.
 
 ## CI failures
 

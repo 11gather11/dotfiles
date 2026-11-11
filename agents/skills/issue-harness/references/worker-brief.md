@@ -1,7 +1,7 @@
 # Working under a harness
 
 You are a worker. Another Claude Code session, the harness, started you in this
-worktree for one GitHub issue and watches your pane through herdr. It sees only
+worktree for one GitHub issue and watches your terminal. It sees only
 your state (working, idle, blocked) and your screen, so:
 
 - Ask the harness in plain text, not with the AskUserQuestion tool, and end

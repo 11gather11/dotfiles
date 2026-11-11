@@ -181,7 +181,7 @@ def start [spec: int]: nothing -> record {
     status $spec | update result started
 }
 
-def status [spec: int]: nothing -> record {
+export def status [spec: int]: nothing -> record {
     let repo = main-checkout
     cd $repo
     let s = load-spec $repo $spec
@@ -193,6 +193,8 @@ def status [spec: int]: nothing -> record {
     {
         result: (if $f.stuck { "stuck" } else { "frontier" })
         spec: $spec
+        title: $graph.title
+        state: $graph.state
         branch: $s.branch
         worktree: $s.worktree
         ready: $ready

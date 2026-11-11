@@ -138,7 +138,7 @@ def workers [repo: string, mux: string, prs: list<record>]: nothing -> list<reco
             name: $agent
             branch: $w.branch
             worktree: $w.path
-            ticket: (if $ticket == null { null } else { $ticket | into int }), 
+            ticket: (if $ticket == null { null } else { $ticket | into int }),
             state: (worker-state $agent --mux $mux).state
             pr: ($prs | where branch == $w.branch | get -o 0)
         }

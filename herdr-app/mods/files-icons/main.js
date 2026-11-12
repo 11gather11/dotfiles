@@ -141,6 +141,46 @@ function folderMarks(marks, top) {
 	return out;
 }
 
+// How faint an ignored entry's icon is drawn, beside its dimmed name.
+const IGNORED_OPACITY = 0.45;
+
+/**
+ * What git ignores under `cwd`, as absolute paths: files, and
+ * folders ignored whole. `--directory` lists such a folder once, not every
+ * file under it, so node_modules costs one line.
+ *
+ * @param {string} cwd the folder the tree shows, inside a repository
+ * @param {string|null} on the machine it is on
+ * @returns {Promise<{paths: Set<string>, dirs: string[]}>}
+ */
+async function ignoredBy(cwd, on) {
+	const r = await exec(
+		'git',
+		['ls-files', '--others', '--ignored', '--exclude-standard', '--directory'],
+		{
+			cwd,
+			on,
+		},
+	).catch(() => null);
+	const paths = new Set(),
+		dirs = [];
+	if (r?.code !== 0) return { paths, dirs };
+	// ls-files prints paths relative to where it runs: the tree's own folder.
+	const base = cwd.replace(/\/+$/, '');
+	for (const line of r.stdout.split('\n').filter(Boolean)) {
+		const abs = `${base}/${line.replace(/\/$/, '')}`;
+		paths.add(abs);
+		if (line.endsWith('/')) dirs.push(abs);
+	}
+	return { paths, dirs };
+}
+
+/** Whether `abs` is an ignored file or folder, or lies inside an ignored folder. */
+function isIgnored(ignored, abs) {
+	if (!ignored) return false;
+	return ignored.paths.has(abs) || ignored.dirs.some((d) => abs.startsWith(`${d}/`));
+}
+
 export default class Files extends View {
 	init(_props, cx) {
 		this.icons = null;
@@ -229,6 +269,7 @@ export default class Files extends View {
 					() => null,
 				);
 				const marks = {};
+				let ignored = { paths: new Set(), dirs: [] };
 				if (top?.code === 0) {
 					// Writes nothing under .git (index lock, fsmonitor cookie): the folder watch would refresh again.
 					const status = await exec(
@@ -257,9 +298,11 @@ export default class Files extends View {
 											? 'D'
 											: 'M';
 						}
+					ignored = await ignoredBy(cwd, on);
 				}
 				if (!this.current(context)) return;
 				this.marks = marks;
+				this.ignored = ignored;
 				this.folderMarks = folderMarks(marks, top?.code === 0 ? top.stdout.trim() : null);
 				this.error = null;
 				this.watch(cwd, cx);
@@ -317,7 +360,9 @@ export default class Files extends View {
 			if (out.length >= TOTAL) break;
 			const path = prefix ? `${prefix}/${entry.name}` : entry.name,
 				open = this.folders.has(path),
-				mark = (entry.dir ? this.folderMarks : this.marks)?.[`${this.root}/${path}`];
+				mark = (entry.dir ? this.folderMarks : this.marks)?.[`${this.root}/${path}`],
+				// Dimmed as VS Code dims it: there, but not the repository's.
+				ignored = !mark && isIgnored(this.ignored, `${this.root}/${path}`);
 			out.push(
 				h_flex()
 					.id(`file-${path}`)
@@ -344,6 +389,7 @@ export default class Files extends View {
 							? image(`file-icons/icons/${iconFor(this.icons, entry.name, entry.dir, open)}.svg`)
 									.size(16)
 									.flex_none()
+									.when(ignored, (el) => el.opacity(IGNORED_OPACITY))
 							: svg(`mods/files/${entry.dir ? 'folder' : 'file'}.svg`)
 									.size(14)
 									.flex_none()
@@ -355,6 +401,7 @@ export default class Files extends View {
 							.min_w(0)
 							.truncate()
 							.when(Boolean(mark), (el) => el.text_color(markColor(t, mark)))
+							.when(ignored, (el) => el.text_color(t.dim))
 							.child(entry.name),
 					)
 					.when(Boolean(mark), (el) =>

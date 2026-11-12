@@ -7,7 +7,7 @@
 # opens a herdr-app space for the worktree, and Claude starts as a named
 # herdr-core terminal labelled into a tab of that space.
 
-use harness.nu [current-mux agents-in agent-get prompt-worker]
+use harness.nu [current-mux agents-in agent-get prompt-worker read-worker]
 
 const worker_brief = path self ../references/worker-brief.md
 const skill_dir = path self ..
@@ -583,6 +583,8 @@ def wait-ready [name: string]: nothing -> string {
         (ms $ready_budget)
     ]
     if not $r.ok {
+        let blocker = start-blocker $name herdr
+        if $blocker != null { error make {msg: $blocker} }
         let now = herdr-ok [agent get $name] | get agent.agent_status
         error make {msg: $"($name) was not ready for input after ($ready_budget) \(status ($now)\): ($r.code): ($r.message)"}
     }
@@ -633,9 +635,12 @@ def send-prompt [name: string, prompt: string, mux: string]: nothing -> nothing 
 # check-name has already refused a terminal that is someone else's.
 #
 # It runs through the login shell, not directly: herdr-core starts programs
-# with its own environment, which has neither the session variables Claude
-# Code's config lives by nor the worktree's direnv environment, and the login
-# shell loads both before it hands over to Claude.
+# with its own environment, which lacks the worktree's direnv environment, and
+# the login shell loads it before it hands over to Claude. CLAUDE_CONFIG_DIR is
+# not among what it loads (zsh's login files do not read the session
+# variables); Claude inherits it from the herdr-core server, so a server
+# started without it starts every worker on the wrong configuration, which
+# start-blocker reports.
 def start-hc [
     name: string
     path: string
@@ -695,6 +700,11 @@ def wait-ready-hc [name: string]: nothing -> string {
     let status = poll-until ((date now) + $start_budget) 2sec {
         let a = agent-get $name hc
         if $a == null { error make {msg: $"($name) exited while starting; read it with `hc read ($name)`"} }
+        # A dialog before the first prompt need not raise `blocked`: hc may
+        # report no status at all until Claude's hooks run. The screen says
+        # which it is long before the start budget runs out.
+        let blocker = start-blocker $name hc
+        if $blocker != null { error make {msg: $blocker} }
         if $a.status in [idle done working blocked] { $a.status }
     }
     match $status {
@@ -702,8 +712,22 @@ def wait-ready-hc [name: string]: nothing -> string {
             error make {msg: $"($name) reported no status after ($start_budget); read it with `hc read ($name)`"}
         )
         blocked => (
-            error make {msg: $"($name) is blocked before its first prompt \(a trust or login dialog\); read it with `worker.nu read ($name)`"}
+            error make {msg: $"($name) is blocked before its first prompt; read it with `worker.nu read ($name)`"}
         )
         _ => $status
+    }
+}
+
+# What keeps a fresh Claude from taking its first prompt, read off its
+# screen, or null. Both mean Claude did not start with the configuration it
+# runs with everywhere else (its CLAUDE_CONFIG_DIR, its trusted folders and
+# login), which an answer to the dialog would only hide for this one worker.
+def start-blocker [name: string, mux: string]: nothing -> oneof<string, nothing> {
+    let screen = read-worker $name --lines 60 --mux $mux
+    let env_hint = "check that the multiplexer's server has CLAUDE_CONFIG_DIR in its environment (restart it after a change)"
+    if $screen =~ 'one you trust\?' {
+        $"($name) stopped at the folder trust dialog; ($env_hint)"
+    } else if $screen =~ 'Not logged in' {
+        $"($name) is not logged in; ($env_hint)"
     }
 }

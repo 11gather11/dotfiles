@@ -1,7 +1,9 @@
 // A lazy file browser for the focused pane's folder, with bounded read-only previews.
 //
-// Herdr's `files` mod with one change: each entry gets the icon VS Code's
-// Material Icon Theme gives it. The icons and the theme's lookup tables are
+// Herdr's `files` mod with two changes. Each entry gets the icon VS Code's
+// Material Icon Theme gives it. And git's marks reach folders, as in VS Code:
+// a folder holding a change shows a dot in that change's color, where Herdr
+// marked only the changed files and left a collapsed folder looking clean. The icons and the theme's lookup tables are
 // linked to file-icons/ by nix/modules/home-darwin/herdr-app.nix.
 import { View, div, svg, image } from 'gpui-kit';
 import { v_flex, h_flex, Editor, EditorState } from 'gpui-base';
@@ -109,6 +111,41 @@ async function directory(path, on) {
 		out = [];
 	for (let i = 0; i + 1 < fields.length; i += 2)
 		out.push({ name: fields[i + 1], dir: fields[i] === 'd' });
+	return out;
+}
+
+// How serious a change is, for the one mark a folder shows for all of its.
+const MARK_RANK = { U: 4, D: 3, M: 2, A: 1 };
+
+/** The color of a git mark: added green, deleted or conflicted red, modified yellow. */
+const markColor = (t, mark) =>
+	mark === 'A' ? t.ansi2 : mark === 'D' || mark === 'U' ? t.ansi1 : t.ansi3;
+
+/**
+ * Every folder above a changed file, with the most serious mark among the
+ * changes inside it. Untracked folders are listed file by file
+ * (--untracked-files=all), so they are reached too.
+ *
+ * @param {Record<string, string>} marks absolute file path => A, D, M or U
+ * @param {string|null} top the repository's root; folders above it get nothing
+ * @returns {Record<string, string>} absolute folder path => its mark
+ * @example
+ * folderMarks({ "/r/a/b/x.ts": "M", "/r/a/y.ts": "U" }, "/r") // => { "/r/a/b": "M", "/r/a": "U" }
+ */
+function folderMarks(marks, top) {
+	const out = {};
+	if (!top) return out;
+	for (const [file, mark] of Object.entries(marks)) {
+		// Walk up from the file's folder to just below the root.
+		for (
+			let dir = file.slice(0, file.lastIndexOf('/'));
+			dir.length > top.length;
+			dir = dir.slice(0, dir.lastIndexOf('/'))
+		) {
+			if ((MARK_RANK[out[dir]] ?? 0) >= MARK_RANK[mark]) break; // already as serious; so is everything above
+			out[dir] = mark;
+		}
+	}
 	return out;
 }
 
@@ -234,6 +271,7 @@ export default class Files extends View {
 				}
 				if (!this.current(context)) return;
 				this.marks = marks;
+				this.folderMarks = folderMarks(marks, top?.code === 0 ? top.stdout.trim() : null);
 				this.error = null;
 				this.watch(cwd, cx);
 			} catch (e) {
@@ -326,7 +364,7 @@ export default class Files extends View {
 			if (out.length >= TOTAL) break;
 			const path = prefix ? `${prefix}/${entry.name}` : entry.name,
 				open = this.folders.has(path),
-				mark = this.marks[`${this.root}/${path}`];
+				mark = (entry.dir ? this.folderMarks : this.marks)?.[`${this.root}/${path}`];
 			out.push(
 				h_flex()
 					.id(`file-${path}`)
@@ -358,15 +396,22 @@ export default class Files extends View {
 									.flex_none()
 									.text_color(t.muted),
 					)
-					.child(div().flex_1().min_w(0).truncate().child(entry.name))
+					.child(
+						div()
+							.flex_1()
+							.min_w(0)
+							.truncate()
+							.when(Boolean(mark), (el) => el.text_color(markColor(t, mark)))
+							.child(entry.name),
+					)
 					.when(Boolean(mark), (el) =>
 						el.child(
 							div()
 								.text_size(11)
-								.text_color(
-									mark === 'A' ? t.ansi2 : mark === 'D' || mark === 'U' ? t.ansi1 : t.blocked,
-								)
-								.child(mark),
+								.text_color(markColor(t, mark))
+								// A folder's mark stands for everything below it, so
+								// it is a dot rather than one change's letter.
+								.child(entry.dir ? '●' : mark),
 						),
 					),
 			);

@@ -13,9 +13,11 @@ import {
 	nextCommand,
 } from 'herdr';
 
-// Herdr's own tab bar, with one change: the side panel's buttons are the
+// Herdr's own tab bar, with two changes. The side panel's buttons are the
 // children of the layout's `panel-body` stack, not Files and Changes written
-// into the code. A panel is added by putting its block in that stack.
+// into the code: a panel is added by putting its block in that stack. And a
+// tab nobody named shows its agent's title rather than its program's name
+// (see titleOf), so two Claude tabs say what each is about.
 //
 // Label and icon of the panels known here; another child shows its id.
 const PANELS = {
@@ -23,6 +25,21 @@ const PANELS = {
 	changes: { label: 'Changes', icon: 'mods/changes/changes.svg' },
 	harness: { label: 'Harness', icon: 'mods/harness/harness.svg' },
 };
+/**
+ * An agent pane's title without the status glyph Claude Code puts in front
+ * ("✳ Fix login"), or null when it has none worth showing.
+ *
+ * @param {import('herdr').PaneInfo|undefined} pane
+ * @returns {string|null}
+ * @example
+ * titleOf({ title: "✳ Fix login" }) // => "Fix login"
+ */
+function titleOf(pane) {
+	const title = (pane?.title ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+	// Before its first title the terminal shows its program's own name.
+	return title && title !== pane.program?.name && title.toLowerCase() !== 'claude' ? title : null;
+}
+
 // Settings → Look turns these two on and off through `workspace.panels`;
 // panels Herdr does not ship are not in that list and always show.
 const SHIPPED = ['files', 'changes'];
@@ -121,10 +138,16 @@ export default class Tabs extends View {
 				.on_click(action)
 				.child(label);
 		const item = (c, i) => {
-			const program =
-				panes().find((p) => p.tab === c.id && p.program?.agent)?.program ??
-				panes().find((p) => p.tab === c.id)?.program;
-			const name = /^tb\d+$/.test(c.name) ? (program?.name ?? 'Terminal') : c.name;
+			const agent = panes().find((p) => p.tab === c.id && p.program?.agent);
+			const program = agent?.program ?? panes().find((p) => p.tab === c.id)?.program;
+			// A tab nobody named shows what its agent says it is doing (the
+			// terminal title Claude Code keeps current), else its program. A tab
+			// the + menu opened carries its program's name ("Claude Code"),
+			// which says no more than the icon, so it counts as unnamed. Shown,
+			// not written as the tab's name: a name typed by hand still wins, and
+			// the title is followed as it changes.
+			const unnamed = !c.named || c.name === program?.name;
+			const name = unnamed ? (titleOf(agent) ?? program?.name ?? 'Terminal') : c.name;
 			return (
 				h_flex()
 					.id(`tab-${c.id}`)

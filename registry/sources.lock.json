@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-vskVPhO6M2cGu5U23+XfgteC+4h4TwKtAKdecvRbssY=",
+				"hash": "sha256-nzzYoqZlwrsRNR9hUmQKPKe2FmI5W+qSxra/iLCFUkA=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "2f1649cefb82f417abbb2712f5397439d010698e",
+				"revision": "f88c40b7ed7c2344af54b804b440b11169f98906",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/2f1649cefb82f417abbb2712f5397439d010698e.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/f88c40b7ed7c2344af54b804b440b11169f98906.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -171,29 +171,29 @@
 			},
 			"mattpocock": {
 				"branch": "main",
-				"hash": "sha256-3vhd77xfZjKUYJsIwPFevIZPUAzUgZXr0RYj5NQrBwk=",
+				"hash": "sha256-AYSRCvBL8TDDdW3rgKu2T7gl4YYDoDId0jYbabEFyfs=",
 				"repository": {
 					"owner": "mattpocock",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+				"revision": "5863806dd4e15c63174bee4e7515a4256792ecfa",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/mattpocock/skills/archive/4ae2317ddb22b046e26455e4f9c9b3aaaf62212d.tar.gz"
+				"url": "https://github.com/mattpocock/skills/archive/5863806dd4e15c63174bee4e7515a4256792ecfa.tar.gz"
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-mmxJFRHgDc0zpfyrzUZCoA+PPQV9lNlkuJ0xsnkaXLQ=",
+				"hash": "sha256-mJPXPDaQpD4WdXRhrNHViE+a2rkp6XsZL/PlGeT+5P0=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "5866df557357d005b3c0c9d3da0d9e739b4bdde3",
+				"revision": "a5539b15a3d56e04992565aafee2b37051329ce3",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/5866df557357d005b3c0c9d3da0d9e739b4bdde3.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/a5539b15a3d56e04992565aafee2b37051329ce3.tar.gz"
 			}
 		},
 		"version": 8

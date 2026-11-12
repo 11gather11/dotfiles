@@ -36,7 +36,9 @@ CI runners are shared by every worker and may cost money, so push less:
 
 The harness may merge main into your branch on GitHub, so:
 
-- Run `git pull --no-rebase` before every push.
+- Run `git pull --no-rebase --ff` before every push. `--ff` fast-forwards
+  when you have nothing new, where a `merge.ff = false` setting would make
+  an empty merge commit.
 - Keep a pushed branch's history: on a conflict, merge `origin/main` into it;
   rebasing or force-pushing is never needed.
 

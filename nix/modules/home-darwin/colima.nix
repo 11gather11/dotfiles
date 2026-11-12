@@ -65,6 +65,11 @@ in
     enable = true;
     config = {
       ProgramArguments = [ "${stopWhenIdle}/bin/colima-stop-when-idle" ];
+      # colima finds its VM under $XDG_CONFIG_HOME/colima, but an agent can
+      # start before that variable is published to launchd. colima then falls
+      # back to ~/.colima, reports the VM as stopped, and creates that
+      # directory, which every later colima, the shell's too, then prefers.
+      EnvironmentVariables.COLIMA_HOME = "${config.xdg.configHome}/colima";
       StartInterval = checkIntervalSeconds;
       StandardOutPath = "${logDir}/colima-stop-when-idle.log";
       StandardErrorPath = "${logDir}/colima-stop-when-idle.log";

@@ -64,9 +64,6 @@ const LINE_H = 20;
 // Where md-asset puts the images it makes, under the app's folder, as the
 // only place a mod can draw an image from.
 const ASSETS = 'cache/viewer';
-// md-asset renders Mermaid at twice its size, for a sharp image on a Retina
-// screen; it is shown at half its pixels.
-const MERMAID_SCALE = 2;
 // The rendered markdown's side padding (px(28) in render), for the width an
 // image may take.
 const MD_PAD = 56;
@@ -125,11 +122,25 @@ function segments(md) {
 			buf.push(l);
 			continue;
 		}
-		if (open && open[2] === 'mermaid') {
+		if (open && (open[2] === 'mermaid' || open[2] === 'math')) {
 			const body = [];
 			for (i++; i < lines.length && !lines[i].trim().startsWith(open[1]); i++) body.push(lines[i]);
 			flush();
-			out.push({ kind: 'mermaid', code: body.join('\n') });
+			out.push(
+				open[2] === 'mermaid'
+					? { kind: 'mermaid', code: body.join('\n') }
+					: { kind: 'math', tex: body.join('\n') },
+			);
+			continue;
+		}
+		// A display formula: `$$ … $$` on one line, or `$$` lines around it.
+		const oneLine = /^\s*\$\$(.+)\$\$\s*$/.exec(l);
+		if (oneLine || l.trim() === '$$') {
+			const body = [];
+			if (oneLine) body.push(oneLine[1]);
+			else for (i++; i < lines.length && lines[i].trim() !== '$$'; i++) body.push(lines[i]);
+			flush();
+			out.push({ kind: 'math', tex: body.join('\n').trim() });
 			continue;
 		}
 		if (open) {
@@ -137,10 +148,13 @@ function segments(md) {
 			buf.push(l);
 			continue;
 		}
-		const img = /^\s*!\[([^\]]*)\]\(<?([^)\s>]+)>?(?:\s+"[^"]*")?\)\s*$/.exec(l);
-		if (img && !/^[a-z][a-z0-9+.-]*:/i.test(img[2])) {
+		// A picture on a line of its own, linked or not: `![alt](src)` or
+		// `[![alt](src)](href)`, beside the document or at an http(s) URL.
+		const img = /^\s*\[?!\[([^\]]*)\]\(<?([^)\s>]+)>?(?:\s+"[^"]*")?\)(?:\]\([^)]*\))?\s*$/.exec(l);
+		const remote = img && /^https?:\/\//i.test(img[2]);
+		if (img && (remote || !/^[a-z][a-z0-9+.-]*:/i.test(img[2]))) {
 			flush();
-			out.push({ kind: 'image', src: img[2], alt: img[1] });
+			out.push({ kind: 'image', src: img[2], alt: img[1], remote });
 			continue;
 		}
 		buf.push(l);
@@ -161,6 +175,48 @@ function alerts(text) {
 		/^(\s*>\s*)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/gim,
 		(_m, quote, kind) => `${quote}**${ALERTS[kind.toUpperCase()]}**`,
 	);
+}
+
+/**
+ * What the markdown view would show as source on a line of text, put right:
+ * emoji shortcodes (`:tada:`) become the emoji, and an inline formula
+ * (`$x^2$`) becomes inline code, as an image cannot sit inside a line of the
+ * view. Code blocks and code spans are left as they are.
+ *
+ * @param {string} text a text part of the document
+ * @param {Record<string, string>|null} emoji alias => emoji
+ * @returns {string}
+ * @example
+ * inline("Done :tada: when $x > 0$, not `:tada:`", { tada: "🎉" }) // => "Done 🎉 when `x > 0`, not `:tada:`"
+ */
+function inline(text, emoji) {
+	let fence = null;
+	return text
+		.split('\n')
+		.map((line) => {
+			const open = /^\s*(`{3,}|~{3,})/.exec(line);
+			if (fence) {
+				if (line.trim().startsWith(fence)) fence = null;
+				return line;
+			}
+			if (open) {
+				fence = open[1];
+				return line;
+			}
+			// Even pieces lie outside code spans, odd ones inside.
+			return line
+				.split(/(`+[^`]*`+)/)
+				.map((piece, i) =>
+					i % 2
+						? piece
+						: piece
+								// GitHub's rule: no space just inside the dollars, no digit after.
+								.replace(/\$(?=\S)([^$\n]*?\S)\$(?!\d)/g, (_m, tex) => `\`${tex}\``)
+								.replace(/:([a-z0-9_+-]+):/g, (m, alias) => emoji?.[alias] ?? m),
+				)
+				.join('');
+		})
+		.join('\n');
 }
 
 /** `rel` resolved against the folder `dir`, with `.` and `..` folded in. */
@@ -198,6 +254,16 @@ export default class Viewer extends View {
 		// The markdown's parts (see segments) and the images made for them.
 		this.parts = [];
 		this.assets = new Map();
+		this.emoji = null;
+		// Linked by nix/modules/home-darwin/herdr-app.nix; without it the
+		// shortcodes stay as written.
+		cx.spawn(async (cx) => {
+			const text = await readTextFile(`${appHome()}/emoji.json`).catch(() => null);
+			if (text) {
+				this.emoji = JSON.parse(text);
+				cx.notify();
+			}
+		});
 		this.scroll = VirtualListScrollHandle.new();
 		this.reveal = Boolean(this.line);
 		this.load(cx);
@@ -317,7 +383,7 @@ export default class Viewer extends View {
 			);
 	}
 
-	// Makes the image for each Mermaid block and linked picture not made yet,
+	// Makes the image for each Mermaid block, formula and picture not made yet,
 	// one after another, redrawing as each is ready. A part keyed by what it
 	// was made from keeps its image across reloads of the file.
 	makeAssets(cx) {
@@ -325,8 +391,14 @@ export default class Viewer extends View {
 		const wanted = this.parts.filter((p) => p.kind !== 'text');
 		// Keyed before anything is made, so a part whose image exists from an
 		// earlier read shows it at once rather than after the ones before it.
+		const where = (part) => (part.remote ? part.src : resolve(dir, part.src));
 		for (const part of wanted)
-			part.key = part.kind === 'mermaid' ? `m:${part.code}` : `i:${resolve(dir, part.src)}`;
+			part.key =
+				part.kind === 'mermaid'
+					? `m:${part.code}`
+					: part.kind === 'math'
+						? `x:${part.tex}`
+						: `i:${where(part)}`;
 		cx.spawn(async (cx) => {
 			await exec('mkdir', ['-p', `${appHome()}/${ASSETS}`]).catch(() => null);
 			for (const part of wanted) {
@@ -335,30 +407,43 @@ export default class Viewer extends View {
 				this.assets.set(key, { state: 'pending' });
 				cx.notify();
 				try {
-					let args;
+					const fg = theme().foreground;
+					const name = hash(key);
+					// Text a block is drawn from goes to a file md-asset reads,
+					// so no shell quoting stands between the two.
+					const source = async (ext, text) => {
+						const f = `${appHome()}/${ASSETS}/${name}.${ext}`;
+						if ((await readTextFile(f)) === null) await writeTextFile(f, text, null);
+						return f;
+					};
+					let args, file;
 					if (part.kind === 'mermaid') {
-						const name = hash(part.code);
-						const source = `${appHome()}/${ASSETS}/${name}.mmd`;
-						if ((await readTextFile(source)) === null) await writeTextFile(source, part.code, null);
-						args = ['mermaid', source, `${appHome()}/${ASSETS}/${name}.png`];
-						part.path = `${ASSETS}/${name}.png`;
+						file = `${name}.png`;
+						args = ['mermaid', await source('mmd', part.code), `${appHome()}/${ASSETS}/${file}`];
+					} else if (part.kind === 'math') {
+						file = `${name}.png`;
+						args = ['math', await source('tex', part.tex), `${appHome()}/${ASSETS}/${file}`, fg];
+					} else if (part.remote) {
+						file = `${name}.png`;
+						args = ['url', part.src, `${appHome()}/${ASSETS}/${file}`, fg];
 					} else {
-						const src = resolve(dir, part.src);
-						const svg = isSvg(src);
-						const name = `${hash(src)}.${svg ? 'png' : extOf(src)}`;
-						const out = `${appHome()}/${ASSETS}/${name}`;
-						// An SVG at twice its own size, shown at half: sharp, and
-						// as large as the document drew it.
-						args = svg ? ['svg', src, out, theme().foreground] : ['image', src, out];
-						part.path = `${ASSETS}/${name}`;
-						part.scale = svg ? 2 : 1;
+						const src = where(part);
+						file = `${name}.${isSvg(src) ? 'png' : extOf(src)}`;
+						args = isSvg(src)
+							? ['svg', src, `${appHome()}/${ASSETS}/${file}`, fg]
+							: ['image', src, `${appHome()}/${ASSETS}/${file}`];
 					}
 					const r = await exec('md-asset', args, { timeout: 60000 });
-					const [w, h] = r.stdout.trim().split(' ').map(Number);
+					// Its size in pixels, and the pixels it drew per point.
+					const [w, h, scale] = r.stdout.trim().split(' ').map(Number);
 					if (r.code !== 0 || !w || !h)
 						throw new Error(r.stderr.trim().split('\n').pop() || 'no image');
-					const scale = part.kind === 'mermaid' ? MERMAID_SCALE : part.scale;
-					this.assets.set(key, { state: 'ready', path: part.path, w: w / scale, h: h / scale });
+					this.assets.set(key, {
+						state: 'ready',
+						path: `${ASSETS}/${file}`,
+						w: w / (scale || 1),
+						h: h / (scale || 1),
+					});
 				} catch (e) {
 					this.assets.set(key, { state: 'error', error: String(e.message ?? e) });
 				}
@@ -370,7 +455,7 @@ export default class Viewer extends View {
 	// One part of the rendered markdown: the markdown view's own drawing for
 	// text, an image for the rest once it is made, its source until then.
 	part(t, p, i) {
-		if (p.kind === 'text') return TextView.markdown(`viewer-md-${i}`, p.text);
+		if (p.kind === 'text') return TextView.markdown(`viewer-md-${i}`, inline(p.text, this.emoji));
 		const a = this.assets.get(p.key);
 		if (a?.state === 'ready') {
 			// Never wider than the view: scaled down, never up.
@@ -397,7 +482,11 @@ export default class Viewer extends View {
 			.child(
 				TextView.markdown(
 					`viewer-src-${i}`,
-					p.kind === 'mermaid' ? '```mermaid\n' + p.code + '\n```' : `![${p.alt}](${p.src})`,
+					p.kind === 'mermaid'
+						? '```mermaid\n' + p.code + '\n```'
+						: p.kind === 'math'
+							? '```math\n' + p.tex + '\n```'
+							: `![${p.alt}](${p.src})`,
 				),
 			);
 	}

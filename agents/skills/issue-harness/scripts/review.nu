@@ -46,7 +46,12 @@ def review [issues: list<int>, base]: nothing -> record {
     let fixed = $"origin/($base)"
     let head = ^git rev-parse HEAD | str trim
     if (^git diff --quiet $"($fixed)...HEAD" | complete).exit_code == 0 {
-        error make {msg: $"nothing to review: HEAD has no changes against ($fixed)"}
+        # The usual way to get here is to run it from the main checkout,
+        # which sits on the base, rather than from the work's worktree
+        let where = if ($dir | path expand) == ($repo | path expand) {
+            "; this is the main checkout: run it from the worktree of the branch to review (a spec's integration worktree)"
+        } else { "" }
+        error make {msg: $"nothing to review: HEAD has no changes against ($fixed)($where)"}
     }
 
     let out_dir = state-dir $repo | path join reviews

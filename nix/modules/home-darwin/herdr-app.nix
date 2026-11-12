@@ -141,6 +141,37 @@ let
     '';
   };
 
+  # Starts the harness's Claude with Remote Control, so the Claude app on the
+  # phone can talk to it: ask how the workers are doing, hand it an issue,
+  # answer what it brings to the person. Only the harness is reachable; the
+  # workers stay local and are reached through it, so the phone's session list
+  # holds one session per repository rather than one per worker.
+  #
+  # Named after the repository, which is what tells two harnesses apart in that
+  # list. Words after `harness` become the opening request to /issue-harness.
+  harness = pkgs.writeShellApplication {
+    name = "harness";
+    runtimeInputs = [ pkgs.git ];
+    #
+    # In a herdr-core terminal it labels the terminal harness=<repository>
+    # while it runs, which is how the Harness panel tells a running harness
+    # from any other Claude (its Open button), whatever started it: the
+    # terminal's own command is the shell when `harness` is typed into one.
+    text = ''
+      root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+      repo=$(basename "$root")
+      if [ -n "''${HC_TERMINAL_ID:-}" ]; then
+        hc label "$HC_TERMINAL_ID" "harness=$root" >/dev/null 2>&1 || true
+        trap 'hc label "$HC_TERMINAL_ID" "harness=" >/dev/null 2>&1 || true' EXIT
+      fi
+      if [ $# -gt 0 ]; then
+        claude --remote-control "$repo harness" "/issue-harness $*"
+      else
+        claude --remote-control "$repo harness"
+      fi
+    '';
+  };
+
   # Copies herdr-app/ from the working tree into the app's folder, which the
   # app redraws from as files there change. Run by every switch, and by hand
   # to try an edit in the window at once.
@@ -320,6 +351,7 @@ in
   home.packages = [
     herdrCore
     claudeResume
+    harness
     harnessStatus
     herdrAppSync
     mdAsset

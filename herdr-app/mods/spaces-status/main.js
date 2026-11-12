@@ -1,6 +1,6 @@
 // Workspace spaces: worktrees under their checkout, grouped by machine when
 // more than one is known. After a space's name, the repo its first terminal is
-// in now, only where unusual: branch, ahead/behind. Click to switch, right-click
+// in now where it differs from the name, its branch, and ahead/behind. Click to switch, right-click
 // for its menu, drag to reorder.
 
 // Herdr's `spaces` mod with two changes. Every row says what its agents are
@@ -644,13 +644,15 @@ export default class Spaces extends View {
 		});
 	}
 
-	// Only what's unusual, after the name: "herdr \u00b7 spike \u21912 \u21931". The repo or
-	// branch goes when the name already says it (a worktree is named after its branch),
-	// and master/main go: nearly every space is on one.
+	// After the name: "herdr \u00b7 main \u21912 \u21931". The branch shows always, main
+	// too, as the herdr TUI shows it: which branch a space is on is what is checked
+	// before acting in it, and a missing one read as unknown rather than main. The
+	// repo or branch goes only when the name already says it (a worktree is named
+	// after its branch).
 	gitTail(g, tree, name, t) {
 		const raw = g.branch ?? 'detached';
 		const same = (a) => a.toLowerCase() === name.toLowerCase();
-		const branch = same(raw) || raw === 'master' || raw === 'main' ? '' : raw;
+		const branch = same(raw) ? '' : raw;
 		const repo = tree || same(g.name) ? '' : g.name;
 		const where = [repo, branch].filter(Boolean).join(' \u00b7 ');
 		return h_flex()

@@ -24,20 +24,31 @@ const prompt_timeout = 30sec
 # What a worker writes, at the start of a line, when it judges a CI failure
 # not its PR's. The queue reads it rather than guessing from free text.
 const not_this_pr_mark = "NOT-THIS-PR:"
+# What a worker puts at the top of the PR body's section listing what the
+# author has to verify before it lands (worker-brief.md). A fixed comment,
+# because each repository titles that section in its own language.
+const needs_author_mark = "<!-- needs-author -->"
+
+# Show the queue. Running it takes `run`: a bare `queue.nu` used to start a
+# second runner when all that was wanted was a look.
+def main [] {
+    main list
+}
 
 # Run the queue until every PR has landed or the harness is needed.
 #
 # Prints one JSON line last: `{result, pr, agent, sha, detail, next, landed}`,
 # `landed` being the PR numbers this run landed (queue-state.json keeps the
-# rest). `result` is `done` when the queue is empty, otherwise what stopped it
+# rest). `result` is `done` when the queue is empty, `running` when another
+# runner already holds this repository's queue, otherwise what stopped it
 # (`blocked`, `no-progress`, `flaky`, `ci-failed` …, or `timeout`).
 # Exit status: 0 done; 2 the harness has to act; 1 error.
 #
 # @example
 # queue.nu add 1189 1190
-# queue.nu                # in the background; wakes the harness when needed
-# queue.nu --dry-run      # one pass: what each PR would get, changing nothing
-def main [
+# queue.nu run            # in the background; wakes the harness when needed
+# queue.nu run --dry-run  # one pass: what each PR would get, changing nothing
+def "main run" [
     --dry-run                     # one pass that reports and changes nothing
     --interval: duration = 90sec  # pause between passes
     --timeout: duration = 3hr     # return `timeout` after this, to be run again
@@ -45,8 +56,24 @@ def main [
     let repo = main-checkout
     cd $repo
     let out = try {
-        if $dry_run { dry-run $repo } else { run-queue $repo $interval $timeout }
-    } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run queue.nu again"} }
+        if $dry_run {
+            dry-run $repo
+        } else {
+            let holder = take-lock $repo
+            if $holder != null {
+                {
+                    result: running
+                    pid: $holder.pid
+                    detail: $"another runner \(pid ($holder.pid), since ($holder.at)\) holds this queue"
+                    next: "wait on that runner, or stop it before starting another; `queue.nu add` reaches it while it runs"
+                }
+            } else {
+                let r = try { run-queue $repo $interval $timeout } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run queue.nu run again"} }
+                rm -f (lock-file $repo)
+                $r
+            }
+        }
+    } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run queue.nu run again"} }
     $out | to json --raw | print
     exit (match $out.result {
         done | dry-run => 0
@@ -56,11 +83,28 @@ def main [
 }
 
 # Queue PRs after the harness has read them: no spec decision left open, and
-# deferred work filed as issues.
-def "main add" [...prs: int] {
+# deferred work filed as issues. A PR whose body marks something for the
+# author to verify (`needs_author_mark`) is refused unless `--verified` says
+# they have: the queue lands what it holds, so holding it is the decision.
+def "main add" [
+    ...prs: int
+    --verified  # the author has verified what those PRs ask them to
+] {
     let repo = main-checkout
     let st = load-state $repo
     let q = load-queue $repo
+    let waiting = if $verified { [] } else {
+        $prs | where {|n| needs-author $n }
+    }
+    if ($waiting | is-not-empty) {
+        {
+            result: needs-author
+            prs: $waiting
+            detail: $"the PR body of ($waiting | each { $'#($in)' } | str join ', ') asks the author to verify something"
+            next: "have the author verify it, then `queue.nu add --verified` those PRs; nothing was queued"
+        } | to json --raw | print
+        exit 2
+    }
     let added = $prs | where $it not-in $st.dropped
     # Which multiplexer's harness queued each PR, so a view of one harness
     # (herdr-app's panel) leaves out the other's queue and landings.
@@ -153,6 +197,45 @@ def load-state [repo: string]: nothing -> record {
 def save-state [repo: string, st: record] {
     mkdir (state-dir $repo)
     $st | to json | save --force (state-file $repo)
+}
+
+# ── one runner per queue ──
+# Two runners on one queue.json land the same PRs side by side and ask the
+# same workers twice. The lock names its runner's pid; a runner killed without
+# removing it (out of memory, a closed session) leaves a pid that is gone or
+# no longer a queue.nu, and the next runner takes the lock over.
+
+def lock-file [repo: string]: nothing -> string {
+    state-dir $repo | path join queue.lock
+}
+
+# Takes the lock and returns null, or returns the live runner holding it.
+def take-lock [repo: string]: nothing -> oneof<record, nothing> {
+    let f = lock-file $repo
+    if ($f | path exists) {
+        let held = try {
+            open $f | from json
+        } catch { null }
+        if $held != null and (runner-alive $held.pid) { return $held }
+    }
+    mkdir (state-dir $repo)
+    {
+        pid: $nu.pid
+        at: (date now | format date "%+")
+    } | to json --raw | save --force $f
+    null
+}
+
+def runner-alive [pid: int]: nothing -> bool {
+    let r = ^ps -p ($pid | into string) -o command= | complete
+    $r.exit_code == 0 and ($r.stdout | str contains "queue.nu")
+}
+
+# Whether the PR body carries `needs_author_mark`.
+def needs-author [pr: int]: nothing -> bool {
+    let r = ^gh pr view $pr --json body --jq .body | complete
+    if $r.exit_code != 0 { error make {msg: $"gh pr view ($pr): ($r.stderr | str trim)"} }
+    $r.stdout | str contains $needs_author_mark
 }
 
 # ── reading GitHub and the workers ──
@@ -415,7 +498,7 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
                                 agent: $item.worker
                                 sha: $sha
                                 detail: $"gh run rerun ($run) --failed: ($r.stderr | str trim)"
-                                next: "rerun it by hand or bring it to the user, then run queue.nu again"
+                                next: "rerun it by hand or bring it to the user, then run `queue.nu run` again"
                                 landed: $landed
                             }
                         }
@@ -439,7 +522,7 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
                             {
                                 pr: $to_land.pr
                                 sha: $r.sha
-                                at: (date now | format date "%+")
+                                at: (date now | format date "%+"), 
                                 mux: ((load-queue $repo).mux | get -o ($to_land.pr | into string) | default "herdr")
                             }
                             | merge ($r | select -o optional_failed cleanup_error)
@@ -462,7 +545,7 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
             return {
                 result: timeout
                 detail: $"still running after ($timeout)"
-                next: "run queue.nu again"
+                next: "run `queue.nu run` again"
                 landed: $landed
             }
         }

@@ -23,3 +23,18 @@ open, so drafts no longer save CI.
   `ready_for_review` among the triggers), have a worker revert it: a required
   check skipped on a draft reads as passed once the PR is readied.
 - `rm ~/.local/state/harness/<repo>/draft-prs`
+
+## 2026-11-13-queue-run Running the queue takes `queue.nu run`
+
+A bare `queue.nu` now only lists the queue, and one runner holds a
+repository's queue at a time. PR bodies mark what the author has to verify
+with `<!-- needs-author -->`, which `queue.nu add` refuses without
+`--verified`.
+
+- If a queue runner from before this change is still running in the
+  background, stop it and start `queue.nu run` instead.
+- Read the PRs already queued (`queue.nu list`) and every open worker PR: one
+  that asks the author to verify something but has no `<!-- needs-author -->`
+  is taken off the queue (`queue.nu remove <n>`) until the author has.
+- Tell each running worker that has not opened its PR yet about the marker
+  (the brief they started with does not have it).

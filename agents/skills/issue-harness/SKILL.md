@@ -121,20 +121,25 @@ Before a PR goes in the queue, check what no script can judge:
 - Its "Deferred" section holds only work outside the issue (what the worker
   can still do in this PR goes back to it), each item filed as an issue or a
   comment on the one that owns it: workers cannot write issues.
+- What its "for the author to verify" section (marked `<!-- needs-author -->`)
+  asks has been verified by the author. `add` refuses such a PR with
+  `needs-author` until you pass `--verified`, which you do only once they have.
 
 Then queue it and keep the queue running in the background:
 
 ```bash
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/queue.nu add 312 318
-nix shell nixpkgs#nushell --command <skill-dir>/scripts/queue.nu
+nix shell nixpkgs#nushell --command <skill-dir>/scripts/queue.nu run
 ```
 
 `add` works while the queue runs. It lands one PR at a time, and returns
 `done` when it is empty; otherwise `result` names what stopped it and `next`
-what to do. How it orders PRs, and the results that need your judgement
+what to do. One runner holds a repository's queue: a second `run` returns
+`running` with the first one's pid, and a bare `queue.nu` only lists the
+queue. How it orders PRs, and the results that need your judgement
 (`blocked`, `no-progress`, `flaky`, the limits, `optional-failed`), are in
 [`references/landing.md`](references/landing.md); read it the first time the
-queue stops on one. `queue.nu --dry-run` shows what each PR would get,
+queue stops on one. `queue.nu run --dry-run` shows what each PR would get,
 changing nothing. Landing by hand, `no-land` and stacked PRs are there too.
 
 Done when every queued PR has landed, or its case is with the user.

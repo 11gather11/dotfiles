@@ -97,7 +97,7 @@ def decide-one [it: record, head_taken: bool, history: list<record>]: nothing ->
                 $halt
                 blocked
                 $"($it.worker) waits on a permission prompt or a dialog"
-                "answer it per triage.md, then run queue.nu again"
+                "answer it per triage.md, then run `queue.nu run` again"
             )
         )
     }
@@ -262,7 +262,7 @@ def not-this-pr [it: record, said: string, history: list<record>]: nothing -> re
     $rerun | merge {stop: {
         result: flaky
         detail: $"($names) also failed on other PRs, each judged not that PR's: ($seen). This PR's worker: ($said)"
-        next: $"($file). The failed jobs were rerun once; run queue.nu again"
+        next: $"($file). The failed jobs were rerun once; run `queue.nu run` again"
         checks: $checks
         runs: $runs
     }}

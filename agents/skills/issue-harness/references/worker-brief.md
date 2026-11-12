@@ -55,6 +55,10 @@ When you finish:
   in the background (it takes minutes). Fix what is this PR's to fix. Then run
   `codex-review-run --base <base branch>`: `gh pr create` refuses a commit it
   has not covered, so run it last, after your final commit.
+- If the author has to verify something before it lands (on screen, on real
+  hardware, in production), list it in its own section of the PR body and put
+  `<!-- needs-author -->` on the line below its heading: the harness's queue
+  will not take the PR until the author has.
 - Open the PR with `Closes #<issue>` and stop there, without waiting for CI,
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that

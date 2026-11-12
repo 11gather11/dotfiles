@@ -15,3 +15,11 @@ result
 # Skills Claude Code syncs down from the claude.ai account. claude/ is linked to
 # ~/.config/claude, so they would land in this public tree; the account owns them.
 claude/skills/synced/
+
+# Type files for writing mods, which herdr-app (gpui-shell) writes into a mod
+# folder to match the running release. herdr-app-sync copies the mods out of
+# this repository rather than linking them, yet these still turned up here
+# once without a cause found, and treefmt fails on gpui-kit.d.ts.
+herdr-app/mods/*/gpui-kit.d.ts
+herdr-app/mods/*/herdr.d.ts
+herdr-app/mods/*/jsconfig.json

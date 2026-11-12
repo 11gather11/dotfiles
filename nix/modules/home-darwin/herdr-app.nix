@@ -57,6 +57,45 @@ let
     '';
   };
 
+  # herdr-core with Claude Code's per-session variables removed from what it
+  # is started with. Whatever first runs `hc` starts the core when none is
+  # running, and the core hands its own environment to every terminal it
+  # opens, for as long as it runs (`hc run` does not pass the caller's). A core
+  # first started from a Claude Code Bash call therefore gave every later tab
+  # and worker that session's identity: CLAUDE_CODE_CHILD_SESSION, which makes
+  # each Claude started there skip saving its transcript, CLAUDECODE, the
+  # session's id and its messaging socket and token. Removed for every call,
+  # since one that does not start the core passes none of it on anyway.
+  herdrCore = pkgs.symlinkJoin {
+    name = "herdr-core-${pkgs.llm-agents.herdr-core.version}";
+    paths = [ pkgs.llm-agents.herdr-core ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild =
+      let
+        unset = lib.concatMapStringsSep " " (v: "--unset ${v}") [
+          "CLAUDECODE"
+          "CLAUDE_CODE_CHILD_SESSION"
+          "CLAUDE_CODE_ENTRYPOINT"
+          "CLAUDE_CODE_EXECPATH"
+          "CLAUDE_CODE_MESSAGING_SOCKET"
+          "CLAUDE_CODE_MESSAGING_TOKEN"
+          "CLAUDE_CODE_SESSION_ATTENDED"
+          "CLAUDE_CODE_SESSION_ID"
+          "CLAUDE_EFFORT"
+          "CLAUDE_PID"
+        ];
+      in
+      # Each wrapper runs the package's own file rather than a renamed copy
+      # (wrapProgram's .hc-wrapped): hc reads its name from the path it runs
+      # from, and its help would otherwise call it `.hc-wrapped`.
+      ''
+        for bin in hc herdr-core; do
+          rm "$out/bin/$bin"
+          makeWrapper "${pkgs.llm-agents.herdr-core}/bin/$bin" "$out/bin/$bin" ${unset}
+        done
+      '';
+  };
+
   # Copies herdr-app/ from the working tree into the app's folder, which the
   # app redraws from as files there change. Run by every switch, and by hand
   # to try an edit in the window at once.
@@ -234,7 +273,7 @@ in
   # runs. The app finds it on PATH; without it the app offers to curl an
   # installer into ~/.local/bin, outside this configuration.
   home.packages = [
-    pkgs.llm-agents.herdr-core
+    herdrCore
     harnessStatus
     herdrAppSync
     mdAsset

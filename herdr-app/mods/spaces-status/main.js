@@ -27,6 +27,7 @@ import {
 	layout,
 	settings,
 } from 'herdr';
+import { SIZE, SPACE, TEXT, RADIUS, dot } from './lib/ui.js';
 
 function find(node, id) {
 	if (node?.id === id) return node;
@@ -84,12 +85,7 @@ export function tone(t, status) {
  * statusMark(theme(), "working") // a filled dot in the working color
  */
 function statusMark(t, status) {
-	if (status === 'working') return div().size(8).flex_none().rounded(4).bg(t.working);
-	if (status === 'blocked' || status === 'done')
-		return div().size(8).flex_none().rounded(4).bg(tone(t, status));
-	if (status === 'idle')
-		return div().size(8).flex_none().rounded(4).border_1().border_color(t.idle);
-	return null;
+	return status ? dot(t, status) : null;
 }
 
 export default class Spaces extends View {
@@ -414,12 +410,12 @@ export default class Spaces extends View {
 		const loadingRow = (m) =>
 			h_flex()
 				.id(`machine-loading-${m ?? 'local'}`)
-				.h(24)
+				.h(SIZE.row)
 				.flex_none()
 				.px(collapsed ? 0 : 8)
 				.items_center()
 				.when(collapsed, (el) => el.justify_center())
-				.text_size(12)
+				.text_size(TEXT.ui)
 				.text_color(t.dim)
 				.child(collapsed ? '…' : 'Loading…');
 		if (!remote.length) return loading(null) && !rows.length ? [loadingRow(null)] : rows.map(draw);
@@ -440,25 +436,25 @@ export default class Spaces extends View {
 				.right(-3)
 				.bottom(-2)
 				.size(6)
-				.rounded(3)
+				.rounded(RADIUS.control)
 				.border_1()
 				.border_color(t.chrome)
 				.bg(connected ? t.ansi2 : t.dim);
 			const head = h_flex()
 				.id(`machine-${m ?? 'local'}`)
-				.h(26)
+				.h(SIZE.row)
 				.flex_none()
 				.px(collapsed ? 0 : 8)
-				.gap(7)
+				.gap(SPACE.sm)
 				.items_center()
-				.text_size(11)
+				.text_size(TEXT.meta)
 				.text_color(t.dim)
 				.when(collapsed, (el) =>
 					el
 						.mt(4)
 						.w(RAIL_CELL)
 						.justify_center()
-						.rounded(6)
+						.rounded(RADIUS.control)
 						.tooltip(
 							login
 								? `${m} needs a login: run ${login}. Click for Copy.`
@@ -507,7 +503,7 @@ export default class Spaces extends View {
 							el.child(
 								h_flex()
 									.flex_none()
-									.gap(3)
+									.gap(SPACE.xs)
 									.items_center()
 									.child(
 										div()
@@ -538,7 +534,7 @@ export default class Spaces extends View {
 									.id(`machine-add-${m ?? 'local'}`)
 									.flex_none()
 									.px(4)
-									.rounded(4)
+									.rounded(RADIUS.control)
 									.hover((s) => s.bg(t.hover).text_color(t.foreground))
 									.on_click((_e, cx) => {
 										cx.stop_propagation();
@@ -550,7 +546,7 @@ export default class Spaces extends View {
 						.child(
 							div()
 								.size(6)
-								.rounded(3)
+								.rounded(RADIUS.control)
 								.flex_none()
 								.bg(connected ? t.ansi2 : t.dim),
 						)
@@ -562,26 +558,26 @@ export default class Spaces extends View {
 				);
 			const empty = h_flex()
 				.id(`machine-new-${m ?? 'local'}`)
-				.h(24)
+				.h(SIZE.row)
 				.flex_none()
 				.px(collapsed ? 0 : 8)
-				.gap(7)
+				.gap(SPACE.sm)
 				.items_center()
-				.rounded(7)
-				.text_size(12)
+				.rounded(RADIUS.control)
+				.text_size(TEXT.ui)
 				.text_color(t.dim)
 				.hover((s) => s.bg(t.hover).text_color(t.foreground))
 				.on_click(() => run('space.new', { machine: m ?? '' }))
 				.when(collapsed, (el) =>
 					el
 						.w(RAIL_CELL)
-						.rounded(6)
+						.rounded(RADIUS.control)
 						.justify_center()
 						.tooltip(`New space on ${m ?? 'this computer'}`)
 						.child(
 							h_flex()
 								.size(18)
-								.rounded(5)
+								.rounded(RADIUS.control)
 								.border_1()
 								.border_color(t.dim)
 								.items_center()
@@ -600,12 +596,12 @@ export default class Spaces extends View {
 							v_flex()
 								.px(8)
 								.pb(6)
-								.gap(3)
+								.gap(SPACE.xs)
 								.flex_none()
-								.child(div().text_size(11).text_color(t.blocked).child('needs a login: run'))
+								.child(div().text_size(TEXT.meta).text_color(t.blocked).child('needs a login: run'))
 								.child(
 									h_flex()
-										.gap(5)
+										.gap(SPACE.sm)
 										.items_center()
 										.child(
 											div()
@@ -613,7 +609,7 @@ export default class Spaces extends View {
 												.min_w(0)
 												.truncate()
 												.tooltip(login)
-												.text_size(11)
+												.text_size(TEXT.meta)
 												.text_color(t.muted)
 												.child(login),
 										)
@@ -623,8 +619,8 @@ export default class Spaces extends View {
 												.flex_none()
 												.px(5)
 												.py(2)
-												.rounded(4)
-												.text_size(11)
+												.rounded(RADIUS.control)
+												.text_size(TEXT.meta)
 												.text_color(t.foreground)
 												.bg(t.raised)
 												.cursor_pointer()
@@ -666,10 +662,10 @@ export default class Spaces extends View {
 		return h_flex()
 			.flex_1()
 			.min_w(0)
-			.gap(5)
+			.gap(SPACE.sm)
 			.justify_end()
 			.items_center()
-			.text_size(11.5)
+			.text_size(TEXT.meta)
 			.text_color(t.dim)
 			.when(Boolean(where), (el) => el.child(div().min_w(0).truncate().child(where)))
 			.when(g.ahead > 0, (el) =>
@@ -690,7 +686,7 @@ export default class Spaces extends View {
 			.h(rowHeight({ tree }))
 			.flex_none()
 			.justify_center()
-			.rounded(8)
+			.rounded(RADIUS.control)
 			.when(on, (el) => el.bg(t.selected))
 			.when(!on, (el) => el.hover((s) => s.bg(t.hover)))
 			.when(this.pressed === w.id && this.over !== w.id, (el) => el.opacity(0.5))
@@ -756,8 +752,8 @@ export default class Spaces extends View {
 				.id(`space-${w.id}`)
 				.relative()
 				.w(RAIL_CELL)
-				.h(26)
-				.rounded(6)
+				.h(SIZE.row)
+				.rounded(RADIUS.control)
 				.justify_center()
 				.items_center()
 				.when(w.active, (el) => el.bg(t.selected))
@@ -793,7 +789,7 @@ export default class Spaces extends View {
 			.size_full()
 			.min_h(0)
 			.bg(t.chrome)
-			.text_size(13)
+			.text_size(TEXT.body)
 			.child(
 				h_flex()
 					.h(31)
@@ -801,7 +797,7 @@ export default class Spaces extends View {
 					.pr(10)
 					.items_center()
 					.justify_between()
-					.text_size(11.5)
+					.text_size(TEXT.meta)
 					.text_color(t.dim)
 					.when(collapsed, (el) => el.pl(0).pr(0).justify_center())
 					.when(!collapsed, (el) => el.child('Spaces'))
@@ -813,7 +809,7 @@ export default class Spaces extends View {
 							.flex()
 							.items_center()
 							.justify_center()
-							.rounded(6)
+							.rounded(RADIUS.control)
 							.hover((s) => s.bg(t.hover).text_color(t.foreground))
 							.on_click(() => run('space.new'))
 							.child(svg('mods/workspace-chrome/plus.svg').size(14)),

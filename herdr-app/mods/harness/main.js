@@ -3,22 +3,30 @@
 //
 // Every verdict (blocked, queued, ready) comes from `harness-status`, which is
 // issue-harness's own status.nu; this file only draws it.
-import { View, div, svg } from 'gpui-kit';
+import { View, div } from 'gpui-kit';
 import { v_flex, h_flex, Scrollbar } from 'gpui-base';
-import { spaces, panes, focused, exec, theme, notify, terminals, run } from 'herdr';
+import {
+	SPACE,
+	TEXT,
+	RADIUS,
+	bar,
+	spacer,
+	button,
+	badge,
+	chip,
+	dot,
+	row,
+	heading,
+} from './lib/ui.js';
+import { spaces, panes, exec, hc, theme, notify, terminals, run } from 'herdr';
+import { focusedFolder } from './lib/focus.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
 const POLL_MS = 30000;
-const SPINNER = 'mods/workspace-chrome/spinner.svg';
 
-/** The folder of the focused pane, else of the active space. */
-function folder() {
-	const space = spaces().find((s) => s.active),
-		f = focused();
-	const pane = f?.pane ? panes().find((p) => p.pane === f.pane) : null;
-	return pane?.cwd || f?.cwd || space?.folder || null;
-}
+// The repository shown is the one being worked in (lib/focus.js).
+const folder = focusedFolder;
 
 /** "3m", "2h", "4d" since an RFC 3339 time. */
 function ago(at) {
@@ -36,48 +44,61 @@ export default class Harness extends View {
 	init(_props, cx) {
 		this.snap = null;
 		this.error = null;
-		this.loading = false;
+		// The last snapshot of each repository, shown on coming back to it.
+		this.cache = new Map();
+		this.reading = new Set(); // repositories being read now
+		this.harnesses = new Map(); // repository => its running harness's terminal
 		this.dir = null;
 		this.seen = null;
 		this.refresh(cx);
 		cx.timer.every(POLL_MS, (cx) => this.refresh(cx));
 	}
 
+	// Reads the repository's harness again. Safe from render: it only starts
+	// the read, and the read redraws when it lands.
 	refresh(cx) {
 		const dir = folder();
 		if (dir !== this.dir) {
-			// Another repository: drop what was shown, and do not announce its
-			// existing attention entries as new.
+			// Another repository: show what it showed last at once, and read it
+			// again behind that; its attention entries seen then stay seen.
 			this.dir = dir;
-			this.snap = null;
+			this.snap = this.cache.get(dir)?.snap ?? null;
+			this.seen = this.cache.get(dir)?.seen ?? null;
 			this.error = null;
-			this.seen = null;
 		}
-		if (!dir || this.loading) return;
-		this.loading = true;
+		// One read per repository at a time; a read for another repository
+		// still running does not hold this one up.
+		if (!dir || this.reading.has(dir)) return;
+		this.reading.add(dir);
 		cx.spawn(async (cx) => {
 			try {
 				// The workers in this app's terminals; a harness run from the herdr TUI
 				// keeps its own there.
 				const r = await exec('harness-status', ['--dir', dir, '--mux', 'hc']);
-				if (this.dir !== dir) return;
 				const line = r.stdout.trim().split('\n').pop();
 				if (r.code !== 0 || !line) {
-					this.error =
-						(r.stderr || r.stdout).trim().split('\n').pop() || `harness-status exited ${r.code}`;
+					if (this.dir === dir)
+						this.error =
+							(r.stderr || r.stdout).trim().split('\n').pop() || `harness-status exited ${r.code}`;
 					return;
 				}
-				this.snap = JSON.parse(line);
+				const snap = JSON.parse(line);
+				await this.findHarness(snap.repo);
+				if (this.dir !== dir) {
+					this.cache.set(dir, { snap, seen: this.cache.get(dir)?.seen ?? null });
+					return;
+				}
+				this.snap = snap;
 				this.error = null;
-				this.announce(this.snap.attention);
+				this.announce(snap.attention);
+				this.cache.set(dir, { snap, seen: this.seen });
 			} catch (e) {
 				if (this.dir === dir) this.error = String(e);
 			} finally {
-				this.loading = false;
+				this.reading.delete(dir);
 				cx.notify();
 			}
 		});
-		cx.notify();
 	}
 
 	// A worker that newly needs the person is worth a notification even when
@@ -110,165 +131,158 @@ export default class Harness extends View {
 		if (address) run('terminal.peek', { terminal: address });
 	}
 
+	// The harness's own Claude in this repository: the terminal the
+	// `harness` command (herdr-app.nix) labelled harness=<repository>, with
+	// Claude in front still. Read with each refresh (see findHarness).
+	harnessTerminal(repo) {
+		return this.harnesses.get(repo) ?? null;
+	}
+
+	async findHarness(repo) {
+		const r = await hc(['ls', '--json', '--label', `harness=${repo}`]).catch(() => null);
+		const list = r?.code === 0 ? JSON.parse(r.stdout) : [];
+		const live = (Array.isArray(list) ? list : (list.terminals ?? [])).find(
+			(x) => x.agent === 'claude-code',
+		);
+		if (live) this.harnesses.set(repo, { address: live.address });
+		else this.harnesses.delete(repo);
+	}
+
+	// Goes to the harness when one runs, else starts one in the repository's
+	// own space: the one with a terminal in the main checkout, the active one
+	// first. A worker's space (its folder a worktree beside the checkout,
+	// `<repo>.<branch>`) never counts, though the panel shows the repository
+	// from there too, and without such a space it gets a new one. Through a
+	// login shell, as spawn.nu starts workers: the core's environment is the
+	// one it started with, and the shell's profile is what puts claude and
+	// harness on PATH whatever that was.
+	startOrOpen(repo, cx) {
+		const running = this.harnessTerminal(repo);
+		if (running) {
+			run('agent.focus', { terminal: running.address });
+			return;
+		}
+		const argv = ['/bin/sh', '-c', 'exec "$SHELL" -l -c "exec harness"'];
+		const inRepo = new Set(
+			panes()
+				.filter((p) => p.cwd === repo)
+				.map((p) => p.tab),
+		);
+		const home = spaces()
+			.filter((s) => !s.machine && !s.folder.startsWith(`${repo}.`))
+			.filter((s) => s.tabs.some((tab) => inRepo.has(tab.id)))
+			.sort((a, b) => Number(b.active) - Number(a.active))[0];
+		if (home) run('tab.new', { name: 'harness', space: home.id, folder: repo, argv });
+		else run('space.new', { folder: repo, tab: 'harness', argv });
+		// Open replaces Start once the new harness has labelled its terminal.
+		cx.timer.after(4000, (cx) => this.refresh(cx));
+	}
+
 	// ── pieces ──
 
 	// An empty section is its heading alone, dimmed: a line saying "none" under
 	// every one of them took more room than everything else in a quiet panel.
-	section(t, title, count, body) {
+	section(t, name, count, body) {
 		return v_flex()
-			.gap(4)
 			.flex_none()
-			.child(
-				h_flex()
-					.gap(6)
-					.items_center()
-					.px(4)
-					.child(
-						div()
-							.text_size(11)
-							.font_semibold()
-							.text_color(body === null ? t.dim : t.muted)
-							.child(title.toUpperCase()),
-					)
-					.when(count !== null, (e) =>
-						e.child(div().text_size(10).text_color(t.dim).child(String(count))),
-					),
-			)
+			.child(heading(t, name, count))
 			.when(body !== null, (e) => e.child(body));
 	}
 
 	empty(t, text) {
-		return div().px(8).py(2).text_size(12).text_color(t.dim).child(text);
+		return div().px(SPACE.sm).py(SPACE.xs).text_size(TEXT.ui).text_color(t.dim).child(text);
 	}
 
+	// A pull request and its CI, which opens the PR.
 	ci(t, pr) {
 		if (!pr) return div();
 		const color =
 			{ passing: t.ansi2, failing: t.ansi1, pending: t.blocked, none: t.dim }[pr.ci] ?? t.dim;
-		return h_flex()
-			.id(`pr-${pr.number}`)
-			.gap(4)
-			.items_center()
-			.flex_none()
-			.px(5)
-			.py(1)
-			.rounded(4)
-			.border_1()
-			.border_color(t.border)
-			.cursor_pointer()
-			.hover((s) => s.bg(t.hover))
-			.on_click((_e, cx) => {
-				// Inside a worker row, whose own click peeks at the worker.
-				cx.stop_propagation();
-				this.open(pr.url);
-			})
-			.child(div().size(6).rounded(3).bg(color))
-			.child(div().text_size(11).text_color(t.muted).child(`#${pr.number}`));
+		return chip(t, `pr-${pr.number}`, color, `#${pr.number}`, () => this.open(pr.url));
 	}
 
-	stateMark(t, state) {
-		if (state === 'working' || state === 'busy')
-			// A still dot, as in the sidebar and the herdr TUI.
-			return div().size(7).rounded(4).flex_none().bg(t.working);
-		const color = { blocked: t.blocked, stopped: t.done, none: t.dim }[state] ?? t.unknown;
-		return div().size(7).rounded(4).flex_none().bg(color);
+	// A worker's state as an agent status, for the dot.
+	status(state) {
+		if (state === 'working' || state === 'busy') return 'working';
+		return { blocked: 'blocked', stuck: 'blocked', stopped: 'done' }[state] ?? null;
 	}
 
-	row(id, t) {
-		return h_flex()
-			.id(id)
-			.min_h(22)
-			.px(8)
-			.gap(8)
-			.items_center()
-			.rounded(6)
-			.hover((s) => s.bg(t.hover));
+	// One line: the dot, a name, what it is about (dimmed), and what follows.
+	line(t, id, state, name, detail, onClick) {
+		return row(t, id, { onClick })
+			.child(dot(t, this.status(state)))
+			.child(div().flex_none().max_w(140).truncate().text_color(t.foreground).child(name))
+			.child(
+				div()
+					.flex_1()
+					.min_w(0)
+					.truncate()
+					.text_color(t.dim)
+					.child(detail ?? ''),
+			);
 	}
 
 	attention(t, list) {
 		if (!list.length) return null;
-		return v_flex()
-			.gap(2)
-			.children(
-				list.map((a, i) =>
-					this.row(`att-${i}`, t)
-						.when(Boolean(a.worker), (e) => e.cursor_pointer().on_click(() => this.peek(a.worker)))
-						.bg(a.kind === 'blocked' ? t.blocked + '22' : t.raised)
-						.child(this.stateMark(t, a.kind === 'stuck' ? 'blocked' : a.kind))
-						.child(
-							v_flex()
-								.flex_1()
-								.min_w(0)
-								.child(
-									div()
-										.text_size(12)
-										.truncate()
-										.child(a.worker ?? `spec #${a.spec}`),
-								)
-								.child(div().text_size(11).text_color(t.muted).truncate().child(a.detail)),
-						),
+		return v_flex().children(
+			list.map((a, i) =>
+				this.line(
+					t,
+					`att-${i}`,
+					a.kind,
+					a.worker ?? `spec #${a.spec}`,
+					a.detail,
+					a.worker ? () => this.peek(a.worker) : undefined,
 				),
-			);
+			),
+		);
 	}
 
 	workers(t, list) {
 		if (!list.length) return null;
-		return v_flex()
-			.gap(2)
-			.children(
-				list.map((w) =>
-					this.row(`w-${w.branch}`, t)
-						.when(Boolean(w.name), (e) => e.cursor_pointer().on_click(() => this.peek(w.name)))
-						.child(this.stateMark(t, w.state))
-						.child(
-							v_flex()
-								.flex_1()
-								.min_w(0)
-								.child(
-									div()
-										.text_size(12)
-										.truncate()
-										.child(w.name ?? '(no agent)'),
-								)
-								.child(div().text_size(11).text_color(t.dim).truncate().child(w.branch)),
-						)
-						.child(this.ci(t, w.pr)),
-				),
-			);
+		return v_flex().children(
+			list.map((w) =>
+				this.line(
+					t,
+					`w-${w.branch}`,
+					w.state,
+					w.name ?? '(no agent)',
+					w.branch,
+					w.name ? () => this.peek(w.name) : undefined,
+				).child(this.ci(t, w.pr)),
+			),
+		);
 	}
 
 	queue(t, list) {
 		if (!list.length) return null;
-		return v_flex()
-			.gap(2)
-			.children(
-				list.map((p, i) =>
-					this.row(`q-${p.number}`, t)
-						.child(
-							div()
-								.w(14)
-								.flex_none()
-								.text_size(11)
-								.text_color(t.dim)
-								.child(String(i + 1)),
-						)
-						.child(
-							div()
-								.flex_1()
-								.min_w(0)
-								.text_size(12)
-								.truncate()
-								.child(p.title ?? `#${p.number}`),
-						)
-						.child(this.ci(t, p.url ? p : { ...p, ci: 'none' })),
-				),
-			);
+		return v_flex().children(
+			list.map((p, i) =>
+				row(t, `q-${p.number}`)
+					.child(
+						div()
+							.w(14)
+							.flex_none()
+							.text_size(TEXT.meta)
+							.text_color(t.dim)
+							.child(String(i + 1)),
+					)
+					.child(
+						div()
+							.flex_1()
+							.min_w(0)
+							.truncate()
+							.child(p.title ?? `#${p.number}`),
+					)
+					.child(this.ci(t, p.url ? p : { ...p, ci: 'none' })),
+			),
+		);
 	}
 
 	specs(t, list) {
 		if (!list.length) return null;
 		return v_flex()
-			.gap(6)
+			.gap(SPACE.xs)
 			.children(
 				list.map((s) => {
 					const chips = [
@@ -283,41 +297,26 @@ export default class Harness extends View {
 					];
 					return v_flex()
 						.id(`spec-${s.spec}`)
-						.gap(4)
-						.px(8)
-						.py(6)
-						.rounded(6)
+						.gap(SPACE.xs + 2)
+						.p(SPACE.sm)
+						.rounded(RADIUS.control)
 						.bg(t.raised)
 						.child(
 							h_flex()
-								.gap(6)
+								.gap(SPACE.sm)
 								.items_center()
-								.child(div().text_size(12).font_semibold().flex_none().child(`#${s.spec}`))
-								.child(div().flex_1().min_w(0).text_size(12).truncate().child(s.title))
-								.when(s.result === 'stuck', (e) =>
-									e.child(div().text_size(11).text_color(t.blocked).child('stuck')),
-								)
-								.when(s.done, (e) =>
-									e.child(div().text_size(11).text_color(t.ansi2).child('all in')),
-								),
+								.child(div().flex_none().font_semibold().child(`#${s.spec}`))
+								.child(div().flex_1().min_w(0).truncate().child(s.title))
+								.when(s.result === 'stuck', (e) => e.child(badge(t, 'stuck', 'blocked')))
+								.when(s.done, (e) => e.child(badge(t, 'all in', 'done'))),
 						)
 						.child(
 							h_flex()
 								.flex_wrap()
-								.gap(4)
+								.gap(SPACE.xs)
 								.children(
 									chips.map(([n, color, label]) =>
-										h_flex()
-											.id(`t-${s.spec}-${n}`)
-											.gap(4)
-											.items_center()
-											.px(5)
-											.py(1)
-											.rounded(4)
-											.border_1()
-											.border_color(t.border)
-											.child(div().size(6).rounded(3).bg(color))
-											.child(div().text_size(11).text_color(t.muted).child(`#${n} ${label}`)),
+										chip(t, `t-${s.spec}-${n}`, color, `#${n} ${label}`),
 									),
 								),
 						);
@@ -327,69 +326,50 @@ export default class Harness extends View {
 
 	landed(t, list) {
 		if (!list.length) return null;
-		return v_flex()
-			.gap(2)
-			.children(
-				list.map((l) =>
-					this.row(`l-${l.pr}`, t)
-						.when(Boolean(l.url), (e) => e.cursor_pointer().on_click(() => this.open(l.url)))
-						.child(div().w(40).flex_none().text_size(11).text_color(t.dim).child(`#${l.pr}`))
-						.child(
-							div()
-								.flex_1()
-								.min_w(0)
-								.text_size(12)
-								.text_color(t.muted)
-								.truncate()
-								.child(l.title ?? ''),
-						)
-						.child(div().flex_none().text_size(11).text_color(t.dim).child(ago(l.at))),
-				),
-			);
+		return v_flex().children(
+			list.map((l) =>
+				row(t, `l-${l.pr}`, { onClick: l.url ? () => this.open(l.url) : undefined })
+					.child(div().w(40).flex_none().text_size(TEXT.meta).text_color(t.dim).child(`#${l.pr}`))
+					.child(
+						div()
+							.flex_1()
+							.min_w(0)
+							.truncate()
+							.text_color(t.muted)
+							.child(l.title ?? ''),
+					)
+					.child(div().flex_none().text_size(TEXT.meta).text_color(t.dim).child(ago(l.at))),
+			),
+		);
 	}
 
 	render(cx) {
 		const t = theme();
 		if (folder() !== this.dir) this.refresh(cx);
 		const s = this.snap;
-		const header = h_flex()
-			.h(34)
-			.flex_none()
-			.px(14)
-			.gap(8)
-			.items_center()
-			.border_b(1)
-			.border_color(t.border)
-			.child(div().font_semibold().child('Harness'))
+		const running = s ? Boolean(this.harnessTerminal(s.repo)) : false;
+		const header = bar(t, 'harness-bar')
+			.child(div().flex_none().font_semibold().child('Harness'))
+			.when(Boolean(s), (e) => e.child(badge(t, s.name)))
+			.child(spacer())
 			.when(Boolean(s), (e) =>
 				e.child(
-					div()
-						.px(5)
-						.py(1)
-						.rounded(4)
-						.border_1()
-						.border_color(t.border)
-						.text_size(10)
-						.text_color(t.muted)
-						.child(s.name),
+					// Start is the panel's one action when nothing runs; Open only
+					// goes to what does.
+					button(
+						t,
+						'start-harness',
+						running ? 'Open' : 'Start',
+						(_e, cx) => this.startOrOpen(s.repo, cx),
+						{
+							kind: running ? 'ghost' : 'primary',
+						},
+					),
 				),
 			)
-			.child(div().flex_1())
 			.child(
-				this.loading
-					? svg(SPINNER).size(13).text_color(t.dim).spin(900)
-					: div()
-							.id('refresh')
-							.size(24)
-							.flex()
-							.items_center()
-							.justify_center()
-							.rounded(6)
-							.text_color(t.dim)
-							.cursor_pointer()
-							.hover((st) => st.bg(t.hover).text_color(t.foreground))
-							.on_click((_e, cx) => this.refresh(cx))
-							.child('↻'),
+				// Not a spinner while reading: the label says so, without motion.
+				button(t, 'refresh', this.reading.has(this.dir) ? '…' : '↻', (_e, cx) => this.refresh(cx)),
 			);
 
 		let body;
@@ -397,7 +377,7 @@ export default class Harness extends View {
 			body = this.empty(t, this.error ?? (this.dir ? 'Reading the harness…' : 'No folder'));
 		} else {
 			body = v_flex()
-				.gap(10)
+				.gap(SPACE.md)
 				.child(
 					this.section(t, 'Needs you', s.attention.length || null, this.attention(t, s.attention)),
 				)

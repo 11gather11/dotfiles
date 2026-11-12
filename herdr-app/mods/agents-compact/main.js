@@ -8,6 +8,7 @@
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
 import { agents, run, theme, setAgentOrder, exec } from 'herdr';
+import { SIZE, SPACE, TEXT, RADIUS, dot } from './lib/ui.js';
 
 // How often to look for a conversation a terminal lost; see init.
 const RESUME_MS = 5000;
@@ -57,16 +58,10 @@ export default class AgentsCompact extends View {
 		cx.timer.every(RESUME_MS, resume);
 	}
 
-	// The status mark, the same as the spaces sidebar's: a filled dot that
-	// does not turn while working, a ring when idle.
+	// The status mark, the same as everywhere (lib/ui.js): a still dot, a ring
+	// when idle.
 	mark(t, status) {
-		if (status === 'idle')
-			return div().size(8).flex_none().rounded(4).border_1().border_color(t.idle);
-		return div()
-			.size(8)
-			.flex_none()
-			.rounded(4)
-			.bg(t[status] ?? t.unknown);
+		return dot(t, status);
 	}
 
 	render() {
@@ -77,17 +72,17 @@ export default class AgentsCompact extends View {
 			.id('agents-compact')
 			.size_full()
 			.min_h(0)
-			.text_size(12.5)
+			.text_size(TEXT.ui)
 			.child(
 				h_flex()
-					.h(26)
+					.h(SIZE.row)
 					.flex_none()
 					.px(16)
-					.gap(6)
+					.gap(SPACE.sm)
 					.items_center()
-					.child(div().text_size(11.5).text_color(t.dim).child('Agents'))
+					.child(div().text_size(TEXT.meta).text_color(t.dim).child('Agents'))
 					.when(list.length > 0, (el) =>
-						el.child(div().text_size(10.5).text_color(t.dim).child(String(list.length))),
+						el.child(div().text_size(TEXT.meta).text_color(t.dim).child(String(list.length))),
 					),
 			)
 			.child(
@@ -104,12 +99,12 @@ export default class AgentsCompact extends View {
 						list.map((a) =>
 							h_flex()
 								.id(`agent-${a.address}`)
-								.h(24)
+								.h(SIZE.row)
 								.flex_none()
 								.px(8)
-								.gap(8)
+								.gap(SPACE.sm)
 								.items_center()
-								.rounded(6)
+								.rounded(RADIUS.control)
 								.when(a.focused, (el) => el.bg(t.selected))
 								.when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
 								.on_click(() => run('agent.focus', { terminal: a.address }))
@@ -126,7 +121,7 @@ export default class AgentsCompact extends View {
 										.flex_none()
 										.max_w(80)
 										.truncate()
-										.text_size(11)
+										.text_size(TEXT.meta)
 										.text_color(t.dim)
 										.child(a.space_name),
 								)

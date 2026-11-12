@@ -336,9 +336,22 @@ let
         mkdir -p "$dst/mods/$name"
         # The app writes these type files into every mod folder; they are
         # its, not the repository's, and --delete must leave them alone.
+        # lib/ is filled below.
         rsync --recursive --checksum --delete \
           --exclude gpui-kit.d.ts --exclude herdr.d.ts --exclude jsconfig.json \
+          --exclude /lib/ \
           "$d" "$dst/mods/$name/"
+
+        # Code more than one mod uses (the markdown view the viewer and the
+        # chat both draw) lives once, in herdr-app/lib, and is copied into
+        # each mod that imports it: the app refuses an import from outside a
+        # mod's own folder. Only into those, and by checksum, because any
+        # file saved under a mod reloads it.
+        if grep -q "from '\./lib/" "$d"main.js; then
+          rsync --recursive --checksum --delete "$src/lib/" "$dst/mods/$name/lib/"
+        elif [ -d "$dst/mods/$name/lib" ]; then
+          rm -r "$dst/mods/$name/lib"
+        fi
       done
     '';
   };

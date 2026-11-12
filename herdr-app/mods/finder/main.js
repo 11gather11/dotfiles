@@ -7,7 +7,9 @@
 // fragment and typing an identifier are the same gesture.
 import { View, div, svg } from 'gpui-kit';
 import { v_flex, h_flex, InputState, Input } from 'gpui-base';
-import { spaces, panes, focused, exec, theme, props, closeOverlay, openOverlay } from 'herdr';
+import { exec, theme, props, closeOverlay, openOverlay } from 'herdr';
+import { SIZE, SPACE, TEXT, RADIUS } from './lib/ui.js';
+import { focusedFolder } from './lib/focus.js';
 
 // Typing pauses this long before ripgrep runs, so a word is searched once
 // rather than once per letter.
@@ -20,13 +22,7 @@ const MIN_TEXT = 3;
 // The results list's height (px at zoom 1).
 const RESULTS_H = 440;
 
-/** The focused pane's folder, else the active space's. */
-function folder() {
-	const space = spaces().find((s) => s.active),
-		f = focused();
-	const pane = f?.pane ? panes().find((p) => p.pane === f.pane) : null;
-	return pane?.cwd || f?.cwd || space?.folder || null;
-}
+const folder = focusedFolder;
 
 /**
  * How well `query` matches `path` as a subsequence, or -1 when it does not.
@@ -171,9 +167,9 @@ export default class Finder extends View {
 			.h(hit.kind === 'text' ? 40 : 26)
 			.flex_none()
 			.px(10)
-			.gap(10)
+			.gap(SPACE.md)
 			.items_center()
-			.rounded(6)
+			.rounded(RADIUS.control)
 			.cursor_pointer()
 			.when(on, (e) => e.bg(t.selected))
 			.when(!on, (e) => e.hover((s) => s.bg(t.hover)))
@@ -183,16 +179,16 @@ export default class Finder extends View {
 					? h_flex()
 							.flex_1()
 							.min_w(0)
-							.gap(8)
+							.gap(SPACE.sm)
 							.child(div().flex_none().text_color(t.foreground).child(name))
-							.child(div().min_w(0).truncate().text_size(11.5).text_color(t.dim).child(dir))
+							.child(div().min_w(0).truncate().text_size(TEXT.meta).text_color(t.dim).child(dir))
 					: v_flex()
 							.flex_1()
 							.min_w(0)
 							.child(
 								h_flex()
-									.gap(6)
-									.text_size(11.5)
+									.gap(SPACE.sm)
+									.text_size(TEXT.meta)
 									.child(div().flex_none().text_color(t.muted).child(name))
 									.child(div().flex_none().text_color(t.dim).child(`:${hit.line}`))
 									.child(div().min_w(0).truncate().text_color(t.dim).child(dir)),
@@ -207,11 +203,11 @@ export default class Finder extends View {
 		const files = rows.filter((r) => r.kind === 'file').length;
 		const head = (label, n) =>
 			h_flex()
-				.h(22)
+				.h(SIZE.row)
 				.px(10)
-				.gap(6)
+				.gap(SPACE.sm)
 				.items_center()
-				.text_size(11)
+				.text_size(TEXT.meta)
 				.text_color(t.dim)
 				.child(label.toUpperCase())
 				.child(String(n));
@@ -222,9 +218,9 @@ export default class Finder extends View {
 			.size_full()
 			.min_h(0)
 			.p(14)
-			.gap(8)
+			.gap(SPACE.sm)
 			.bg(t.popover)
-			.text_size(13)
+			.text_size(TEXT.body)
 			.on_key_down((e, cx) => {
 				if (e.key === 'down') this.at = Math.min(this.at + 1, Math.max(0, rows.length - 1));
 				else if (e.key === 'up') this.at = Math.max(0, this.at - 1);
@@ -234,18 +230,20 @@ export default class Finder extends View {
 			})
 			.child(
 				h_flex()
-					.h(34)
+					.h(SIZE.bar)
 					.flex_none()
 					.px(10)
-					.gap(8)
+					.gap(SPACE.sm)
 					.items_center()
-					.rounded(8)
+					.rounded(RADIUS.control)
 					.border_1()
 					.border_color(t.accent)
 					.bg(t.background)
 					.child(svg('mods/workspace-chrome/search.svg').size(14).text_color(t.dim))
-					.child(Input.new(this.input).flex_1().h_full().text_size(13).text_color(t.foreground))
-					.child(div().flex_none().text_size(11).text_color(t.dim).child(repo)),
+					.child(
+						Input.new(this.input).flex_1().h_full().text_size(TEXT.body).text_color(t.foreground),
+					)
+					.child(div().flex_none().text_size(TEXT.meta).text_color(t.dim).child(repo)),
 			)
 			.child(
 				v_flex()

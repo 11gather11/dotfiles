@@ -7,7 +7,10 @@
 // status, those headers spent half the height repeating it.
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
-import { agents, run, theme, setAgentOrder } from 'herdr';
+import { agents, run, theme, setAgentOrder, exec } from 'herdr';
+
+// How often to look for a conversation a terminal lost; see init.
+const RESUME_MS = 5000;
 
 // Higher first: what needs you, then what finished unseen, then what runs.
 const RANK = { blocked: 3, done: 2, working: 1, idle: 0 };
@@ -44,6 +47,16 @@ function label(a) {
 }
 
 export default class AgentsCompact extends View {
+	// Starts Claude again in terminals that lost it to a stopped core or a
+	// restart (claude-resume, herdr-app.nix). Here because this panel is up
+	// whenever the window is: from the start, which covers a restart, and
+	// while the core is stopped and started under it.
+	init(_props, cx) {
+		const resume = () => exec('claude-resume', []).catch(() => null);
+		resume();
+		cx.timer.every(RESUME_MS, resume);
+	}
+
 	// The status mark, the same as the spaces sidebar's: a filled dot that
 	// does not turn while working, a ring when idle.
 	mark(t, status) {

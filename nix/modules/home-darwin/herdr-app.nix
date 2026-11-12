@@ -96,6 +96,51 @@ let
       '';
   };
 
+  # Starts Claude again, in its own conversation, in each terminal that lost
+  # it: what the herdr TUI's resume_agents_on_restore did. herdr-core keeps
+  # its terminals and their labels when the core is stopped or the machine
+  # restarts, and puts a shell back where the program was, but does not start
+  # the program again. The hook in the claude-code module labels each terminal
+  # with the conversation it holds (claude.session) and drops the label when
+  # the person ends the session, so a label on a terminal sitting at its shell
+  # prompt is a conversation lost by something else.
+  #
+  # The agents panel runs this every few seconds, which covers both a stopped
+  # core (the window stays open) and a restart (the panel starts with it).
+  # Each id is sent once (claude.resumed): a resume that fails leaves the
+  # terminal at its prompt, and sending it again would only fail again.
+  claudeResume = pkgs.writeShellApplication {
+    name = "claude-resume";
+    runtimeInputs = [ pkgs.jq ];
+    text = ''
+      # Run from a terminal, hc send would wrap the command in
+      # <hc from="t…">…</hc>, its envelope for one agent messaging another,
+      # which the shell reads as a redirection. Without the sender's identity
+      # it types the text as given.
+      unset HC_TERMINAL_ID HC_TERMINAL_SOCKET
+
+      # Terminals at a shell prompt, not in a program the person is using. A
+      # shell by name rather than the argv the terminal started with: one
+      # started with a command (the harness button, a worker) gets a login
+      # shell back in its place, not that command.
+      hc ls --json | jq -r '
+        (if type == "array" then . else .terminals end)[]
+        | select(.state == "live" and (.agent | IN("fish", "zsh", "bash", "sh")))
+        | .address' |
+        while read -r terminal; do
+          # hc ls leaves labels out; hc get of one terminal has them.
+          id=$(hc get "$terminal" --json | jq -r '
+            (.labels // {}) as $l
+            | select(($l["claude.session"] // "") != "" and $l["claude.resumed"] != $l["claude.session"])
+            | $l["claude.session"]')
+          [ -n "$id" ] || continue
+          hc label "$terminal" "claude.resumed=$id" >/dev/null
+          hc send "$terminal" "claude --resume $id" >/dev/null
+          echo "$terminal $id"
+        done
+    '';
+  };
+
   # Copies herdr-app/ from the working tree into the app's folder, which the
   # app redraws from as files there change. Run by every switch, and by hand
   # to try an edit in the window at once.
@@ -274,6 +319,7 @@ in
   # installer into ~/.local/bin, outside this configuration.
   home.packages = [
     herdrCore
+    claudeResume
     harnessStatus
     herdrAppSync
     mdAsset

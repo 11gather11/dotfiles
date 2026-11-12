@@ -36,6 +36,22 @@ let
       text = builtins.readFile ./suiko-lint.sh;
     }
   );
+  # hc comes from PATH, not runtimeInputs: it is the wrapped herdr-core that
+  # herdr-app.nix installs, and the hook does nothing outside its terminals.
+  hcSession = lib.getExe (
+    pkgs.writeShellApplication {
+      name = "claude-hc-session";
+      runtimeInputs = with pkgs; [
+        jq
+        coreutils
+      ];
+      bashOptions = [
+        "nounset"
+        "pipefail"
+      ];
+      text = builtins.readFile ./hc-session.sh;
+    }
+  );
   mergeConfig = helpers.mergeConfig pkgs;
 
   # The name agents type to review. It is the same binary as the gate, so the
@@ -155,6 +171,35 @@ let
   };
 
   darwinSettings = lib.optionalAttrs pkgs.stdenv.isDarwin {
+    # Which conversation each herdr-core terminal holds, so claude-resume can
+    # bring it back as the herdr TUI's resume_agents_on_restore did. Darwin
+    # only, as herdr-core is installed only there (herdr-app.nix).
+    hooks = {
+      SessionStart = [
+        {
+          matcher = "*";
+          hooks = [
+            {
+              type = "command";
+              command = "${hcSession} start";
+              timeout = 10;
+            }
+          ];
+        }
+      ];
+      SessionEnd = [
+        {
+          matcher = "*";
+          hooks = [
+            {
+              type = "command";
+              command = "${hcSession} end";
+              timeout = 10;
+            }
+          ];
+        }
+      ];
+    };
     permissions = {
       defaultMode = "auto";
       allow = [

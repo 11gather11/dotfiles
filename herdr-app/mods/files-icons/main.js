@@ -1,12 +1,16 @@
-// A lazy file browser for the focused pane's folder, with bounded read-only previews.
+// A lazy file browser for the focused pane's folder.
 //
-// Herdr's `files` mod with two changes. Each entry gets the icon VS Code's
-// Material Icon Theme gives it. And git's marks reach folders, as in VS Code:
-// a folder holding a change shows a dot in that change's color, where Herdr
-// marked only the changed files and left a collapsed folder looking clean. The icons and the theme's lookup tables are
-// linked to file-icons/ by nix/modules/home-darwin/herdr-app.nix.
+// Herdr's `files` mod with three changes:
+// - each entry gets the icon VS Code's Material Icon Theme gives it, from the
+//   icons and lookup tables nix/modules/home-darwin/herdr-app.nix links to
+//   file-icons/;
+// - git's marks reach folders, as in VS Code: a folder holding a change shows
+//   a dot in that change's color, where Herdr marked only the changed files
+//   and left a collapsed folder looking clean;
+// - a file opens in the viewer mod over the window, in place of a preview
+//   squeezed into the panel.
 import { View, div, svg, image } from 'gpui-kit';
-import { v_flex, h_flex, Editor, EditorState } from 'gpui-base';
+import { v_flex, h_flex } from 'gpui-base';
 import {
 	spaces,
 	panes,
@@ -15,9 +19,9 @@ import {
 	readTextFile,
 	watchFolder,
 	theme,
-	settings,
 	window,
 	appHome,
+	openOverlay,
 } from 'herdr';
 
 /**
@@ -60,18 +64,6 @@ function location() {
 	return { cwd: pane?.cwd || f?.cwd || space?.folder, on, space: space?.id };
 }
 const key = () => JSON.stringify(location());
-const LANG = {
-	ts: 'js',
-	tsx: 'js',
-	mts: 'js',
-	cts: 'js',
-	jsx: 'js',
-	mjs: 'js',
-	toml: 'yaml',
-	jsonc: 'json',
-	svelte: 'html',
-	vue: 'html',
-};
 const PER_FOLDER = 500,
 	TOTAL = 5000;
 
@@ -209,8 +201,7 @@ export default class Files extends View {
 		const { cwd, on } = location(),
 			next = key();
 		if (next !== this.context?.key) {
-			if (this.context)
-				this.saved.set(this.context.key, { folders: this.folders, file: this.file });
+			if (this.context) this.saved.set(this.context.key, { folders: this.folders });
 			const saved = this.saved.get(next);
 			this.context = { key: next, cwd, on };
 			this.root = cwd;
@@ -219,12 +210,10 @@ export default class Files extends View {
 			this.folders = new Set(saved?.folders);
 			this.pending = new Set();
 			this.marks = {};
-			this.show(null);
 			this.watched = null;
 			this.error = null;
 			this.limited = false;
 			this.loading = false;
-			if (saved?.file) this.show(saved.file, cx);
 		}
 		if (!cwd || this.loading) return;
 		const context = this.context;
@@ -310,51 +299,15 @@ export default class Files extends View {
 		cx.notify();
 	}
 
-	show(path, cx) {
-		this.code?.release();
-		this.code = null;
-		this.file = path;
-		this.fileError = null;
-		if (!path || !cx) return;
-		const context = this.context,
-			root = this.root,
-			on = this.on;
-		cx.spawn(async (cx) => {
-			try {
-				const text = await readTextFile(`${root}/${path}`, { on });
-				if (this.file !== path || !this.current(context)) return;
-				if (text === null) {
-					this.fileError = 'This file is no longer available';
-					return;
-				}
-				if (text.includes('\0')) {
-					this.fileError = 'Binary file · no text preview';
-					return;
-				}
-				const t = theme(),
-					ext = path.includes('.') ? path.split('.').pop() : 'txt';
-				this.code = EditorState.new({
-					language: LANG[ext] ?? ext,
-					readonly: true,
-					value: text.length > 400000 ? text.slice(0, 400000) + '\n… (file truncated)' : text,
-					font_family: settings().font_family,
-					font_size: 12,
-					syntax: {
-						keyword: t.ansi5,
-						string: t.ansi2,
-						comment: t.dim,
-						function: t.ansi4,
-						type: t.ansi3,
-						number: t.ansi1,
-						constant: t.ansi6,
-					},
-				});
-			} catch {
-				if (this.file === path && this.current(context))
-					this.fileError = 'Cannot preview this file (binary, too large, or unreadable)';
-			} finally {
-				cx.notify();
-			}
+	// A file opens in the viewer mod over the window, where it has the room a
+	// side panel lacks, rendered when it is markdown.
+	open(path) {
+		openOverlay({
+			mod: 'viewer',
+			kind: 'dialog',
+			width: 0.8,
+			height: 0.85,
+			props: { file: `${this.root}/${path}`, on: this.on },
 		});
 	}
 
@@ -377,7 +330,7 @@ export default class Files extends View {
 					.rounded(7)
 					.cursor_pointer()
 					.hover((s) => s.bg(t.hover))
-					.on_click((_e, cx) => (entry.dir ? this.toggle(path, cx) : this.show(path, cx)))
+					.on_click((_e, cx) => (entry.dir ? this.toggle(path, cx) : this.open(path)))
 					.child(
 						entry.dir
 							? svg(`mods/files/chevron-${open ? 'down' : 'right'}.svg`)
@@ -443,20 +396,6 @@ export default class Files extends View {
 					.items_center()
 					.border_b(1)
 					.border_color(t.border)
-					.when(Boolean(this.file), (el) =>
-						el.child(
-							div()
-								.id('files-back')
-								.w(20)
-								.cursor_pointer()
-								.text_color(t.muted)
-								.on_click((_e, cx) => {
-									this.show(null);
-									cx.notify();
-								})
-								.child('←'),
-						),
-					)
 					.child(div().font_semibold().child('Files'))
 					.child(
 						div()
@@ -466,50 +405,38 @@ export default class Files extends View {
 							.text_right()
 							.text_size(12)
 							.text_color(t.dim)
-							.child(this.file ?? this.root?.split(/[\\/]/).pop() ?? ''),
+							.child(this.root?.split(/[\\/]/).pop() ?? ''),
 					),
 			)
-			.when(!this.file, (el) =>
-				el.child(
-					v_flex()
-						.id('files-tree')
-						.flex_1()
-						.min_h(0)
-						.overflow_y_scrollbar()
-						.p(6)
-						.children(this.rows('', 0, [], t))
-						.when(Boolean(this.error) || !this.entries.get('')?.length, (el) =>
-							el.child(
-								div()
-									.p(8)
-									.text_size(12)
-									.text_color(t.dim)
-									.child(
-										this.error ||
-											(this.loading ? 'Loading files…' : this.root ? 'No files' : 'No folder'),
-									),
-							),
-						)
-						.when(this.limited, (el) =>
-							el.child(
-								div()
-									.p(8)
-									.text_size(11)
-									.text_color(t.dim)
-									.child('File list limited to 500 entries per folder and 5,000 total'),
-							),
-						),
-				),
-			)
-			.when(Boolean(this.file), (el) =>
-				el.child(
-					this.code
-						? Editor.new(this.code).flex_1().min_h(0)
-						: div()
-								.p(12)
+			.child(
+				v_flex()
+					.id('files-tree')
+					.flex_1()
+					.min_h(0)
+					.overflow_y_scrollbar()
+					.p(6)
+					.children(this.rows('', 0, [], t))
+					.when(Boolean(this.error) || !this.entries.get('')?.length, (el) =>
+						el.child(
+							div()
+								.p(8)
+								.text_size(12)
 								.text_color(t.dim)
-								.child(this.fileError || 'Loading file…'),
-				),
+								.child(
+									this.error ||
+										(this.loading ? 'Loading files…' : this.root ? 'No files' : 'No folder'),
+								),
+						),
+					)
+					.when(this.limited, (el) =>
+						el.child(
+							div()
+								.p(8)
+								.text_size(11)
+								.text_color(t.dim)
+								.child('File list limited to 500 entries per folder and 5,000 total'),
+						),
+					),
 			);
 	}
 }

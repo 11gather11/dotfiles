@@ -178,6 +178,66 @@ let
       done
     '';
   };
+  # A dev server an agent starts with `&` leaves its process group the moment
+  # the command returns, so nothing tracks it: not the agent, not the pane, and
+  # not `wt remove`. Two were found still holding 4GB days after their worktrees
+  # were gone. Removing a worktree is the one moment that certainly marks its
+  # processes as finished, whoever started them.
+  #
+  # Only processes without a terminal are stopped. One with a terminal is a
+  # shell, editor or agent in a pane, and post-remove's herdr close ends those
+  # along with the pane. The ancestors of this hook are spared too: that is the
+  # shell and agent running `wt remove`, often from inside this worktree.
+  wt-reap = pkgs.writeShellApplication {
+    name = "wt-reap";
+    runtimeInputs = [
+      pkgs.lsof
+      pkgs.gawk
+      pkgs.coreutils
+    ];
+    text = ''
+      worktree="$(realpath "$1")"
+
+      spared=" "
+      pid=$$
+      while [ -n "$pid" ] && [ "$pid" -gt 1 ]; do
+        spared+="$pid "
+        pid="$(ps -o ppid= -p "$pid" | tr -d ' ')" || break
+      done
+
+      # lsof -F prints one field per line: "p<pid>" opens a process and the
+      # "n<path>" after it is that process's working directory.
+      targets=()
+      while read -r pid; do
+        [[ $spared == *" $pid "* ]] && continue
+        tty="$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')" || continue
+        [ "$tty" = "??" ] || [ "$tty" = "?" ] || continue
+        targets+=("$pid")
+      done < <(
+        lsof -a -d cwd -Fpn 2>/dev/null \
+          | awk -v wt="$worktree" '
+              /^p/ { pid = substr($0, 2) }
+              /^n/ { p = substr($0, 2); if (p == wt || index(p, wt "/") == 1) print pid }
+            '
+      )
+
+      [ ''${#targets[@]} -gt 0 ] || exit 0
+      echo "wt-reap: stopping ''${targets[*]} in $worktree" >&2
+      kill -TERM "''${targets[@]}" 2>/dev/null || true
+
+      # workerd ignores SIGTERM, so whatever is still up after a grace period
+      # is killed outright.
+      for _ in 1 2 3 4 5; do
+        alive=()
+        for pid in "''${targets[@]}"; do
+          kill -0 "$pid" 2>/dev/null && alive+=("$pid")
+        done
+        [ ''${#alive[@]} -gt 0 ] || exit 0
+        sleep 1
+      done
+      kill -KILL "''${alive[@]}" 2>/dev/null || true
+    '';
+  };
 in
 {
   home.packages = [ pkgs.worktrunk ];
@@ -200,6 +260,9 @@ in
     # checkout. The workspace opens without focus, so the pane that ran `wt`
     # stays on screen; that is usually an agent still in the middle of its work.
     post-start.herdr = "${wtHerdr} open {{ worktree_path }} {{ branch }} {{ primary_worktree_path }}";
+
+    # pre-remove, so the processes are gone before their directory is.
+    pre-remove.reap = "${lib.getExe wt-reap} {{ worktree_path }}";
 
     # post-remove, which runs in the background after the removal. An agent
     # often removes the worktree it is standing in, so this closes the very

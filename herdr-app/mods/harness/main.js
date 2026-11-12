@@ -5,7 +5,7 @@
 // issue-harness's own status.nu; this file only draws it.
 import { View, div, svg } from 'gpui-kit';
 import { v_flex, h_flex, Scrollbar } from 'gpui-base';
-import { spaces, panes, focused, exec, theme, notify } from 'herdr';
+import { spaces, panes, focused, exec, theme, notify, terminals, run } from 'herdr';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
@@ -102,6 +102,14 @@ export default class Harness extends View {
 		if (url) exec('open', [url]);
 	}
 
+	// Shows a worker's screen over the current tab, where it can be answered,
+	// kept as a tab or closed, without leaving the harness. Workers are
+	// herdr-core terminals named after the worker; one that is gone has none.
+	peek(name) {
+		const address = name && terminals().find((x) => x.name === name)?.address;
+		if (address) run('terminal.peek', { terminal: address });
+	}
+
 	// ── pieces ──
 
 	// An empty section is its heading alone, dimmed: a line saying "none" under
@@ -149,7 +157,11 @@ export default class Harness extends View {
 			.border_color(t.border)
 			.cursor_pointer()
 			.hover((s) => s.bg(t.hover))
-			.on_click(() => this.open(pr.url))
+			.on_click((_e, cx) => {
+				// Inside a worker row, whose own click peeks at the worker.
+				cx.stop_propagation();
+				this.open(pr.url);
+			})
 			.child(div().size(6).rounded(3).bg(color))
 			.child(div().text_size(11).text_color(t.muted).child(`#${pr.number}`));
 	}
@@ -180,6 +192,7 @@ export default class Harness extends View {
 			.children(
 				list.map((a, i) =>
 					this.row(`att-${i}`, t)
+						.when(Boolean(a.worker), (e) => e.cursor_pointer().on_click(() => this.peek(a.worker)))
 						.bg(a.kind === 'blocked' ? t.blocked + '22' : t.raised)
 						.child(this.stateMark(t, a.kind === 'stuck' ? 'blocked' : a.kind))
 						.child(
@@ -205,6 +218,7 @@ export default class Harness extends View {
 			.children(
 				list.map((w) =>
 					this.row(`w-${w.branch}`, t)
+						.when(Boolean(w.name), (e) => e.cursor_pointer().on_click(() => this.peek(w.name)))
 						.child(this.stateMark(t, w.state))
 						.child(
 							v_flex()

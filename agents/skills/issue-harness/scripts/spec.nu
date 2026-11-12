@@ -77,33 +77,44 @@ const graph_query = 'query($owner: String!, $repo: String!, $n: Int!) {
       number title state
       subIssues(first: 100) { nodes {
         number title state body
+        labels(first: 20) { nodes { name } }
         blockedBy(first: 50) { nodes { number state } }
       } }
     }
   }
 }'
 
+# The label of a ticket only a person can do (a check in production, on real
+# hardware). Such a ticket is a sub-issue for the record, but no worker takes
+# it, no integration waits on it, and the spec's PR does not close it.
+const human_label = "ready-for-human"
+
 # The spec and its tickets. A ticket's blockers are GitHub's own blocked-by
 # links, or, where /to-tickets could not set them, the issues its "Blocked
-# by" section names.
+# by" section names. `tickets` are the workers'; `human` the person's.
 export def read-graph [spec: int]: nothing -> record {
     let r = ^gh api graphql -F "owner={owner}" -F "repo={repo}" -F $"n=($spec)" -f $"query=($graph_query)" | complete
     if $r.exit_code != 0 { error make {msg: $"reading spec #($spec): ($r.stderr | str trim)"} }
     let issue = $r.stdout | from json | get data.repository.issue
     if $issue == null { error make {msg: $"#($spec) is not an issue of this repository"} }
-    let tickets = $issue.subIssues.nodes | each {|t|
+    let nodes = $issue.subIssues.nodes
+    let is_human = {|t|
+        $t.labels.nodes | any {|l| $l.name == $human_label }
+    }
+    let tickets = $nodes | where {|t| not (do $is_human $t) } | each {|t|
         let linked = $t.blockedBy.nodes
         let blocked_by = if ($linked | is-not-empty) { $linked } else { blockers-in-body $t.body }
         {number: $t.number, title: $t.title, state: $t.state, blocked_by: $blocked_by}
     }
     if ($tickets | is-empty) {
-        error make {msg: $"#($spec) has no sub-issues: split it with /to-tickets first"}
+        error make {msg: $"#($spec) has no sub-issues a worker can take: split it with /to-tickets first"}
     }
     {
         spec: $issue.number
         title: $issue.title
         state: $issue.state
         tickets: $tickets
+        human: ($nodes | where {|t| do $is_human $t } | select number title state)
     }
 }
 
@@ -201,6 +212,7 @@ export def status [spec: int]: nothing -> record {
         running: $f.running
         waiting: $f.waiting
         integrated: $integrated
+        human: ($graph.human | where state == "OPEN" | get number)
         done: $f.done
         next: (
             if $f.stuck {
@@ -269,15 +281,28 @@ def push [spec: int]: nothing -> record {
     let s = load-spec $repo $spec
     let wt = $s.worktree
     git-out $wt [push --quiet -u origin $s.branch] | ignore
-    let closes = [$spec] | append ($s.integrated | each { $in.ticket } | compact) | each {|n| $"Closes #($n)" } | str join "\n"
-    let decisions = $s.integrated | each {|i| git-out $wt [log -1 --format=%B $i.sha] | str trim | $"(if $i.ticket != null { $'#($i.ticket)' } else { $i.branch }):\n($in)" } | str join "\n\n"
+    let tickets = $s.integrated | each { $in.ticket } | compact
+    # The spec stays open while a person's ticket under it does: its PR then
+    # only refers to it
+    let human = (read-graph $spec).human | where state == "OPEN" | get number
+    let spec_line = if ($human | is-empty) { $"Closes #($spec)" } else { $"Part of #($spec)" }
+    let closes = [$spec_line] | append ($tickets | each {|n| $"Closes #($n)" }) | str join "\n"
+    # Each ticket's last commit carries its Decisions and Deferred, which the
+    # PR body needs in full; they go to a file so the JSON line stays short
+    let notes = state-dir $repo | path join $"spec-($spec)-commits.md"
+    $s.integrated
+    | each {|i| git-out $wt [log -1 --format=%B $i.sha] | str trim | $"## (if $i.ticket != null { $'#($i.ticket)' } else { $i.branch })\n\n($in)" }
+    | str join "\n\n"
+    | save --force $notes
+    let human_note = if ($human | is-empty) { "" } else { $"; ($human | each { $'#($in)' } | str join ', ') stay open for a person, so the spec stays open too" }
     {
         result: pushed
         spec: $spec
         branch: $s.branch
         closes: $closes
-        tickets: ($s.integrated | each { $in.ticket } | compact)
-        last_commits: $decisions
-        next: $"from ($wt): gh pr create --base ($s.base) --head ($s.branch), the body in the repository's PR format with each ticket's Decisions and Deferred \(from last_commits\) and ending with `closes`; file the Deferred items as issues; then queue.nu add <pr>"
+        tickets: $tickets
+        human: $human
+        commits: $notes
+        next: $"from ($wt): gh pr create --base ($s.base) --head ($s.branch), the body in the repository's PR format with each ticket's Decisions and Deferred \(from the commits file\) and ending with `closes`; file the Deferred items as issues; then queue.nu add <pr>($human_note)"
     }
 }

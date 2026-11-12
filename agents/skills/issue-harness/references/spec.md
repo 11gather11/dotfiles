@@ -24,6 +24,11 @@ Creates `spec-412` from the base's latest on origin, in its own worktree, and
 returns `ready`: the tickets that can start. `spec.nu frontier 412` gives the
 same at any time.
 
+A sub-issue labelled `ready-for-human` is the person's (a check in
+production, on real hardware): no worker takes it, the spec does not wait on
+it, and `human` lists the open ones. The spec's PR leaves it open, and the
+spec with it.
+
 ## 2. Start a worker per ready ticket
 
 ```bash
@@ -90,11 +95,12 @@ Findings to fix: a fix worker, then 5 and 6 again.
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/spec.nu push 412
 ```
 
-Pushes `spec-412` and returns `closes` and each ticket's last commit message,
-which carries its Decisions and Deferred. From the integration worktree, open
+Pushes `spec-412` and returns `closes`, and in `commits` the path of a file
+with each ticket's last commit message, which carries its Decisions and
+Deferred. From the integration worktree, open
 the PR in the repository's PR format with those decisions, ending with
-`closes`. File the Deferred items as issues. Then `queue.nu add <pr>` and run
-the queue; the tickets close when the PR lands.
+`closes`. File the Deferred items as issues. Then `queue.nu add <pr>` and
+`queue.nu run`; the tickets close when the PR lands.
 
 ## 8. CI fails on the spec's PR
 

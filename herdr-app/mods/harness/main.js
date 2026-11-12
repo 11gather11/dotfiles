@@ -354,16 +354,11 @@ export default class Harness extends View {
 			.child(spacer())
 			.when(Boolean(s), (e) =>
 				e.child(
-					// Start is the panel's one action when nothing runs; Open only
-					// goes to what does.
-					button(
-						t,
-						'start-harness',
-						running ? 'Open' : 'Start',
-						(_e, cx) => this.startOrOpen(s.repo, cx),
-						{
-							kind: running ? 'ghost' : 'primary',
-						},
+					// Start when no harness runs here, Open to go to the one that
+					// does. Drawn as every other button: a solid one, always in view
+					// at the panel's head, outshone what the panel is for.
+					button(t, 'start-harness', running ? 'Open' : 'Start', (_e, cx) =>
+						this.startOrOpen(s.repo, cx),
 					),
 				),
 			)

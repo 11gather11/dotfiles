@@ -26,6 +26,13 @@ Matt's skills are namespaced: `/mattpocock-skills:<name>`.
 - **A single issue goes through `/issue-harness` too**, one worker and one PR,
   pushed once when it is done. Something small enough to do in this session
   needs no harness: `tdd`, or `/mattpocock-skills:diagnosing-bugs` for a bug.
+- **A prototype gates what it can change.** While a prototype issue is open,
+  every ticket whose shape its answer could change is blocked by it; tickets
+  that run beside it touch only what no answer can move. When tickets add
+  instances of one mechanism (styles, providers, plugins), one ticket first
+  gives the mechanism every hook the prototype's instances need, and the
+  instance tickets are blocked by it. Otherwise each instance invents or
+  defers the missing hook, and the fix lands later as rework.
 - **TDD is the local `tdd`**, not `/mattpocock-skills:tdd`: Matt's stops to
   agree each seam with the user, which a worker under a harness cannot.
 - **Codex reviews; Claude writes.** In place of `/code-review`, the harness and

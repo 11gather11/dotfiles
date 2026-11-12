@@ -40,9 +40,9 @@
 							"id": "spaces",
 							"type": "block",
 							"size": {
-								"weight": 2
+								"px": 200
 							},
-							"min": 90,
+							"min": 60,
 							"content": {
 								"mod": "spaces-status"
 							}
@@ -51,7 +51,7 @@
 							"id": "agents",
 							"type": "block",
 							"size": {
-								"weight": 3
+								"weight": 1
 							},
 							"min": 90,
 							"content": {

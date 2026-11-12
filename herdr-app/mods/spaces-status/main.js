@@ -3,11 +3,12 @@
 // in now where it differs from the name, its branch, and ahead/behind. Click to switch, right-click
 // for its menu, drag to reorder.
 
-// Herdr's `spaces` mod with two changes. Every row says what its agents are
+// Herdr's `spaces` mod with three changes. Every row says what its agents are
 // doing, as the folded rail already did: Herdr draws a space's status only in
 // the rail, so with the sidebar open nothing told a working space from a
-// stopped one. And rows have no colored initial: the name already says which
-// space it is.
+// stopped one. Rows have no colored initial: the name already says which
+// space it is. And the block fits its rows (see fit), so the agents list below
+// starts where the spaces end instead of after a fixed share of the sidebar.
 import { View, div, svg } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
 import {
@@ -24,6 +25,7 @@ import {
 	watchFolder,
 	window,
 	layout,
+	settings,
 } from 'herdr';
 
 function find(node, id) {
@@ -44,6 +46,12 @@ function place(s, ps) {
 	const tabs = new Set((s.tabs ?? []).map((c) => c.id));
 	return ps.find((p) => tabs.has(p.tab) && p.cwd)?.cwd || s.folder;
 }
+// What fit adds around the rows: the "Spaces" header and the list's bottom
+// padding (the h(31) and pb(14) in render), and the most it lets the block take.
+const SPACES_HEADER = 31;
+const SPACES_PAD = 14;
+const FIT_MAX = 480;
+
 const rowHeight = ({ tree }) => (tree ? 24 : 26);
 const RAIL_CELL = 32;
 const railCell = (el) => h_flex().flex_none().justify_center().child(el);
@@ -823,7 +831,35 @@ export default class Spaces extends View {
 						this.pressed = null;
 						cx.notify();
 					})
-					.children(this.grouped(t, collapsed)),
+					.child(
+						// Sized by its rows alone (flex_none), so its height is
+						// what the list needs, whatever the block gives it.
+						v_flex()
+							.id('spaces-rows')
+							.flex_none()
+							.on_size_change((size) => this.fit(size.height))
+							.children(this.grouped(t, collapsed)),
+					),
 			);
+	}
+
+	/**
+	 * Resizes this block (the layout's `spaces`) to its header, its rows and
+	 * the padding under them, so the block below starts right after the last
+	 * space. Past FIT_MAX the rows scroll instead.
+	 *
+	 * The measured height is in the window's pixels, which zoom scales; the
+	 * layout's sizes are at zoom 1, hence the division.
+	 *
+	 * @param {number} rows the rows' height as laid out
+	 */
+	fit(rows) {
+		const px = Math.min(
+			FIT_MAX,
+			Math.ceil(SPACES_HEADER + SPACES_PAD + rows / (settings().zoom || 1)),
+		);
+		if (px === this.fitted) return;
+		this.fitted = px;
+		run('layout.resize', { id: 'spaces', px });
 	}
 }

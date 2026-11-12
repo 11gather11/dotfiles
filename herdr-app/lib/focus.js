@@ -3,7 +3,7 @@
 import { spaces, panes, focused } from 'herdr';
 
 /**
- * The focused pane's folder. A mod pane (the chat, a viewer) has none of its
+ * The focused pane's folder. A mod pane (a viewer beside a terminal) has none of its
  * own and takes its tab's terminal's, as it shows that terminal's work; the
  * space's folder is the last resort, as it is only where the space's first
  * terminal started and stays so after that terminal is gone.

@@ -1,5 +1,5 @@
-// Markdown drawn as GitHub shows it, for every mod that shows some: the
-// viewer's files and the chat's messages. The markdown view draws text;
+// Markdown drawn as GitHub shows it, for every mod that shows some (the
+// viewer's files). The markdown view draws text;
 // what it cannot draw (Mermaid, formulas, pictures) becomes an image made by
 // md-asset (nix/modules/home-darwin/herdr-app.nix), drawn as it is ready.
 //

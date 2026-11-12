@@ -12,8 +12,6 @@ import {
 	layout,
 	settings,
 	nextCommand,
-	focused,
-	setShared,
 } from 'herdr';
 
 // Herdr's own tab bar, with two changes. The side panel's buttons are the
@@ -61,105 +59,16 @@ export default class Tabs extends View {
 		this.pressed = null;
 		this.scroll = ScrollHandle.new();
 		this.panels = JSON.parse(localStorage.getItem('panels') ?? '{}');
-		// Chat pane => the terminal of the Claude it shows (see chatPanes).
-		this.pairs = JSON.parse(localStorage.getItem('chat-pairs') ?? '{}');
-		// The pane headers read it too, to name each chat's own Claude.
-		setShared('chat-pairs', this.pairs);
 		// "harness-tabs.<panel id>" in keys.json opens that panel, or closes it
 		// when it is the one shown.
 		cx.spawn(async (cx) => {
 			for (;;) {
 				const id = await nextCommand();
-				if (id === 'chat') this.chat(cx);
-				else {
-					const root = layout();
-					this.toggle(find(root, 'panel'), find(root, 'panel-body'), id);
-				}
+				const root = layout();
+				this.toggle(find(root, 'panel'), find(root, 'panel-body'), id);
 				cx.notify();
 			}
 		});
-	}
-
-	/**
-	 * The shown tab's Claude and its chat pane (mods/chat), if any. The chat
-	 * pane belongs to the agent pane it was opened beside.
-	 */
-	/**
-	 * The Claude pane the switch is about and its chat pane (mods/chat), in
-	 * the shown tab. `origin` is the pane it was asked from (a pane header
-	 * says which, through shared 'chat-origin'), else the focused one: with
-	 * two Claudes in a tab, each keeps its own chat. Which chat shows which
-	 * Claude is remembered when the chat is made.
-	 */
-	chatPanes(origin) {
-		const tab = spaces()
-			.find((s) => s.active)
-			?.tabs.find((c) => c.active)?.id;
-		const here = panes().filter((p) => p.tab === tab);
-		const isClaude = (p) => p.terminal && (p.app === 'claude-code' || p.program?.key === 'claude');
-		const from = here.find((p) => p.pane === origin);
-		const chats = here.filter((p) => p.mod === 'chat');
-		if (from?.mod === 'chat')
-			return {
-				chat: from,
-				agent:
-					here.find((p) => p.terminal && p.terminal === this.pairs[from.pane]) ??
-					here.find(isClaude),
-			};
-		const agent = from && isClaude(from) ? from : here.find(isClaude);
-		// Its own chat, else one made before chats were remembered.
-		const chat =
-			chats.find((c) => this.pairs[c.pane] === agent?.terminal) ??
-			chats.find((c) => !(c.pane in this.pairs));
-		return { agent, chat };
-	}
-
-	// "harness-tabs.chat": the Claude's conversation, or back to its
-	// terminal. Both stay in the tab and the one shown is zoomed, so the
-	// terminal keeps running (and keeps its place) behind the chat. The first
-	// time, the chat pane is split off beside the terminal.
-	chat(cx) {
-		// A pane header names its pane; a chat names its Claude's terminal.
-		// { pane } from a pane header, { terminal } from a chat, with the view
-		// wanted ('chat' or 'terminal'); from a key, nothing: the other view.
-		const asked = shared('chat-origin') ?? {};
-		const origin =
-			(asked.terminal ? panes().find((p) => p.terminal === asked.terminal)?.pane : asked.pane) ??
-			focused()?.pane ??
-			null;
-		if (shared('chat-origin')) setShared('chat-origin', null);
-		const { agent, chat } = this.chatPanes(origin);
-		if (!chat) {
-			if (!agent) return;
-			const before = new Set(panes().map((p) => p.pane));
-			run('pane.split', {
-				pane: agent.pane,
-				direction: 'right',
-				mod: 'chat',
-				props: { terminal: agent.terminal },
-			});
-			// The new pane is listed once the split has landed.
-			cx.timer.after(150, () => {
-				const made = panes().find((p) => p.mod === 'chat' && !before.has(p.pane));
-				if (!made) return;
-				this.pairs[made.pane] = agent.terminal;
-				localStorage.setItem('chat-pairs', JSON.stringify(this.pairs));
-				setShared('chat-pairs', this.pairs);
-				run('pane.zoom', { pane: made.pane });
-				run('pane.focus', { pane: made.pane });
-			});
-			return;
-		}
-		const to =
-			asked.want === 'terminal' ? agent : asked.want === 'chat' ? chat : chat.zoomed ? agent : chat;
-		if (!to) {
-			run('pane.zoom', { pane: chat.pane });
-			return;
-		}
-		const zoomed = panes().find((p) => p.tab === chat.tab && p.zoomed);
-		if (zoomed && zoomed.pane !== to.pane) run('pane.zoom', { pane: zoomed.pane });
-		if (!to.zoomed) run('pane.zoom', { pane: to.pane });
-		run('pane.focus', { pane: to.pane });
 	}
 
 	toggle(panel, body, id) {
@@ -284,13 +193,7 @@ export default class Tabs extends View {
 						div()
 							.max_w(170)
 							.truncate()
-							// Z marks a zoomed tab, except one with a chat: its Chat and
-							// Terminal views are shown by zooming, so there it is the rule.
-							.child(
-								c.zoomed && !panes().some((p) => p.tab === c.id && p.mod === 'chat')
-									? `${name} Z`
-									: name,
-							),
+							.child(c.zoomed ? `${name} Z` : name),
 					)
 					.when(c.status === 'working', (el) =>
 						el.child(

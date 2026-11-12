@@ -72,7 +72,6 @@
 		"cmd-backspace": "send:\u0015"
 	},
 	"layout:harness": {
-		"cmd-shift-h": "harness-tabs.harness",
-		"cmd-shift-c": "harness-tabs.chat"
+		"cmd-shift-h": "harness-tabs.harness"
 	}
 }

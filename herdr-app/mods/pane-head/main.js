@@ -1,14 +1,13 @@
 // A pane's header: Herdr's own (mods/pane), with two changes. A Claude Code
-// pane, and the chat pane that shows the same Claude (mods/chat), both read
-// "Claude Code · what it is doing" with a Chat | Terminal switch, so the two
-// views of one agent look like one thing with two faces. And a working agent
-// is a still dot, as everywhere else here, not a spinner.
+// pane reads "Claude Code · what it is doing", from its title, rather than
+// the program's name alone. And a working agent is a still dot, as
+// everywhere else here, not a spinner.
 //
 // Props from the app: { pane, terminal }. Click: focus the pane.
 import { View, div, svg, image } from 'gpui-kit';
 import { h_flex } from 'gpui-base';
-import { SIZE, SPACE, TEXT, button, segmented, badge, dot, title } from './lib/ui.js';
-import { panes, agents, props, run, theme, home, layout, setShared, shared } from 'herdr';
+import { SIZE, SPACE, TEXT, button, badge, dot, title } from './lib/ui.js';
+import { panes, agents, props, run, theme, home, layout } from 'herdr';
 
 // Match the first visible tab frame, including the active child of a stack.
 function paneFrame(node) {
@@ -55,16 +54,7 @@ export default class PaneHead extends View {
 		const t = theme();
 		const p = this.me();
 		if (!p) return div();
-		const here = panes().filter((x) => x.tab === p.tab);
-		// The Claude this header is about: the pane itself, or the one its chat shows.
-		// A chat's own Claude, by the pairing harness-tabs made when it made
-		// the chat; the tab's first Claude for a chat made before that.
-		const paired = p.mod === 'chat' ? (shared('chat-pairs') ?? {})[p.pane] : null;
-		const claude = isClaude(p)
-			? p
-			: p.mod === 'chat'
-				? (here.find((x) => x.terminal && x.terminal === paired) ?? here.find(isClaude))
-				: null;
+		const claude = isClaude(p) ? p : null;
 		const agent = claude ? agents().find((a) => a.address === claude.terminal) : null;
 		const program = claude?.program ?? p.program;
 		const name = claude
@@ -105,29 +95,8 @@ export default class PaneHead extends View {
 				.child(title(t, name, detail))
 				.when(st === 'blocked', (el) => el.child(badge(t, 'Needs you', 'blocked')))
 				.when(st === 'working' || st === 'done', (el) => el.child(dot(t, st)))
-				// Chat | Terminal: the two views of one Claude. harness-tabs switches
-				// the tab between them, and makes the chat the first time.
-				.when(Boolean(claude), (el) =>
-					el.child(
-						segmented(
-							t,
-							`ph-view-${pane}`,
-							[
-								{ key: 'chat', label: 'Chat' },
-								{ key: 'terminal', label: 'Terminal' },
-							],
-							p.mod === 'chat' ? 'chat' : 'terminal',
-							// Which pane asked, so the switch is about this Claude
-							// when a tab holds two.
-							(want) => {
-								setShared('chat-origin', { pane, want });
-								run('harness-tabs.chat');
-							},
-						),
-					),
-				)
 				// The pane buttons keep their room while hidden, so showing them on
-				// hover does not push the switcher and the status aside: four
+				// hover does not push the title and the status aside: four
 				// controls and the gaps between them.
 				.child(
 					h_flex()

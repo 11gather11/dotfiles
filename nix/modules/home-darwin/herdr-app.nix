@@ -342,8 +342,8 @@ let
           --exclude /lib/ \
           "$d" "$dst/mods/$name/"
 
-        # Code more than one mod uses (the markdown view the viewer and the
-        # chat both draw) lives once, in herdr-app/lib, and is copied into
+        # Code more than one mod uses (the UI parts, the folder the panels
+        # follow) lives once, in herdr-app/lib, and is copied into
         # each mod that imports it: the app refuses an import from outside a
         # mod's own folder. Only into those, and by checksum, because any
         # file saved under a mod reloads it.

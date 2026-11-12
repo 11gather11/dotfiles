@@ -2,12 +2,33 @@
 // else as highlighted code. It follows the file as it changes, so it serves
 // as a live preview while the file is written elsewhere.
 //
-// Opened over the window as a dialog (the file tree does so on a click) or as
-// a pane beside the terminals: `pane.split {mod: "viewer", props: {file}}`.
-// props: `file`, an absolute path; `on`, the machine it is on (null: here).
-import { View, div, svg } from 'gpui-kit';
-import { v_flex, h_flex, Editor, EditorState, TextView } from 'gpui-base';
-import { props, readTextFile, watchFolder, theme, settings, run, closeOverlay } from 'herdr';
+// Opened over the window as a dialog (the file tree and the finder do so) or
+// as a pane beside the terminals: `pane.split {mod: "viewer", props: {file}}`.
+// props: `file`, an absolute path; `on`, the machine it is on (null: here);
+// `line`, a line to open at, from a search.
+import { View, div, svg, image } from 'gpui-kit';
+import {
+	v_flex,
+	h_flex,
+	Editor,
+	EditorState,
+	TextView,
+	Scrollbar,
+	v_virtual_list,
+	VirtualListScrollHandle,
+} from 'gpui-base';
+import {
+	props,
+	readTextFile,
+	writeTextFile,
+	watchFolder,
+	exec,
+	appHome,
+	theme,
+	settings,
+	run,
+	closeOverlay,
+} from 'herdr';
 
 // Extensions the editor knows under another language's name.
 const LANG = {
@@ -20,6 +41,7 @@ const LANG = {
 	toml: 'yaml',
 	jsonc: 'json',
 	svelte: 'html',
+	svg: 'html',
 	vue: 'html',
 };
 // Past this, the rest of a file is cut: the editor holds it all in memory.
@@ -27,15 +49,157 @@ const LIMIT = 400000;
 
 const extOf = (file) => (file.includes('.') ? file.split('.').pop().toLowerCase() : 'txt');
 const isMarkdown = (file) => ['md', 'markdown', 'mdx'].includes(extOf(file));
+// Files shown as a picture. An SVG is text too, so it also has a code view;
+// the others are only pictures.
+const PICTURES = ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'tif', 'tiff'];
+const isPicture = (file) => PICTURES.includes(extOf(file));
+const isSvg = (file) => extOf(file) === 'svg';
+// Padding around a picture (p(24) in render), for the room it may take.
+const PICTURE_PAD = 48;
+// The longest side an SVG file is drawn at for the picture view: as large as
+// the view gets, so it is only ever scaled down.
+const SVG_SIZE = 1600;
+// The line list's row height, the size its virtual list is told.
+const LINE_H = 20;
+// Where md-asset puts the images it makes, under the app's folder, as the
+// only place a mod can draw an image from.
+const ASSETS = 'cache/viewer';
+// md-asset renders Mermaid at twice its size, for a sharp image on a Retina
+// screen; it is shown at half its pixels.
+const MERMAID_SCALE = 2;
+// The rendered markdown's side padding (px(28) in render), for the width an
+// image may take.
+const MD_PAD = 56;
+
+// GitHub's alert kinds, as the label a blockquote gets in their place: the
+// markdown view draws `> [!NOTE]` as the literal text.
+const ALERTS = {
+	NOTE: 'ℹ️ Note',
+	TIP: '💡 Tip',
+	IMPORTANT: '❗ Important',
+	WARNING: '⚠️ Warning',
+	CAUTION: '⛔ Caution',
+};
+
+/**
+ * A 32-bit FNV-1a hash in hex, naming a rendered image after what it was made
+ * from, so the same diagram is drawn once.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function hash(text) {
+	let h = 0x811c9dc5;
+	for (let i = 0; i < text.length; i++) {
+		h ^= text.charCodeAt(i);
+		h = Math.imul(h, 0x01000193) >>> 0;
+	}
+	return h.toString(16).padStart(8, '0');
+}
+
+/**
+ * Splits markdown into what the markdown view draws itself (`text`) and what
+ * it cannot, drawn as images instead: Mermaid blocks, and pictures on a line
+ * of their own that live beside the document. Lines inside other code blocks
+ * stay text, so a fence or an image shown as an example is left alone.
+ *
+ * @param {string} md
+ * @returns {({kind: 'text', text: string} | {kind: 'mermaid', code: string} | {kind: 'image', src: string, alt: string})[]}
+ * @example
+ * segments("a\n```mermaid\ngraph LR\n```\nb") // => [text "a", mermaid "graph LR", text "b"]
+ */
+function segments(md) {
+	const out = [];
+	let buf = [];
+	let fence = null; // the fence of the code block we are in, if any
+	const flush = () => {
+		if (buf.length) out.push({ kind: 'text', text: alerts(buf.join('\n')) });
+		buf = [];
+	};
+	const lines = md.split('\n');
+	for (let i = 0; i < lines.length; i++) {
+		const l = lines[i];
+		const open = /^\s*(`{3,}|~{3,})\s*([\w-]*)/.exec(l);
+		if (fence) {
+			if (l.trim().startsWith(fence)) fence = null;
+			buf.push(l);
+			continue;
+		}
+		if (open && open[2] === 'mermaid') {
+			const body = [];
+			for (i++; i < lines.length && !lines[i].trim().startsWith(open[1]); i++) body.push(lines[i]);
+			flush();
+			out.push({ kind: 'mermaid', code: body.join('\n') });
+			continue;
+		}
+		if (open) {
+			fence = open[1];
+			buf.push(l);
+			continue;
+		}
+		const img = /^\s*!\[([^\]]*)\]\(<?([^)\s>]+)>?(?:\s+"[^"]*")?\)\s*$/.exec(l);
+		if (img && !/^[a-z][a-z0-9+.-]*:/i.test(img[2])) {
+			flush();
+			out.push({ kind: 'image', src: img[2], alt: img[1] });
+			continue;
+		}
+		buf.push(l);
+	}
+	flush();
+	return out;
+}
+
+/**
+ * Rewrites GitHub's alert marker (`> [!WARNING]`) as a bold label, so the
+ * blockquote says what kind of alert it is.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function alerts(text) {
+	return text.replace(
+		/^(\s*>\s*)\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/gim,
+		(_m, quote, kind) => `${quote}**${ALERTS[kind.toUpperCase()]}**`,
+	);
+}
+
+/** `rel` resolved against the folder `dir`, with `.` and `..` folded in. */
+function resolve(dir, rel) {
+	const parts = (rel.startsWith('/') ? rel : `${dir}/${rel}`).split('/');
+	const out = [];
+	for (const p of parts) {
+		if (p === '..') out.pop();
+		else if (p && p !== '.') out.push(p);
+	}
+	return `/${out.join('/')}`;
+}
 
 export default class Viewer extends View {
 	init(_props, cx) {
 		this.file = (props() ?? {}).file ?? null;
 		this.on = (props() ?? {}).on ?? null;
+		this.line = (props() ?? {}).line ?? null;
 		this.text = null;
+		this.lines = [];
 		this.code = null;
 		this.error = null;
-		this.source = false;
+		// What the body shows: `rendered` markdown, `highlight`ed code, or the
+		// plain `lines` a search opens at. The editor can't be scrolled to a
+		// line from a script, so a line is shown in a list that can.
+		this.mode = this.line
+			? 'lines'
+			: isPicture(this.file ?? '')
+				? 'picture'
+				: isMarkdown(this.file ?? '')
+					? 'rendered'
+					: 'highlight';
+		// The copy of a picture file the app can draw, with its size.
+		this.picture = null;
+		// The markdown's parts (see segments) and the images made for them.
+		this.parts = [];
+		this.assets = new Map();
+		this.scroll = VirtualListScrollHandle.new();
+		this.reveal = Boolean(this.line);
 		this.load(cx);
 		this.follow(cx);
 	}
@@ -60,6 +224,9 @@ export default class Viewer extends View {
 
 	load(cx) {
 		if (!this.file) return;
+		if (isPicture(this.file)) this.loadPicture(cx);
+		// A picture other than an SVG has no text to show.
+		if (isPicture(this.file) && !isSvg(this.file)) return;
 		cx.spawn(async (cx) => {
 			try {
 				const text = await readTextFile(this.file, { on: this.on });
@@ -68,8 +235,15 @@ export default class Viewer extends View {
 				else {
 					this.error = null;
 					this.text = text.length > LIMIT ? text.slice(0, LIMIT) + '\n… (file truncated)' : text;
-					this.code?.release();
-					this.code = null;
+					this.lines = this.text.split('\n');
+					// Made here, not in render, which may not create host state;
+					// a reload replaces the text of the one already made.
+					if (this.code) this.code.set_value(this.text);
+					else this.code = this.highlighted(this.text);
+					if (isMarkdown(this.file)) {
+						this.parts = segments(this.text);
+						this.makeAssets(cx);
+					}
 				}
 			} catch {
 				this.error = 'Cannot read this file (too large, or unreadable)';
@@ -79,26 +253,226 @@ export default class Viewer extends View {
 		});
 	}
 
-	// The highlighted source, made on first need and again after each reload.
-	editor(t) {
-		if (!this.code)
-			this.code = EditorState.new({
-				language: LANG[extOf(this.file)] ?? extOf(this.file),
-				readonly: true,
-				value: this.text,
-				font_family: settings().font_family,
-				font_size: 12,
-				syntax: {
-					keyword: t.ansi5,
-					string: t.ansi2,
-					comment: t.dim,
-					function: t.ansi4,
-					type: t.ansi3,
-					number: t.ansi1,
-					constant: t.ansi6,
-				},
-			});
-		return Editor.new(this.code).flex_1().min_h(0);
+	// Copies the picture to where the app can draw it (see md-asset), named
+	// after the file and its modification time so an edited picture is copied
+	// again rather than shown from the cache.
+	loadPicture(cx) {
+		cx.spawn(async (cx) => {
+			try {
+				const st = await exec('stat', ['-f', '%m', this.file]);
+				if (st.code !== 0) throw new Error('This file is no longer available');
+				const svg = isSvg(this.file);
+				// An SVG is drawn as a PNG large enough to fill the view (see
+				// md-asset), in the theme's text color where it asks for one.
+				const name = `${hash(`${this.file}@${st.stdout.trim()}`)}.${svg ? 'png' : extOf(this.file)}`;
+				const out = `${appHome()}/${ASSETS}/${name}`;
+				await exec('mkdir', ['-p', `${appHome()}/${ASSETS}`]);
+				const r = await exec(
+					'md-asset',
+					svg
+						? ['svg', this.file, out, theme().foreground, String(SVG_SIZE)]
+						: ['image', this.file, out],
+				);
+				const [w, h] = r.stdout.trim().split(' ').map(Number);
+				if (r.code !== 0 || !w || !h)
+					throw new Error(r.stderr.trim().split('\n').pop() || 'Cannot show this picture');
+				this.picture = { path: `${ASSETS}/${name}`, w, h };
+				this.error = null;
+			} catch (e) {
+				this.error = String(e.message ?? e);
+			} finally {
+				cx.notify();
+			}
+		});
+	}
+
+	// The picture, as large as the room allows but never enlarged, which
+	// blurs it. An SVG arrives drawn at SVG_SIZE, so it still fills the view.
+	pictureView(t) {
+		const room = this.room ?? { width: 800, height: 600 };
+		const p = this.picture;
+		const fit = p
+			? Math.min((room.width - PICTURE_PAD) / p.w, (room.height - PICTURE_PAD) / p.h)
+			: 1;
+		const k = Math.min(1, fit);
+		return div()
+			.id('viewer-picture')
+			.flex_1()
+			.min_h(0)
+			.p(24)
+			.flex()
+			.items_center()
+			.justify_center()
+			.on_size_change((size, cx) => {
+				const zoom = settings().zoom || 1;
+				this.room = { width: size.width / zoom, height: size.height / zoom };
+				cx.notify();
+			})
+			.child(
+				p
+					? image(p.path)
+							.w(p.w * k)
+							.h(p.h * k)
+					: div().text_color(t.dim).child('Loading…'),
+			);
+	}
+
+	// Makes the image for each Mermaid block and linked picture not made yet,
+	// one after another, redrawing as each is ready. A part keyed by what it
+	// was made from keeps its image across reloads of the file.
+	makeAssets(cx) {
+		const dir = this.file.slice(0, this.file.lastIndexOf('/'));
+		const wanted = this.parts.filter((p) => p.kind !== 'text');
+		// Keyed before anything is made, so a part whose image exists from an
+		// earlier read shows it at once rather than after the ones before it.
+		for (const part of wanted)
+			part.key = part.kind === 'mermaid' ? `m:${part.code}` : `i:${resolve(dir, part.src)}`;
+		cx.spawn(async (cx) => {
+			await exec('mkdir', ['-p', `${appHome()}/${ASSETS}`]).catch(() => null);
+			for (const part of wanted) {
+				const key = part.key;
+				if (this.assets.has(key)) continue;
+				this.assets.set(key, { state: 'pending' });
+				cx.notify();
+				try {
+					let args;
+					if (part.kind === 'mermaid') {
+						const name = hash(part.code);
+						const source = `${appHome()}/${ASSETS}/${name}.mmd`;
+						if ((await readTextFile(source)) === null) await writeTextFile(source, part.code, null);
+						args = ['mermaid', source, `${appHome()}/${ASSETS}/${name}.png`];
+						part.path = `${ASSETS}/${name}.png`;
+					} else {
+						const src = resolve(dir, part.src);
+						const svg = isSvg(src);
+						const name = `${hash(src)}.${svg ? 'png' : extOf(src)}`;
+						const out = `${appHome()}/${ASSETS}/${name}`;
+						// An SVG at twice its own size, shown at half: sharp, and
+						// as large as the document drew it.
+						args = svg ? ['svg', src, out, theme().foreground] : ['image', src, out];
+						part.path = `${ASSETS}/${name}`;
+						part.scale = svg ? 2 : 1;
+					}
+					const r = await exec('md-asset', args, { timeout: 60000 });
+					const [w, h] = r.stdout.trim().split(' ').map(Number);
+					if (r.code !== 0 || !w || !h)
+						throw new Error(r.stderr.trim().split('\n').pop() || 'no image');
+					const scale = part.kind === 'mermaid' ? MERMAID_SCALE : part.scale;
+					this.assets.set(key, { state: 'ready', path: part.path, w: w / scale, h: h / scale });
+				} catch (e) {
+					this.assets.set(key, { state: 'error', error: String(e.message ?? e) });
+				}
+				cx.notify();
+			}
+		});
+	}
+
+	// One part of the rendered markdown: the markdown view's own drawing for
+	// text, an image for the rest once it is made, its source until then.
+	part(t, p, i) {
+		if (p.kind === 'text') return TextView.markdown(`viewer-md-${i}`, p.text);
+		const a = this.assets.get(p.key);
+		if (a?.state === 'ready') {
+			// Never wider than the view: scaled down, never up.
+			const room = Math.max(120, (this.width ?? 800) - MD_PAD);
+			const k = Math.min(1, room / a.w);
+			return div()
+				.py(8)
+				.child(
+					image(a.path)
+						.w(a.w * k)
+						.h(a.h * k),
+				);
+		}
+		const note = a?.state === 'error' ? `Could not draw this: ${a.error}` : 'Drawing…';
+		return v_flex()
+			.gap(4)
+			.py(8)
+			.child(
+				div()
+					.text_size(11)
+					.text_color(a?.state === 'error' ? t.ansi1 : t.dim)
+					.child(note),
+			)
+			.child(
+				TextView.markdown(
+					`viewer-src-${i}`,
+					p.kind === 'mermaid' ? '```mermaid\n' + p.code + '\n```' : `![${p.alt}](${p.src})`,
+				),
+			);
+	}
+
+	// The editor's state for the highlighted view, in the theme's colors.
+	highlighted(text) {
+		const t = theme();
+		return EditorState.new({
+			language: LANG[extOf(this.file)] ?? extOf(this.file),
+			readonly: true,
+			value: text,
+			font_family: settings().font_family,
+			font_size: 12,
+			syntax: {
+				keyword: t.ansi5,
+				string: t.ansi2,
+				comment: t.dim,
+				function: t.ansi4,
+				type: t.ansi3,
+				number: t.ansi1,
+				constant: t.ansi6,
+			},
+		});
+	}
+
+	// The file as numbered lines, the searched-for one marked and brought to
+	// the middle on the first frame that has it.
+	linesView(t) {
+		if (this.reveal) {
+			this.scroll.scroll_to_item(Math.max(0, this.line - 1), 'center');
+			this.reveal = false;
+		}
+		return div()
+			.flex_1()
+			.min_h(0)
+			.relative()
+			.font_family(settings().font_family ?? 'JetBrains Mono')
+			.text_size(12)
+			.child(
+				v_virtual_list(
+					'viewer-lines',
+					this.lines.length,
+					LINE_H,
+					(i) => String(i),
+					(range) =>
+						this.lines.slice(range.start, range.end).map((text, k) => {
+							const n = range.start + k + 1;
+							const hit = n === this.line;
+							return h_flex()
+								.h(LINE_H)
+								.w_full()
+								.px(8)
+								.gap(12)
+								.when(hit, (e) => e.bg(t.selection))
+								.child(
+									div()
+										.w(44)
+										.flex_none()
+										.text_right()
+										.text_color(hit ? t.foreground : t.dim)
+										.child(String(n)),
+								)
+								.child(
+									div()
+										.flex_1()
+										.min_w(0)
+										.truncate()
+										.child(text.replace(/\t/g, '    ') || ' '),
+								);
+						}),
+				)
+					.track_scroll(this.scroll)
+					.size_full(),
+			)
+			.child(Scrollbar.vertical('viewer-lines').absolute().inset_0());
 	}
 
 	close() {
@@ -128,14 +502,24 @@ export default class Viewer extends View {
 		const file = this.file ?? '';
 		const name = file.split('/').pop();
 		const folder = file.slice(0, file.lastIndexOf('/')).replace(/^\/Users\/[^/]+/, '~');
-		const markdown = isMarkdown(file) && !this.source;
 		const overlay = Boolean(props()?.overlay);
+		// The views this file has, as header buttons, when there is a choice.
+		const modes = [
+			...(isMarkdown(file) ? [['rendered', 'Preview']] : []),
+			...(isPicture(file) ? [['picture', 'Image']] : []),
+			...(!isPicture(file) || isSvg(file)
+				? [['highlight', isMarkdown(file) ? 'Source' : 'Code']]
+				: []),
+			...(this.line ? [['lines', `Line ${this.line}`]] : []),
+		];
 
 		let body;
 		if (!this.file) body = div().p(16).text_color(t.dim).child('No file');
 		else if (this.error) body = div().p(16).text_color(t.dim).child(this.error);
+		else if (this.mode === 'picture') body = this.pictureView(t);
 		else if (this.text === null) body = div().p(16).text_color(t.dim).child('Loading…');
-		else if (markdown)
+		else if (this.mode === 'lines') body = this.linesView(t);
+		else if (this.mode === 'rendered')
 			body = div()
 				.id('viewer-markdown')
 				.flex_1()
@@ -143,8 +527,16 @@ export default class Viewer extends View {
 				.overflow_y_scrollbar()
 				.px(28)
 				.py(20)
-				.child(TextView.markdown('viewer-md', this.text));
-		else body = this.editor(t);
+				.on_size_change((size, cx) => {
+					this.width = size.width / (settings().zoom || 1);
+					cx.notify();
+				})
+				.child(
+					v_flex()
+						.gap(4)
+						.children(this.parts.map((p, i) => this.part(t, p, i))),
+				);
+		else body = Editor.new(this.code).flex_1().min_h(0);
 
 		return v_flex()
 			.size_full()
@@ -163,12 +555,15 @@ export default class Viewer extends View {
 					.border_color(t.border)
 					.child(div().flex_none().font_semibold().child(name))
 					.child(div().flex_1().min_w(0).truncate().text_size(11.5).text_color(t.dim).child(folder))
-					.when(isMarkdown(file), (el) =>
-						el.child(
-							this.button(t, 'viewer-source', this.source ? 'Preview' : 'Source', (_e, cx) => {
-								this.source = !this.source;
-								cx.notify();
-							}),
+					.when(modes.length > 1, (el) =>
+						el.children(
+							modes.map(([mode, label]) =>
+								this.button(t, `viewer-${mode}`, label, (_e, cx) => {
+									this.mode = mode;
+									this.reveal = mode === 'lines';
+									cx.notify();
+								}).when(this.mode === mode, (b) => b.bg(t.selected).text_color(t.foreground)),
+							),
 						),
 					)
 					.when(overlay, (el) =>
@@ -180,7 +575,7 @@ export default class Viewer extends View {
 									run('pane.split', {
 										direction: 'right',
 										mod: 'viewer',
-										props: { file: this.file, on: this.on },
+										props: { file: this.file, on: this.on, line: this.line },
 									});
 									this.close();
 								}),

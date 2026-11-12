@@ -72,6 +72,69 @@ let
   # person's, and from then on the app stops adding its new default keys
   # anyway. So the defaults of the release it was taken from are written out in
   # full, and a release's new keys are taken in by hand.
+  # Turns what herdr-app's markdown view cannot draw into images it can: a
+  # Mermaid block rendered to PNG, a picture the document links to copied in
+  # (a mod draws images only from under the app's folder). Prints the image's
+  # size in pixels, which the viewer needs to lay it out; an image already
+  # made is not made again.
+  #
+  # The viewer asks for every image each time it shows a document, so the date
+  # of a file in the cache is when it was last shown. Each run marks what it
+  # served and removes what has not been shown for a fortnight: the cache keeps
+  # what is read and does not grow with every diagram ever opened.
+  #
+  # Mermaid is rendered by mermaid-cli in Google Chrome, installed by the
+  # google-chrome cask: nixpkgs' mermaid-cli carries no browser on macOS.
+  mermaidConfig = (pkgs.formats.json { }).generate "mermaid-config.json" {
+    theme = "dark";
+    themeVariables.fontFamily = "PlemolJP Console NF, sans-serif";
+  };
+  puppeteerConfig = (pkgs.formats.json { }).generate "puppeteer-config.json" {
+    headless = "shell";
+  };
+  mdAsset = pkgs.writeShellApplication {
+    name = "md-asset";
+    runtimeInputs = [ pkgs.mermaid-cli ];
+    text = ''
+      # usage: md-asset mermaid <source.mmd> <out.png>
+      #        md-asset image   <source>     <out>
+      #        md-asset svg     <source.svg> <out.png> <color> [longest side]
+      kind="$1" src="$2" out="$3"
+      if [ ! -s "$out" ]; then
+        mkdir -p "$(dirname "$out")"
+        case "$kind" in
+          mermaid)
+            PUPPETEER_EXECUTABLE_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+              mmdc --quiet -p ${puppeteerConfig} -c ${mermaidConfig} \
+              -i "$src" -o "$out" -b transparent -s 2 >&2
+            ;;
+          image) cp "$src" "$out" ;;
+          svg)
+            # Rasterised here at the size it is shown, as the app draws an
+            # SVG at its own size and enlarging that blurs it; twice its own
+            # size (at most 2048) when no size is asked for. currentColor,
+            # the text colour an icon is meant to take, becomes the theme's,
+            # or it draws black on the dark background.
+            color="$4"
+            max="''${5:-$(/usr/bin/sips -g pixelWidth -g pixelHeight "$src" \
+              | awk '/pixel(Width|Height)/ { if ($2 > m) m = $2 } END { m *= 2; print int(m > 2048 ? 2048 : m) }')}"
+            sed "s/currentColor/$color/g" "$src" > "$out.svg"
+            /usr/bin/sips -s format png -Z "$max" "$out.svg" --out "$out" >/dev/null
+            rm -f "$out.svg"
+            ;;
+          *) echo "md-asset: unknown kind: $kind" >&2; exit 2 ;;
+        esac
+      fi
+      # Only the cache's own files: an image's source is the document's, and
+      # its date is not this cache's to change.
+      touch "$out"
+      if [ "$kind" = mermaid ]; then touch "$src"; fi
+      find "$(dirname "$out")" -type f -mtime +14 -delete
+      /usr/bin/sips -g pixelWidth -g pixelHeight "$out" \
+        | awk '/pixelWidth/ { w = $2 } /pixelHeight/ { h = $2 } END { print w, h }'
+    '';
+  };
+
   herdrAppSync = pkgs.writeShellApplication {
     name = "herdr-app-sync";
     runtimeInputs = [ pkgs.rsync ];
@@ -115,6 +178,7 @@ in
     pkgs.llm-agents.herdr-core
     harnessStatus
     herdrAppSync
+    mdAsset
   ];
 
   # The file tree's icons. A mod can draw an image only from a path under the

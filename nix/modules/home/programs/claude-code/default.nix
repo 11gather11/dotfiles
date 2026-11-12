@@ -38,9 +38,6 @@ let
   );
   mergeConfig = helpers.mergeConfig pkgs;
 
-  # Language servers handed to Claude Code; see _lsp-plugin.nix.
-  lspPlugin = import ./_lsp-plugin.nix { inherit pkgs lib; };
-
   # The name agents type to review. It is the same binary as the gate, so the
   # record a review writes and the record the gate reads cannot drift apart.
   codexReviewRun = pkgs.writeShellScriptBin "codex-review-run" ''
@@ -232,8 +229,5 @@ in
     "claude/output-styles".source =
       config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/output-styles";
     "claude/rules".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/rules";
-    # A plugin, not a skill: Claude Code loads a plugin directory placed under
-    # skills/, so it needs no marketplace and nothing to install.
-    "claude/skills/lsp".source = lspPlugin;
   };
 }

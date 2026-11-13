@@ -24,6 +24,7 @@ import {
 import { focusedPlace } from './lib/focus.js';
 import { git } from './lib/git.js';
 import { openBeside } from './lib/pane.js';
+import { resetSlot } from './lib/panels.js';
 
 // GitHub is asked again this often while the panel shows.
 const SYNC_MS = 30000;
@@ -226,6 +227,7 @@ export default class Issues extends View {
 			.child(div().flex_none().font_semibold().child('Issues'))
 			.when(Boolean(this.repo), (e) => e.child(badge(t, this.repo.split('/').pop())))
 			.child(spacer())
+			.child(resetSlot(t, 'issues'))
 			.child(button(t, 'issues-refresh', this.loading ? '…' : '↻', (_e, cx) => this.refresh(cx)));
 		const controls = h_flex()
 			.gap(SPACE.sm)

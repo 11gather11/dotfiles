@@ -24,6 +24,7 @@ import {
 } from 'herdr';
 import { SIZE, SPACE, TEXT, RADIUS } from './lib/ui.js';
 import { focusedFolder } from './lib/focus.js';
+import { resetSlot } from './lib/panels.js';
 
 /**
  * The theme's icon for one entry, the way VS Code resolves it: a folder by its
@@ -453,7 +454,8 @@ export default class Files extends View {
 							.text_size(TEXT.ui)
 							.text_color(t.dim)
 							.child(this.root?.split(/[\\/]/).pop() ?? ''),
-					),
+					)
+					.child(resetSlot(t, 'files')),
 			)
 			.child(
 				v_flex()

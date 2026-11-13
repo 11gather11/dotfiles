@@ -24,6 +24,7 @@ import { exec, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
 import { openDiff } from './lib/git.js';
 import { runningHarnesses, startHarness } from './lib/harness.js';
+import { resetSlot } from './lib/panels.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
@@ -309,6 +310,7 @@ export default class Harness extends View {
 					),
 				),
 			)
+			.child(resetSlot(t, 'harness'))
 			.child(
 				// Not a spinner while reading: the label says so, without motion.
 				button(t, 'refresh', this.reading.has(this.dir) ? '…' : '↻', (_e, cx) => this.refresh(cx)),

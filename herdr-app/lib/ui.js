@@ -47,6 +47,7 @@ export function spacer() {
 
 /**
  * A bar's title: its name, and what it is about, dimmed and cut to fit.
+ * It takes the room left in the bar, so a bar with a title needs no spacer.
  *
  * @param {Record<string, string>} t
  * @param {string} name
@@ -104,6 +105,7 @@ export function button(t, id, label, onClick, opts = {}) {
 			cx.stop_propagation();
 			onClick(e, cx);
 		})
+		.when(Boolean(opts.title), (e) => e.tooltip(opts.title))
 		.when(Boolean(opts.icon), (e) => e.child(svg(opts.icon).size(14).flex_none()))
 		.child(label);
 }
@@ -295,6 +297,22 @@ export function card(t) {
 }
 
 /**
+ * What a pane beside the terminals (diff, issue) is drawn on: the pane's own
+ * frame already rounds and borders it, so this has neither; a card inside
+ * it drew a second set of corners.
+ *
+ * @param {Record<string, string>} t
+ */
+export function sheet(t) {
+	return v_flex()
+		.size_full()
+		.min_h(0)
+		.bg(t.background)
+		.text_color(t.foreground)
+		.text_size(TEXT.body);
+}
+
+/**
  * A side panel: its bar on top and a body that scrolls under it, in a card.
  *
  * @param {Record<string, string>} t
@@ -305,16 +323,34 @@ export function card(t) {
  * panel(t, 'changes', bar(t, 'changes-bar').child('Changes'), list)
  */
 export function panel(t, id, head, body) {
-	return card(t)
-		.child(head)
+	return card(t).child(head).child(scroller(id, body));
+}
+
+/**
+ * A body that takes the room left and scrolls, with its scrollbar. The
+ * padding is inside the scrolling element, so the first line clears the bar
+ * above (padding on an element that scrolls itself did not).
+ *
+ * @param {string} id the scrolling element's, which the scrollbar follows
+ * @param {object} body
+ * @param {{ px?: number, py?: number }} [pad] padding, SPACE.sm by default
+ */
+export function scroller(id, body, pad = {}) {
+	return div()
+		.flex_1()
+		.min_h(0)
+		.relative()
 		.child(
-			div()
-				.flex_1()
-				.min_h(0)
-				.relative()
-				.child(v_flex().id(id).absolute().inset_0().overflow_y_scroll().p(SPACE.sm).child(body))
-				.child(Scrollbar.vertical(id).absolute().inset_0()),
-		);
+			v_flex()
+				.id(id)
+				.absolute()
+				.inset_0()
+				.overflow_y_scroll()
+				.px(pad.px ?? SPACE.sm)
+				.py(pad.py ?? SPACE.sm)
+				.child(body),
+		)
+		.child(Scrollbar.vertical(id).absolute().inset_0());
 }
 
 /**

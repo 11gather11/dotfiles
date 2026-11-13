@@ -7,15 +7,16 @@
 // (lib/pane.js).
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
-import { shared, theme, exec, notify } from 'herdr';
-import { SPACE, TEXT, bar, title, spacer, button, badge, chip, card, ago } from './lib/ui.js';
+import { shared, theme, exec, notify, settings } from 'herdr';
+import { SPACE, TEXT, bar, title, button, badge, chip, sheet, scroller, ago } from './lib/ui.js';
 import { Markdown } from './lib/markdown.js';
 import { handToHarness, runningHarnesses } from './lib/harness.js';
 
 const FIELDS =
 	'number,title,state,body,author,createdAt,labels,assignees,comments,url,closedByPullRequestsReferences';
-// The text's side padding (px(SPACE.lg) on the body), for the width an image may take.
-const PAD = SPACE.lg * 2;
+// The text's side padding (px(SPACE.lg) on the body) and the scrollbar beside
+// it, for the width the text and its images may take.
+const PAD = SPACE.lg * 2 + SPACE.sm;
 
 const sameIssue = (a, b) => Boolean(a && b) && a.repo === b.repo && a.number === b.number;
 
@@ -124,18 +125,13 @@ export default class Issue extends View {
 		const target = this.target;
 		const issue = this.issue;
 		const running = target ? runningHarnesses().has(target.root) : false;
+		// The bar holds what it is and what can be done with it; the title,
+		// often long, reads in full at the top of the body.
 		const head = bar(t, 'issue-bar')
-			.child(
-				title(
-					t,
-					target ? `#${target.number}` : 'Issue',
-					issue?.title ?? (target ? target.repo : ''),
-				),
-			)
+			.child(title(t, target ? `#${target.number}` : 'Issue', issue ? '' : (target?.repo ?? '')))
 			.when(Boolean(issue), (e) =>
 				e.child(badge(t, issue.state.toLowerCase(), issue.state === 'OPEN' ? 'working' : 'done')),
 			)
-			.child(spacer())
 			.when(Boolean(issue && issue.state === 'OPEN'), (e) =>
 				e.child(
 					// Typed into the harness's input, or a harness started with it.
@@ -156,18 +152,15 @@ export default class Issue extends View {
 		else if (!issue) body = empty('Reading…');
 		else {
 			const prs = issue.closedByPullRequestsReferences ?? [];
-			body = v_flex()
-				.id('issue-body')
-				.flex_1()
-				.min_h(0)
-				.overflow_y_scrollbar()
-				.px(SPACE.lg)
-				.py(SPACE.md)
+			const content = v_flex()
 				.gap(SPACE.md)
-				.on_size_change((size, cx) => {
-					this.width = size.width;
-					cx.notify();
-				})
+				.child(
+					div()
+						.text_size(TEXT.body + 3)
+						.font_semibold()
+						.text_color(t.foreground)
+						.child(issue.title),
+				)
 				.when(Boolean(this.handing), (e) =>
 					e.child(div().text_size(TEXT.ui).text_color(t.muted).child(this.handing)),
 				)
@@ -187,7 +180,24 @@ export default class Issue extends View {
 					),
 				)
 				.children(this.posts.map((p, i) => this.post(t, p, i)));
+			body = scroller('issue-body', content, { px: SPACE.lg, py: SPACE.md });
 		}
-		return card(t).child(head).child(body);
+		return sheet(t)
+			.child(head)
+			.child(
+				// Measured here, around the scrolling body, not on its content:
+				// the content is as wide as the text was laid out, so measuring it
+				// kept a first guess too wide for the pane.
+				v_flex()
+					.flex_1()
+					.min_h(0)
+					.on_size_change((size, cx) => {
+						const width = size.width / (settings().zoom || 1);
+						if (Math.abs(width - this.width) < 1) return;
+						this.width = width;
+						cx.notify();
+					})
+					.child(body),
+			);
 	}
 }

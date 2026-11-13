@@ -6,19 +6,19 @@
 // lib/git.js: uncommitted changes, a commit, or a branch against its base.
 // Uncommitted changes follow the working tree as it changes.
 import { View, div } from 'gpui-kit';
-import { v_flex, h_flex, Scrollbar, v_virtual_list, VirtualListScrollHandle } from 'gpui-base';
+import { h_flex, Scrollbar, v_virtual_list, VirtualListScrollHandle } from 'gpui-base';
 import { shared, theme, settings, watchFolder } from 'herdr';
 import {
 	SPACE,
 	TEXT,
 	bar,
-	spacer,
 	title,
 	button,
 	badge,
 	counts,
 	changeMark,
 	pathLabel,
+	sheet,
 } from './lib/ui.js';
 import { git } from './lib/git.js';
 import { languageOf, tokens, changedSpan, marked } from './highlight.js';
@@ -99,17 +99,21 @@ export function parseDiff(text) {
 		const sign = line[0];
 		if (file.lines.length && (sign === '+' || sign === '-' || sign === ' ')) {
 			const body = untab(line.slice(1)).slice(0, MAX_LINE);
-			if (sign === '+')
-				(file.add++, file.lines.push({ kind: '+', old: null, now: now++, text: body }));
-			else if (sign === '-')
-				(file.del++, file.lines.push({ kind: '-', old: old++, now: null, text: body }));
-			else file.lines.push({ kind: ' ', old: old++, now: now++, text: body });
+			if (sign === '+') {
+				file.add++;
+				file.lines.push({ kind: '+', old: null, now: now++, text: body });
+			} else if (sign === '-') {
+				file.del++;
+				file.lines.push({ kind: '-', old: old++, now: null, text: body });
+			} else file.lines.push({ kind: ' ', old: old++, now: now++, text: body });
 			continue;
 		}
 		if (line.startsWith('new file')) file.status = 'A';
 		else if (line.startsWith('deleted file')) file.status = 'D';
-		else if (line.startsWith('rename from ')) ((file.from = line.slice(12)), (file.status = 'R'));
-		else if (line.startsWith('rename to ')) file.path = line.slice(10);
+		else if (line.startsWith('rename from ')) {
+			file.from = line.slice(12);
+			file.status = 'R';
+		} else if (line.startsWith('rename to ')) file.path = line.slice(10);
 		else if (line.startsWith('--- a/') && file.status === 'D') file.path = line.slice(6);
 		else if (line.startsWith('Binary files')) file.note = 'Binary file';
 	}
@@ -280,7 +284,8 @@ export default class Diff extends View {
 	}
 
 	fold(path, cx) {
-		this.folded.has(path) ? this.folded.delete(path) : this.folded.add(path);
+		if (this.folded.has(path)) this.folded.delete(path);
+		else this.folded.add(path);
 		this.lay();
 		cx.notify();
 	}
@@ -412,7 +417,6 @@ export default class Diff extends View {
 		const del = this.files.reduce((n, f) => n + f.del, 0);
 		const head = bar(t, 'diff-bar')
 			.child(this.heading(t))
-			.child(spacer())
 			.when(this.files.length > 0, (e) =>
 				e
 					.child(badge(t, `${this.files.length} ${this.files.length === 1 ? 'file' : 'files'}`))
@@ -478,14 +482,6 @@ export default class Diff extends View {
 				)
 				.child(Scrollbar.vertical('diff-rows').viewport_from_layout().absolute().inset_0());
 
-		return v_flex()
-			.id('diff')
-			.size_full()
-			.min_h(0)
-			.bg(t.background)
-			.text_color(t.foreground)
-			.text_size(TEXT.body)
-			.child(head)
-			.child(body);
+		return sheet(t).child(head).child(body);
 	}
 }

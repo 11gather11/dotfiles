@@ -11,11 +11,12 @@
 // harness's workers did.
 import { div, PathBuilder, View } from 'gpui-kit';
 import { h_flex, Scrollbar, v_virtual_list } from 'gpui-base';
-import { shared, theme, settings, watchFolder } from 'herdr';
+import { shared, theme, watchFolder } from 'herdr';
 import { SPACE, TEXT, RADIUS, bar, spacer, button, badge, card, ago } from './lib/ui.js';
 import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 import { layoutLanes } from './lanes.js';
+import { resetSlot } from './lib/panels.js';
 
 const LIMIT = 400;
 const ROW = 24;
@@ -349,6 +350,7 @@ export default class Graph extends View {
 			.child(div().flex_none().font_semibold().child('Graph'))
 			.when(Boolean(this.branch), (e) => e.child(badge(t, this.branch)))
 			.child(spacer())
+			.child(resetSlot(t, 'graph'))
 			.child(button(t, 'graph-refresh', this.loading ? '…' : '↻', (_e, cx) => this.load(cx)));
 		const body = !this.commits.length
 			? div()

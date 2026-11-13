@@ -25,6 +25,7 @@ import {
 } from './lib/ui.js';
 import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
+import { resetSlot } from './lib/panels.js';
 
 // The watch catches edits; this catches what it cannot (another machine).
 const FALLBACK_MS = 10000;
@@ -119,8 +120,8 @@ export default class GitChanges extends View {
 						lists.Untracked.push({ path, status: 'A', add: 0, del: 0 });
 						continue;
 					}
-					if (x !== ' ') lists.Staged.push({ path, status: x, ...(inIndex[path] ?? {}) });
-					if (y !== ' ') lists.Changes.push({ path, status: y, ...(inTree[path] ?? {}) });
+					if (x !== ' ') lists.Staged.push({ path, status: x, ...inIndex[path] });
+					if (y !== ' ') lists.Changes.push({ path, status: y, ...inTree[path] });
 				}
 				this.root = root;
 				this.on = on;
@@ -187,7 +188,8 @@ export default class GitChanges extends View {
 			.when(files.length > 0, (e) =>
 				// Every change in one diff, file after file.
 				e.child(button(t, 'changes-all', 'Diff', () => this.show(null))),
-			);
+			)
+			.child(resetSlot(t, 'changes'));
 		const body = !this.sections.length
 			? div()
 					.p(SPACE.sm)

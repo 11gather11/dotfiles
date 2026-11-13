@@ -80,7 +80,7 @@ export default class HarnessList extends View {
 				// What the Issues panel marks each issue with: who works on it, which
 				// spec it is in, whether it landed.
 				setShared('harness.snaps', {
-					...(shared('harness.snaps') ?? {}),
+					...shared('harness.snaps'),
 					[repo]: { workers: snap.workers, specs: snap.specs, queue: snap.queue, at: snap.at },
 				});
 			} catch {

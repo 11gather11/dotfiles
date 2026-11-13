@@ -1,6 +1,7 @@
 import { View, div, svg, image } from 'gpui-kit';
 import { h_flex, ScrollHandle } from 'gpui-base';
 import { SIZE, SPACE, TEXT, RADIUS, button as uiButton } from './lib/ui.js';
+import { widthOf, saveWidth, resizePanel } from './lib/panels.js';
 import {
 	spaces,
 	panes,
@@ -43,12 +44,6 @@ function titleOf(pane) {
 	return title && title !== pane.program?.name && title.toLowerCase() !== 'claude' ? title : null;
 }
 
-// The side panel's width per panel, before the person drags it to another:
-// the graph wants room for its lanes, labels and subjects; a list is
-// narrow. A panel not named here takes the layout's.
-const WIDTHS = { graph: 520, issues: 420 };
-const WIDTH = 320;
-
 // Settings → Look turns these two on and off through `workspace.panels`;
 // panels Herdr does not ship are not in that list and always show.
 const SHIPPED = ['files', 'changes'];
@@ -67,7 +62,6 @@ export default class Tabs extends View {
 		this.pressed = null;
 		this.scroll = ScrollHandle.new();
 		this.panels = JSON.parse(localStorage.getItem('panels') ?? '{}');
-		this.widths = JSON.parse(localStorage.getItem('panel.widths') ?? '{}');
 		// "harness-tabs.<panel id>" in keys.json opens that panel, or closes it
 		// when it is the one shown.
 		cx.spawn(async (cx) => {
@@ -121,32 +115,27 @@ export default class Tabs extends View {
 		localStorage.setItem('panels', JSON.stringify(this.panels));
 	}
 
-	// Each panel keeps its own width: showing one sets the panel to the
-	// width it had last (see WIDTHS for the first time), and dragging the
-	// panel's edge records the new width for the one shown.
+	// Each panel keeps its own width (lib/panels.js): showing one sets the
+	// panel to the width it had last, and dragging the panel's edge records
+	// the new width for the one shown.
 	syncWidth(panel, body) {
 		if (!panel) return;
 		const shown = panel.hidden ? null : (body?.active ?? null);
 		const px = panel.size?.px;
+		// Until a resize lands, the old width is not the person's choice.
+		const resizing = shared('panel.resizing');
+		const settling = resizing && px !== resizing.want && Date.now() < resizing.until;
 		if (shown !== this.widthOf) {
+			// The width the panel leaves is the last one's: a drag this view
+			// was not redrawn during is recorded here, before it is replaced.
+			const left = this.widthOf;
+			if (left && px && !settling && px !== widthOf(left)) saveWidth(left, px);
 			this.widthOf = shown;
-			if (!shown) return;
-			const want = this.widths[shown] ?? WIDTHS[shown] ?? WIDTH;
-			if (px !== want) {
-				// Until the resize lands, the old width is not the person's choice.
-				this.resizing = { want, until: Date.now() + 1000 };
-				run('layout.resize', { id: 'panel', px: want });
-			}
+			if (shown && px !== widthOf(shown)) resizePanel(widthOf(shown));
 			return;
 		}
-		if (!shown || !px) return;
-		if (this.resizing) {
-			if (px !== this.resizing.want && Date.now() < this.resizing.until) return;
-			this.resizing = null;
-		}
-		if (px === (this.widths[shown] ?? WIDTHS[shown] ?? WIDTH)) return;
-		this.widths[shown] = px;
-		localStorage.setItem('panel.widths', JSON.stringify(this.widths));
+		if (!shown || !px || settling) return;
+		if (px !== widthOf(shown)) saveWidth(shown, px);
 	}
 
 	render() {

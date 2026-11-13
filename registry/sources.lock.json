@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-nzzYoqZlwrsRNR9hUmQKPKe2FmI5W+qSxra/iLCFUkA=",
+				"hash": "sha256-PF76FkbxHfxLInOMzsudYK88KKswDWuVsIqIe2bIPw4=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "f88c40b7ed7c2344af54b804b440b11169f98906",
+				"revision": "4720bc3dd73f2c8f7c84f415adfa560330b924c4",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/f88c40b7ed7c2344af54b804b440b11169f98906.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/4720bc3dd73f2c8f7c84f415adfa560330b924c4.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -184,16 +184,16 @@
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-mJPXPDaQpD4WdXRhrNHViE+a2rkp6XsZL/PlGeT+5P0=",
+				"hash": "sha256-wb0pKiFjyWNF4xjEkRuRrWxgNIdD0KT2UD5+BoWByCE=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "a5539b15a3d56e04992565aafee2b37051329ce3",
+				"revision": "24621dbcc59e205a7faadb0e06d540f91712b5cc",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/a5539b15a3d56e04992565aafee2b37051329ce3.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/24621dbcc59e205a7faadb0e06d540f91712b5cc.tar.gz"
 			}
 		},
 		"version": 8

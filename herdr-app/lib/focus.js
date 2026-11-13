@@ -19,3 +19,13 @@ export function focusedFolder() {
 	const terminal = panes().find((p) => p.tab === tab && p.cwd);
 	return terminal?.cwd || spaces().find((s) => s.active)?.folder || null;
 }
+
+/**
+ * The focused folder and the machine it is on (null: this computer), which a
+ * panel reading git there runs its commands on.
+ *
+ * @returns {{ folder: string | null, on: string | null }}
+ */
+export function focusedPlace() {
+	return { folder: focusedFolder(), on: spaces().find((s) => s.active)?.machine ?? null };
+}

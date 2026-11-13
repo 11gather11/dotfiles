@@ -153,6 +153,13 @@
 											}
 										},
 										{
+											"id": "graph",
+											"type": "block",
+											"content": {
+												"mod": "graph"
+											}
+										},
+										{
 											"id": "harness",
 											"type": "block",
 											"content": {

@@ -4,7 +4,7 @@
 // Every verdict (blocked, queued, ready) comes from `harness-status`, which is
 // issue-harness's own status.nu; this file only draws it.
 import { View, div } from 'gpui-kit';
-import { v_flex, h_flex, Scrollbar } from 'gpui-base';
+import { v_flex, h_flex } from 'gpui-base';
 import {
 	SPACE,
 	TEXT,
@@ -17,9 +17,12 @@ import {
 	dot,
 	row,
 	heading,
+	panel,
+	ago,
 } from './lib/ui.js';
 import { spaces, panes, exec, hc, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
+import { openDiff } from './lib/git.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
@@ -27,15 +30,6 @@ const POLL_MS = 30000;
 
 // The repository shown is the one being worked in (lib/focus.js).
 const folder = focusedFolder;
-
-/** "3m", "2h", "4d" since an RFC 3339 time. */
-function ago(at) {
-	const s = Math.max(0, (Date.now() - Date.parse(at)) / 1000);
-	if (s < 60) return 'now';
-	if (s < 3600) return `${Math.floor(s / 60)}m`;
-	if (s < 86400) return `${Math.floor(s / 3600)}h`;
-	return `${Math.floor(s / 86400)}d`;
-}
 
 export default class Harness extends View {
 	init(_props, cx) {
@@ -181,8 +175,8 @@ export default class Harness extends View {
 	}
 
 	// One line: the dot, a name, what it is about (dimmed), and what follows.
-	line(t, id, state, name, detail, onClick) {
-		return row(t, id, { onClick })
+	line(t, id, state, name, detail, onClick, onRightClick) {
+		return row(t, id, { onClick, onRightClick })
 			.child(dot(t, this.status(state)))
 			.child(div().flex_none().max_w(140).truncate().text_color(t.foreground).child(name))
 			.child(
@@ -222,6 +216,15 @@ export default class Harness extends View {
 					w.name ?? '(no agent)',
 					w.branch,
 					w.name ? () => this.peek(w.name) : undefined,
+					// What the worker's branch adds, as its pull request shows it.
+					() =>
+						openDiff({
+							root: this.snap.repo,
+							on: null,
+							kind: 'range',
+							base: 'origin/HEAD',
+							head: w.branch,
+						}),
 				).child(this.ci(t, w.pr)),
 			),
 		);
@@ -311,7 +314,13 @@ export default class Harness extends View {
 							.text_color(t.muted)
 							.child(l.title ?? ''),
 					)
-					.child(div().flex_none().text_size(TEXT.meta).text_color(t.dim).child(ago(l.at))),
+					.child(
+						div()
+							.flex_none()
+							.text_size(TEXT.meta)
+							.text_color(t.dim)
+							.child(ago(Date.parse(l.at))),
+					),
 			),
 		);
 	}
@@ -367,27 +376,6 @@ export default class Harness extends View {
 				);
 		}
 
-		return v_flex()
-			.id('harness')
-			.size_full()
-			.min_h(0)
-			.rounded(10)
-			.overflow_hidden()
-			.bg(t.background)
-			.border_1()
-			.border_color(t.border)
-			.text_color(t.foreground)
-			.text_size(13)
-			.child(header)
-			.child(
-				div()
-					.flex_1()
-					.min_h(0)
-					.relative()
-					.child(
-						v_flex().id('harness-body').absolute().inset_0().overflow_y_scroll().p(8).child(body),
-					)
-					.child(Scrollbar.vertical('harness-body').absolute().inset_0()),
-			);
+		return panel(t, 'harness-body', header, body);
 	}
 }

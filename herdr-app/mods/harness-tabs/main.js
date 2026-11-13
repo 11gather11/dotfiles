@@ -24,6 +24,7 @@ import {
 const PANELS = {
 	files: { label: 'Files', icon: 'mods/files/file.svg' },
 	changes: { label: 'Changes', icon: 'mods/changes/changes.svg' },
+	graph: { label: 'Graph', icon: 'mods/workspace-chrome/git-branch.svg' },
 	harness: { label: 'Harness', icon: 'mods/harness/harness.svg' },
 };
 /**
@@ -40,6 +41,12 @@ function titleOf(pane) {
 	// Before its first title the terminal shows its program's own name.
 	return title && title !== pane.program?.name && title.toLowerCase() !== 'claude' ? title : null;
 }
+
+// The side panel's width per panel, before the person drags it to another:
+// the graph wants room for its lanes, labels and subjects; a list is
+// narrow. A panel not named here takes the layout's.
+const WIDTHS = { graph: 520 };
+const WIDTH = 320;
 
 // Settings → Look turns these two on and off through `workspace.panels`;
 // panels Herdr does not ship are not in that list and always show.
@@ -59,6 +66,7 @@ export default class Tabs extends View {
 		this.pressed = null;
 		this.scroll = ScrollHandle.new();
 		this.panels = JSON.parse(localStorage.getItem('panels') ?? '{}');
+		this.widths = JSON.parse(localStorage.getItem('panel.widths') ?? '{}');
 		// "harness-tabs.<panel id>" in keys.json opens that panel, or closes it
 		// when it is the one shown.
 		cx.spawn(async (cx) => {
@@ -110,6 +118,34 @@ export default class Tabs extends View {
 		if (this.panels[space.id] === now) return;
 		this.panels[space.id] = now;
 		localStorage.setItem('panels', JSON.stringify(this.panels));
+	}
+
+	// Each panel keeps its own width: showing one sets the panel to the
+	// width it had last (see WIDTHS for the first time), and dragging the
+	// panel's edge records the new width for the one shown.
+	syncWidth(panel, body) {
+		if (!panel) return;
+		const shown = panel.hidden ? null : (body?.active ?? null);
+		const px = panel.size?.px;
+		if (shown !== this.widthOf) {
+			this.widthOf = shown;
+			if (!shown) return;
+			const want = this.widths[shown] ?? WIDTHS[shown] ?? WIDTH;
+			if (px !== want) {
+				// Until the resize lands, the old width is not the person's choice.
+				this.resizing = { want, until: Date.now() + 1000 };
+				run('layout.resize', { id: 'panel', px: want });
+			}
+			return;
+		}
+		if (!shown || !px) return;
+		if (this.resizing) {
+			if (px !== this.resizing.want && Date.now() < this.resizing.until) return;
+			this.resizing = null;
+		}
+		if (px === (this.widths[shown] ?? WIDTHS[shown] ?? WIDTH)) return;
+		this.widths[shown] = px;
+		localStorage.setItem('panel.widths', JSON.stringify(this.widths));
 	}
 
 	render() {
@@ -238,6 +274,7 @@ export default class Tabs extends View {
 			.map((c) => c.id)
 			.filter((id) => !SHIPPED.includes(id) || shipped.includes(id));
 		this.syncPanel(space, panel, body, enabled);
+		this.syncWidth(panel, body);
 		const panelButton = (id, label, icon) => {
 			const on = panel && !panel.hidden && body?.active === id;
 			return uiButton(t, `panel-${id}`, label, () => this.toggle(panel, body, id), {

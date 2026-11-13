@@ -8,7 +8,18 @@
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex, Scrollbar, v_virtual_list, VirtualListScrollHandle } from 'gpui-base';
 import { shared, theme, settings, watchFolder } from 'herdr';
-import { SPACE, TEXT, bar, spacer, title, button, badge } from './lib/ui.js';
+import {
+	SPACE,
+	TEXT,
+	bar,
+	spacer,
+	title,
+	button,
+	badge,
+	counts,
+	changeMark,
+	pathLabel,
+} from './lib/ui.js';
 import { git } from './lib/git.js';
 import { languageOf, tokens, changedSpan, marked } from './highlight.js';
 
@@ -277,9 +288,6 @@ export default class Diff extends View {
 	// ── rows ──
 
 	fileRow(t, f) {
-		const parts = f.path.split('/');
-		const name = parts.pop();
-		const color = { A: t.ansi2, D: t.ansi1, R: t.ansi4 }[f.status] ?? t.blocked;
 		return h_flex()
 			.id(`file-${f.path}`)
 			.h(FILE_H)
@@ -300,17 +308,9 @@ export default class Diff extends View {
 					.text_color(t.dim)
 					.child(this.folded.has(f.path) ? '›' : '⌄'),
 			)
-			.child(div().w(12).flex_none().text_color(color).child(f.status))
-			.child(
-				div()
-					.flex_none()
-					.text_color(t.dim)
-					.child(f.from ? `${f.from} → ` : parts.length ? `${parts.join('/')}/` : ''),
-			)
-			.child(div().flex_none().font_semibold().text_color(t.foreground).child(name))
-			.child(spacer())
-			.when(f.add > 0, (e) => e.child(div().flex_none().text_color(t.ansi2).child(`+${f.add}`)))
-			.when(f.del > 0, (e) => e.child(div().flex_none().text_color(t.ansi1).child(`−${f.del}`)));
+			.child(changeMark(t, f.status))
+			.child(pathLabel(t, f.path, { from: f.from, strong: true }))
+			.child(counts(t, f.add, f.del));
 	}
 
 	lineRow(t, l) {
@@ -416,8 +416,7 @@ export default class Diff extends View {
 			.when(this.files.length > 0, (e) =>
 				e
 					.child(badge(t, `${this.files.length} ${this.files.length === 1 ? 'file' : 'files'}`))
-					.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi2).child(`+${add}`))
-					.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi1).child(`−${del}`)),
+					.child(counts(t, add, del)),
 			)
 			.when(this.files.length > 1, (e) =>
 				e.child(

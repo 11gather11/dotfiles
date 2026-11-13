@@ -7,10 +7,23 @@
 // In place of Herdr's `changes` panel, which drew the diff inside the panel
 // itself, too narrow for most lines, and in one colour.
 import { View, div } from 'gpui-kit';
-import { v_flex, h_flex, Scrollbar } from 'gpui-base';
-import { spaces, shared, theme, watchFolder, nextCommand } from 'herdr';
-import { SPACE, TEXT, bar, spacer, button, badge, row, heading } from './lib/ui.js';
-import { focusedFolder } from './lib/focus.js';
+import { v_flex } from 'gpui-base';
+import { shared, theme, watchFolder, nextCommand } from 'herdr';
+import {
+	SPACE,
+	TEXT,
+	bar,
+	spacer,
+	button,
+	badge,
+	row,
+	heading,
+	panel,
+	counts,
+	changeMark,
+	pathLabel,
+} from './lib/ui.js';
+import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 
 // The watch catches edits; this catches what it cannot (another machine).
@@ -53,8 +66,7 @@ export default class GitChanges extends View {
 	}
 
 	place() {
-		const on = spaces().find((s) => s.active)?.machine ?? null;
-		return { folder: focusedFolder(), on };
+		return focusedPlace();
 	}
 
 	refresh(cx) {
@@ -151,29 +163,12 @@ export default class GitChanges extends View {
 	}
 
 	fileRow(t, section, f, shown) {
-		const parts = f.path.split('/');
-		const name = parts.pop();
-		const color = { A: t.ansi2, D: t.ansi1, U: t.ansi1, R: t.ansi4 }[f.status] ?? t.blocked;
 		const selected =
 			shown?.kind === 'worktree' && shown.root === this.root && shown.file === f.path;
 		return row(t, `c-${section}-${f.path}`, { selected, onClick: () => this.show(f.path) })
-			.child(div().w(12).flex_none().text_size(TEXT.meta).text_color(color).child(f.status))
-			.child(div().flex_none().max_w(180).truncate().text_color(t.foreground).child(name))
-			.child(
-				div()
-					.flex_1()
-					.min_w(0)
-					.truncate()
-					.text_size(TEXT.meta)
-					.text_color(t.dim)
-					.child(parts.join('/')),
-			)
-			.when(f.add > 0, (e) =>
-				e.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi2).child(`+${f.add}`)),
-			)
-			.when(f.del > 0, (e) =>
-				e.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi1).child(`−${f.del}`)),
-			);
+			.child(changeMark(t, f.status))
+			.child(pathLabel(t, f.path))
+			.child(counts(t, f.add, f.del));
 	}
 
 	render(cx) {
@@ -188,12 +183,7 @@ export default class GitChanges extends View {
 			.child(div().flex_none().font_semibold().child('Changes'))
 			.when(Boolean(this.branch), (e) => e.child(badge(t, this.branch)))
 			.child(spacer())
-			.when(add > 0, (e) =>
-				e.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi2).child(`+${add}`)),
-			)
-			.when(del > 0, (e) =>
-				e.child(div().flex_none().text_size(TEXT.meta).text_color(t.ansi1).child(`−${del}`)),
-			)
+			.child(counts(t, add, del))
 			.when(files.length > 0, (e) =>
 				// Every change in one diff, file after file.
 				e.child(button(t, 'changes-all', 'Diff', () => this.show(null))),
@@ -220,33 +210,6 @@ export default class GitChanges extends View {
 								.children(s.files.map((f) => this.fileRow(t, s.name, f, shown))),
 						),
 					);
-		return v_flex()
-			.id('git-changes')
-			.size_full()
-			.min_h(0)
-			.rounded(10)
-			.overflow_hidden()
-			.bg(t.background)
-			.border_1()
-			.border_color(t.border)
-			.text_color(t.foreground)
-			.text_size(TEXT.body)
-			.child(head)
-			.child(
-				div()
-					.flex_1()
-					.min_h(0)
-					.relative()
-					.child(
-						v_flex()
-							.id('git-changes-body')
-							.absolute()
-							.inset_0()
-							.overflow_y_scroll()
-							.p(SPACE.sm)
-							.child(body),
-					)
-					.child(Scrollbar.vertical('git-changes-body').absolute().inset_0()),
-			);
+		return panel(t, 'git-changes-body', head, body);
 	}
 }

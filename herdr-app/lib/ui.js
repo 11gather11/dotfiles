@@ -5,7 +5,7 @@
 //
 // Colours are the theme's (`theme()`), passed in as `t`.
 import { div, svg } from 'gpui-kit';
-import { h_flex } from 'gpui-base';
+import { h_flex, v_flex, Scrollbar } from 'gpui-base';
 
 /** Heights (px). A bar heads a pane or panel; the layout's tab bar has it too. */
 export const SIZE = { bar: 36, row: 26, control: 24, badge: 20, dot: 7 };
@@ -194,7 +194,7 @@ export function dot(t, status) {
  *
  * @param {Record<string, string>} t
  * @param {string} id
- * @param {{ selected?: boolean, onClick?: (e: any, cx: any) => void }} [opts]
+ * @param {{ selected?: boolean, onClick?: (e: any, cx: any) => void, onRightClick?: (e: any, cx: any) => void }} [opts]
  */
 export function row(t, id, opts = {}) {
 	return h_flex()
@@ -208,7 +208,8 @@ export function row(t, id, opts = {}) {
 		.text_size(TEXT.ui)
 		.when(Boolean(opts.selected), (e) => e.bg(t.selected))
 		.when(!opts.selected, (e) => e.hover((s) => s.bg(t.hover)))
-		.when(Boolean(opts.onClick), (e) => e.cursor_pointer().on_click(opts.onClick));
+		.when(Boolean(opts.onClick), (e) => e.cursor_pointer().on_click(opts.onClick))
+		.when(Boolean(opts.onRightClick), (e) => e.on_mouse_down('right', opts.onRightClick));
 }
 
 /**
@@ -268,4 +269,122 @@ export function chip(t, id, color, text, onClick) {
 					onClick(ev, cx);
 				}),
 		);
+}
+
+/**
+ * The card a side panel is drawn in: rounded, bordered, its children
+ * stacked. Every panel of the layout's right stack (Changes, Harness,
+ * Graph) is one; `panel` fills it the usual way.
+ *
+ * @param {Record<string, string>} t
+ */
+export function card(t) {
+	return v_flex()
+		.size_full()
+		.min_h(0)
+		.rounded(RADIUS.card)
+		.overflow_hidden()
+		.bg(t.background)
+		.border_1()
+		.border_color(t.border)
+		.text_color(t.foreground)
+		.text_size(TEXT.body);
+}
+
+/**
+ * A side panel: its bar on top and a body that scrolls under it, in a card.
+ *
+ * @param {Record<string, string>} t
+ * @param {string} id the scrolling body's id, which the scrollbar follows
+ * @param {object} head the bar (see `bar`)
+ * @param {object} body
+ * @example
+ * panel(t, 'changes', bar(t, 'changes-bar').child('Changes'), list)
+ */
+export function panel(t, id, head, body) {
+	return card(t)
+		.child(head)
+		.child(
+			div()
+				.flex_1()
+				.min_h(0)
+				.relative()
+				.child(v_flex().id(id).absolute().inset_0().overflow_y_scroll().p(SPACE.sm).child(body))
+				.child(Scrollbar.vertical(id).absolute().inset_0()),
+		);
+}
+
+/**
+ * Lines added and removed, "+12 −3", each left out at zero.
+ *
+ * @param {Record<string, string>} t
+ * @param {number} [add]
+ * @param {number} [del]
+ */
+export function counts(t, add, del) {
+	return h_flex()
+		.flex_none()
+		.gap(SPACE.xs + 2)
+		.text_size(TEXT.meta)
+		.when(add > 0, (e) => e.child(div().text_color(t.ansi2).child(`+${add}`)))
+		.when(del > 0, (e) => e.child(div().text_color(t.ansi1).child(`−${del}`)));
+}
+
+/**
+ * A file's change as git letters it (M, A, D, R, U), in its colour.
+ *
+ * @param {Record<string, string>} t
+ * @param {string} status
+ */
+export function changeMark(t, status) {
+	const color = { A: t.ansi2, D: t.ansi1, U: t.ansi1, R: t.ansi4 }[status] ?? t.blocked;
+	return div().w(12).flex_none().text_size(TEXT.meta).text_color(color).child(status);
+}
+
+/**
+ * A path as a list shows it: the file's name, then its folder dimmed and cut
+ * to fit. `from` is where a renamed file was.
+ *
+ * @param {Record<string, string>} t
+ * @param {string} path
+ * @param {{ from?: string | null, strong?: boolean }} [opts] strong: the name in bold
+ */
+export function pathLabel(t, path, opts = {}) {
+	const parts = path.split('/');
+	const name = parts.pop();
+	const folder = opts.from ? `← ${opts.from}` : parts.join('/');
+	return h_flex()
+		.flex_1()
+		.min_w(0)
+		.gap(SPACE.sm)
+		.items_center()
+		.child(
+			div()
+				.flex_none()
+				.max_w(220)
+				.truncate()
+				.text_color(t.foreground)
+				.when(Boolean(opts.strong), (e) => e.font_semibold())
+				.child(name),
+		)
+		.child(div().flex_1().min_w(0).truncate().text_size(TEXT.meta).text_color(t.dim).child(folder));
+}
+
+/**
+ * How long ago, as a list's date column says it: "now", "5m", "3h", "2d",
+ * then "4w" and "8mo".
+ *
+ * @param {number} ms the time, in milliseconds since the epoch
+ * @returns {string}
+ * @example
+ * ago(Date.now() - 7200000) // => "2h"
+ */
+export function ago(ms) {
+	const s = Math.max(0, (Date.now() - ms) / 1000);
+	if (s < 60) return 'now';
+	if (s < 3600) return `${Math.floor(s / 60)}m`;
+	if (s < 86400) return `${Math.floor(s / 3600)}h`;
+	if (s < 86400 * 14) return `${Math.floor(s / 86400)}d`;
+	if (s < 86400 * 60) return `${Math.floor(s / 604800)}w`;
+	return `${Math.floor(s / 2592000)}mo`;
 }

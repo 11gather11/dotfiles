@@ -18,7 +18,7 @@ import {
 	row,
 	heading,
 } from './lib/ui.js';
-import { spaces, panes, exec, hc, theme, notify, terminals, run } from 'herdr';
+import { spaces, panes, exec, hc, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
@@ -37,9 +37,6 @@ function ago(at) {
 	return `${Math.floor(s / 86400)}d`;
 }
 
-/** A stable key for an attention entry, to tell new ones from ones already shown. */
-const attentionKey = (a) => `${a.kind}:${a.worker ?? a.spec}:${a.detail}`;
-
 export default class Harness extends View {
 	init(_props, cx) {
 		this.snap = null;
@@ -49,7 +46,6 @@ export default class Harness extends View {
 		this.reading = new Set(); // repositories being read now
 		this.harnesses = new Map(); // repository => its running harness's terminal
 		this.dir = null;
-		this.seen = null;
 		this.refresh(cx);
 		cx.timer.every(POLL_MS, (cx) => this.refresh(cx));
 	}
@@ -60,10 +56,9 @@ export default class Harness extends View {
 		const dir = folder();
 		if (dir !== this.dir) {
 			// Another repository: show what it showed last at once, and read it
-			// again behind that; its attention entries seen then stay seen.
+			// again behind that.
 			this.dir = dir;
-			this.snap = this.cache.get(dir)?.snap ?? null;
-			this.seen = this.cache.get(dir)?.seen ?? null;
+			this.snap = this.cache.get(dir) ?? null;
 			this.error = null;
 		}
 		// One read per repository at a time; a read for another repository
@@ -84,14 +79,10 @@ export default class Harness extends View {
 				}
 				const snap = JSON.parse(line);
 				await this.findHarness(snap.repo);
-				if (this.dir !== dir) {
-					this.cache.set(dir, { snap, seen: this.cache.get(dir)?.seen ?? null });
-					return;
-				}
+				this.cache.set(dir, snap);
+				if (this.dir !== dir) return;
 				this.snap = snap;
 				this.error = null;
-				this.announce(snap.attention);
-				this.cache.set(dir, { snap, seen: this.seen });
 			} catch (e) {
 				if (this.dir === dir) this.error = String(e);
 			} finally {
@@ -99,24 +90,6 @@ export default class Harness extends View {
 				cx.notify();
 			}
 		});
-	}
-
-	// A worker that newly needs the person is worth a notification even when
-	// the panel is hidden; the first snapshot of a repository only sets the
-	// baseline.
-	announce(attention) {
-		const keys = new Set(attention.map(attentionKey));
-		if (this.seen) {
-			for (const a of attention) {
-				if (this.seen.has(attentionKey(a))) continue;
-				notify({
-					title: a.worker ? `${a.worker} ${a.kind}` : `spec #${a.spec} ${a.kind}`,
-					body: a.detail,
-					level: a.kind === 'blocked' ? 'warning' : 'info',
-				});
-			}
-		}
-		this.seen = keys;
 	}
 
 	open(url) {

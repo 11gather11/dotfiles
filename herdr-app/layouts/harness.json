@@ -48,6 +48,16 @@
 							}
 						},
 						{
+							"id": "harnesses",
+							"type": "block",
+							"size": {
+								"px": 30
+							},
+							"content": {
+								"mod": "harness-list"
+							}
+						},
+						{
 							"id": "agents",
 							"type": "block",
 							"size": {

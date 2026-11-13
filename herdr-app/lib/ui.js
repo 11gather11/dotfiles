@@ -194,22 +194,25 @@ export function dot(t, status) {
  *
  * @param {Record<string, string>} t
  * @param {string} id
- * @param {{ selected?: boolean, onClick?: (e: any, cx: any) => void, onRightClick?: (e: any, cx: any) => void }} [opts]
+ * @param {{ selected?: boolean, tall?: boolean, onClick?: (e: any, cx: any) => void, onRightClick?: (e: any, cx: any) => void }} [opts]
  */
 export function row(t, id, opts = {}) {
-	return h_flex()
-		.id(id)
-		.h(SIZE.row)
-		.flex_none()
-		.px(SPACE.sm)
-		.gap(SPACE.sm)
-		.items_center()
-		.rounded(RADIUS.control)
-		.text_size(TEXT.ui)
-		.when(Boolean(opts.selected), (e) => e.bg(t.selected))
-		.when(!opts.selected, (e) => e.hover((s) => s.bg(t.hover)))
-		.when(Boolean(opts.onClick), (e) => e.cursor_pointer().on_click(opts.onClick))
-		.when(Boolean(opts.onRightClick), (e) => e.on_mouse_down('right', opts.onRightClick));
+	return (
+		h_flex()
+			.id(id)
+			.flex_none()
+			.px(SPACE.sm)
+			.gap(SPACE.sm)
+			// A line of two (a title over its details) grows; a plain row does not.
+			.when(!opts.tall, (e) => e.h(SIZE.row).items_center())
+			.when(Boolean(opts.tall), (e) => e.min_h(SIZE.row).py(SPACE.xs).items_start())
+			.rounded(RADIUS.control)
+			.text_size(TEXT.ui)
+			.when(Boolean(opts.selected), (e) => e.bg(t.selected))
+			.when(!opts.selected, (e) => e.hover((s) => s.bg(t.hover)))
+			.when(Boolean(opts.onClick), (e) => e.cursor_pointer().on_click(opts.onClick))
+			.when(Boolean(opts.onRightClick), (e) => e.on_mouse_down('right', opts.onRightClick))
+	);
 }
 
 /**

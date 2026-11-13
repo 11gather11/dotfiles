@@ -1,7 +1,8 @@
 // Reading a repository for the panels that show it (changes, the diff pane),
 // and opening the diff pane on something. Copied into each mod that imports
 // it; see markdown.js.
-import { exec, panes, focused, setShared, run } from 'herdr';
+import { exec } from 'herdr';
+import { openBeside } from './pane.js';
 
 /**
  * Flags for every read: write nothing under .git (no index refresh or lock,
@@ -42,21 +43,12 @@ export function git(root, on, args) {
  */
 
 /**
- * Shows `target` in the diff pane beside the current tab's terminals,
- * opening one when the tab has none, with `file` brought to the top. The
- * target goes through shared state, as a pane already open takes no new
- * props; `seq` makes a second click on the same file scroll to it again.
+ * Shows `target` in the diff pane beside the current tab's terminals, with
+ * `file` brought to the top (lib/pane.js).
  *
  * @param {DiffTarget} target
  * @param {string} [file] a path in the repository to scroll to
  */
 export function openDiff(target, file) {
-	setShared('diff.target', { ...target, file: file ?? null, seq: Date.now() });
-	const tab = focused()?.tab;
-	const here = panes().filter((p) => p.tab === tab);
-	if (here.some((p) => p.mod === 'diff')) return;
-	// Beside a terminal: the focus may be in a panel, which has no pane.
-	const beside = here.find((p) => p.focused && p.terminal) ?? here.find((p) => p.terminal);
-	if (!beside) return;
-	run('pane.split', { direction: 'right', pane: beside.pane, mod: 'diff' });
+	openBeside('diff', 'diff.target', { ...target, file: file ?? null });
 }

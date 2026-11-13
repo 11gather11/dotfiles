@@ -9,9 +9,10 @@
 // numbers come from `harness-status`, as the panel's do.
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
-import { terminals, exec, run, theme, notify } from 'herdr';
+import { exec, run, theme, notify, shared, setShared } from 'herdr';
 import { SIZE, SPACE, TEXT, dot, row } from './lib/ui.js';
 import { focusedFolder } from './lib/focus.js';
+import { runningHarnesses } from './lib/harness.js';
 
 // harness-status takes about two seconds a repository (GitHub, every
 // worker's screen), so each is read this often; which harnesses run is a
@@ -23,20 +24,6 @@ const PAD = SPACE.xs;
 
 /** A stable key for an attention entry, to tell new ones from ones already shown. */
 const attentionKey = (a) => `${a.kind}:${a.worker ?? a.spec}:${a.detail}`;
-
-/**
- * The running harnesses: repository => its terminal's address.
- *
- * @returns {Map<string, string>}
- */
-function running() {
-	const out = new Map();
-	for (const x of terminals()) {
-		const repo = x.labels?.harness;
-		if (repo && x.program?.key === 'claude') out.set(repo, x.address);
-	}
-	return out;
-}
 
 /**
  * A harness's line status, the most pressing of its workers': one blocked
@@ -67,7 +54,7 @@ export default class HarnessList extends View {
 	// Picks up harnesses started or ended since the last look; a new one is
 	// read at once rather than at the next poll.
 	look(cx) {
-		const now = running();
+		const now = runningHarnesses();
 		const same =
 			now.size === this.harnesses.size &&
 			[...now].every(([repo, address]) => this.harnesses.get(repo) === address);
@@ -90,6 +77,12 @@ export default class HarnessList extends View {
 				const snap = JSON.parse(line);
 				this.announce(repo, snap.attention);
 				this.snaps.set(repo, snap);
+				// What the Issues panel marks each issue with: who works on it, which
+				// spec it is in, whether it landed.
+				setShared('harness.snaps', {
+					...(shared('harness.snaps') ?? {}),
+					[repo]: { workers: snap.workers, specs: snap.specs, queue: snap.queue, at: snap.at },
+				});
 			} catch {
 				// Keeps the line's last numbers; the next poll asks again.
 			} finally {

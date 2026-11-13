@@ -25,6 +25,7 @@ const PANELS = {
 	files: { label: 'Files', icon: 'mods/files/file.svg' },
 	changes: { label: 'Changes', icon: 'mods/changes/changes.svg' },
 	graph: { label: 'Graph', icon: 'mods/workspace-chrome/git-branch.svg' },
+	issues: { label: 'Issues', icon: 'mods/workspace-chrome/circle-check.svg' },
 	harness: { label: 'Harness', icon: 'mods/harness/harness.svg' },
 };
 /**
@@ -45,7 +46,7 @@ function titleOf(pane) {
 // The side panel's width per panel, before the person drags it to another:
 // the graph wants room for its lanes, labels and subjects; a list is
 // narrow. A panel not named here takes the layout's.
-const WIDTHS = { graph: 520 };
+const WIDTHS = { graph: 520, issues: 420 };
 const WIDTH = 320;
 
 // Settings → Look turns these two on and off through `workspace.panels`;

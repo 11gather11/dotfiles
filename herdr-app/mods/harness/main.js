@@ -20,9 +20,10 @@ import {
 	panel,
 	ago,
 } from './lib/ui.js';
-import { spaces, panes, exec, hc, theme, terminals, run } from 'herdr';
+import { exec, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
 import { openDiff } from './lib/git.js';
+import { runningHarnesses, startHarness } from './lib/harness.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
@@ -38,7 +39,6 @@ export default class Harness extends View {
 		// The last snapshot of each repository, shown on coming back to it.
 		this.cache = new Map();
 		this.reading = new Set(); // repositories being read now
-		this.harnesses = new Map(); // repository => its running harness's terminal
 		this.dir = null;
 		this.refresh(cx);
 		cx.timer.every(POLL_MS, (cx) => this.refresh(cx));
@@ -72,7 +72,6 @@ export default class Harness extends View {
 					return;
 				}
 				const snap = JSON.parse(line);
-				await this.findHarness(snap.repo);
 				this.cache.set(dir, snap);
 				if (this.dir !== dir) return;
 				this.snap = snap;
@@ -98,51 +97,17 @@ export default class Harness extends View {
 		if (address) run('terminal.peek', { terminal: address });
 	}
 
-	// The harness's own Claude in this repository: the terminal the
-	// `harness` command (herdr-app.nix) labelled harness=<repository>, with
-	// Claude in front still. Read with each refresh (see findHarness).
-	harnessTerminal(repo) {
-		return this.harnesses.get(repo) ?? null;
-	}
-
-	async findHarness(repo) {
-		const r = await hc(['ls', '--json', '--label', `harness=${repo}`]).catch(() => null);
-		const list = r?.code === 0 ? JSON.parse(r.stdout) : [];
-		const live = (Array.isArray(list) ? list : (list.terminals ?? [])).find(
-			(x) => x.agent === 'claude-code',
-		);
-		if (live) this.harnesses.set(repo, { address: live.address });
-		else this.harnesses.delete(repo);
-	}
-
-	// Goes to the harness when one runs, else starts one in the repository's
-	// own space: the one with a terminal in the main checkout, the active one
-	// first. A worker's space (its folder a worktree beside the checkout,
-	// `<repo>.<branch>`) never counts, though the panel shows the repository
-	// from there too, and without such a space it gets a new one. Through a
-	// login shell, as spawn.nu starts workers: the core's environment is the
-	// one it started with, and the shell's profile is what puts claude and
-	// harness on PATH whatever that was.
+	// Goes to the repository's harness when one runs, else starts one
+	// (lib/harness.js).
 	startOrOpen(repo, cx) {
-		const running = this.harnessTerminal(repo);
+		const running = runningHarnesses().get(repo);
 		if (running) {
-			run('agent.focus', { terminal: running.address });
+			run('agent.focus', { terminal: running });
 			return;
 		}
-		const argv = ['/bin/sh', '-c', 'exec "$SHELL" -l -c "exec harness"'];
-		const inRepo = new Set(
-			panes()
-				.filter((p) => p.cwd === repo)
-				.map((p) => p.tab),
-		);
-		const home = spaces()
-			.filter((s) => !s.machine && !s.folder.startsWith(`${repo}.`))
-			.filter((s) => s.tabs.some((tab) => inRepo.has(tab.id)))
-			.sort((a, b) => Number(b.active) - Number(a.active))[0];
-		if (home) run('tab.new', { name: 'harness', space: home.id, folder: repo, argv });
-		else run('space.new', { folder: repo, tab: 'harness', argv });
+		startHarness(repo);
 		// Open replaces Start once the new harness has labelled its terminal.
-		cx.timer.after(4000, (cx) => this.refresh(cx));
+		cx.timer.after(4000, (cx) => cx.notify());
 	}
 
 	// ── pieces ──
@@ -329,7 +294,7 @@ export default class Harness extends View {
 		const t = theme();
 		if (folder() !== this.dir) this.refresh(cx);
 		const s = this.snap;
-		const running = s ? Boolean(this.harnessTerminal(s.repo)) : false;
+		const running = s ? runningHarnesses().has(s.repo) : false;
 		const header = bar(t, 'harness-bar')
 			.child(div().flex_none().font_semibold().child('Harness'))
 			.when(Boolean(s), (e) => e.child(badge(t, s.name)))

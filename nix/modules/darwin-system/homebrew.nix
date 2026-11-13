@@ -11,18 +11,10 @@
       "arto-app/tap"
       "kamillobinski/thock"
       "kot149/tap"
-      "rjyo/moshi"
       "typewhisper/tap"
     ];
 
     brews = [
-      # Moshi's host daemon: it installs the Claude Code hooks that push
-      # notifications to the phone. Paired by hand, so its service is started
-      # by hand too rather than on every activation.
-      {
-        name = "rjyo/moshi/moshi-hook";
-        trusted = true;
-      }
       # zmk-layer-hud's Python wheel links against Homebrew's hidapi, and its
       # own setup installs it imperatively; declared so cleanup keeps it.
       "hidapi"

@@ -129,13 +129,22 @@ let
         | .address' |
         while read -r terminal; do
           # hc ls leaves labels out; hc get of one terminal has them.
-          id=$(hc get "$terminal" --json | jq -r '
+          # The session, and the repository when it was its harness.
+          read -r id harness < <(hc get "$terminal" --json | jq -r '
             (.labels // {}) as $l
             | select(($l["claude.session"] // "") != "" and $l["claude.resumed"] != $l["claude.session"])
-            | $l["claude.session"]')
-          [ -n "$id" ] || continue
+            | "\($l["claude.session"]) \($l["harness"] // "")"') || true
+          [ -n "''${id:-}" ] || continue
           hc label "$terminal" "claude.resumed=$id" >/dev/null
-          hc send "$terminal" "claude --resume $id" >/dev/null
+          # A harness comes back as one: its label stayed (only the person
+          # ending it removes it, see hc-session.sh), and Remote Control is
+          # turned on again under the name `harness` gives it, so the phone
+          # finds the same session.
+          if [ -n "''${harness:-}" ]; then
+            hc send "$terminal" "claude --resume $id --remote-control \"$(basename "$harness") harness\"" >/dev/null
+          else
+            hc send "$terminal" "claude --resume $id" >/dev/null
+          fi
           echo "$terminal $id"
         done
     '';
@@ -153,16 +162,17 @@ let
     name = "harness";
     runtimeInputs = [ pkgs.git ];
     #
-    # In a herdr-core terminal it labels the terminal harness=<repository>
-    # while it runs, which is how the Harness panel tells a running harness
-    # from any other Claude (its Open button), whatever started it: the
-    # terminal's own command is the shell when `harness` is typed into one.
+    # In a herdr-core terminal it labels the terminal harness=<repository>,
+    # which is how the panels tell a harness from any other Claude, whatever
+    # started it: the terminal's own command is the shell when `harness` is
+    # typed into one. The label stays until the person ends the session
+    # (hc-session.sh), so a harness lost to a stopped core or a restart is
+    # resumed as one (claude-resume).
     text = ''
       root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
       repo=$(basename "$root")
       if [ -n "''${HC_TERMINAL_ID:-}" ]; then
         hc label "$HC_TERMINAL_ID" "harness=$root" >/dev/null 2>&1 || true
-        trap 'hc label "$HC_TERMINAL_ID" "harness=" >/dev/null 2>&1 || true' EXIT
       fi
       if [ $# -gt 0 ]; then
         claude --remote-control "$repo harness" "/issue-harness $*"

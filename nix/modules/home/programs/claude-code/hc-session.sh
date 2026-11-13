@@ -4,7 +4,8 @@
 # both, but not the programs in them.
 #
 #   hc-session start   SessionStart: label the terminal with the session's id
-#   hc-session end     SessionEnd: forget it when the person ended the session
+#   hc-session end     SessionEnd: forget it when the person ended the session,
+#                      and that the terminal held its repository's harness
 #
 # Reads the hook's JSON on stdin. Always exits 0: a hook that fails here would
 # only put noise in front of the person, and the cost of a missed label is a
@@ -53,7 +54,8 @@ end)
   # matches.
   held=$(hc get "$HC_TERMINAL_ID" --json 2>/dev/null | jq -r '.labels["claude.session"] // empty')
   [ "$held" = "$id" ] || exit 0
-  hc label "$HC_TERMINAL_ID" "claude.session=" "claude.resumed=" >/dev/null 2>&1
+  # The harness label goes too: a Claude started there later is not one.
+  hc label "$HC_TERMINAL_ID" "claude.session=" "claude.resumed=" "harness=" >/dev/null 2>&1
   ;;
 esac
 exit 0

@@ -65,3 +65,29 @@ export async function handToHarness(repo, request) {
 	const r = await exec('hc', ['send', address, `/issue-harness ${request}`]);
 	return r.code === 0 ? 'sent' : (r.stderr || r.stdout).trim() || `hc send exited ${r.code}`;
 }
+
+/**
+ * Makes a Claude already running the harness of its repository: labels its
+ * terminal as `harness` does (so the panels and Hand to harness find it) and
+ * asks it for /issue-harness. Refused where the repository has a harness
+ * already: two would supervise the same workers.
+ *
+ * @param {string} address the Claude's terminal
+ * @param {string} cwd its folder, anywhere in the repository or a worktree of it
+ * @returns {Promise<'made' | string>} done, or why not
+ */
+export async function makeHarness(address, cwd) {
+	const common = await exec('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], {
+		cwd,
+	});
+	if (common.code !== 0) return 'Not in a git repository';
+	// The main checkout, which `harness` labels with, even from a worktree.
+	const repo = common.stdout.trim().replace(/\/\.git$/, '');
+	const other = runningHarnesses().get(repo);
+	if (other && other !== address)
+		return `${repo.split('/').pop()} has a harness already (${other})`;
+	const label = await exec('hc', ['label', address, `harness=${repo}`]);
+	if (label.code !== 0) return (label.stderr || label.stdout).trim() || 'hc label failed';
+	const sent = await exec('hc', ['send', address, '/issue-harness']);
+	return sent.code === 0 ? 'made' : (sent.stderr || sent.stdout).trim() || 'hc send failed';
+}

@@ -3,11 +3,15 @@
 // the program's name alone. And a working agent is a still dot, as
 // everywhere else here, not a spinner.
 //
+// A Claude pane that is not a harness also offers to become its
+// repository's harness (lib/harness.js).
+//
 // Props from the app: { pane, terminal }. Click: focus the pane.
 import { View, div, svg, image } from 'gpui-kit';
 import { h_flex } from 'gpui-base';
 import { SIZE, SPACE, TEXT, button, badge, dot, title } from './lib/ui.js';
-import { panes, agents, props, run, theme, home, layout } from 'herdr';
+import { panes, agents, props, run, theme, home, layout, terminals, notify } from 'herdr';
+import { makeHarness } from './lib/harness.js';
 
 // Match the first visible tab frame, including the active child of a stack.
 function paneFrame(node) {
@@ -60,7 +64,8 @@ export default class PaneHead extends View {
 		const name = claude
 			? 'Claude Code'
 			: ((p.program?.agent || p.program?.shell) && p.program.name) ||
-				p.title ||
+				// A mod pane is titled by its mod's name: "issue" reads as "Issue".
+				(p.mod ? p.mod[0].toUpperCase() + p.mod.slice(1) : p.title) ||
 				p.program?.name ||
 				'shell';
 		// What Claude Code is doing, from its title without the glyph in front.
@@ -70,6 +75,12 @@ export default class PaneHead extends View {
 		const st = claude?.status ?? p.status;
 		const pane = p.pane;
 		const bottom = paneFrame(layout())?.header?.position === 'bottom';
+		// A Claude not yet any repository's harness can be made one.
+		const harness = claude
+			? terminals().find((x) => x.address === claude.terminal)?.labels?.harness
+			: null;
+		const canMake = Boolean(claude) && !harness;
+		const controls = canMake ? 5 : 4;
 		const paneButton = (id, name, command, args) =>
 			button(t, `ph-${id}-${pane}`, svg(`mods/pane/${name}.svg`).size(14), () =>
 				run(command, args),
@@ -97,15 +108,30 @@ export default class PaneHead extends View {
 				.when(st === 'working' || st === 'done', (el) => el.child(dot(t, st)))
 				// The pane buttons keep their room while hidden, so showing them on
 				// hover does not push the title and the status aside: four
-				// controls and the gaps between them.
+				// controls (five with Make harness) and the gaps between them.
 				.child(
 					h_flex()
 						.flex_none()
-						.w(4 * SIZE.control + 3 * 2)
+						.w(controls * SIZE.control + (controls - 1) * 2)
 						.gap(2)
 						.justify_end()
 						.when(this.hovered, (el) =>
 							el
+								.when(canMake, (el) =>
+									el.child(
+										button(
+											t,
+											`ph-h-${pane}`,
+											svg('mods/harness/harness.svg').size(14),
+											async () => {
+												const said = await makeHarness(claude.terminal, claude.cwd);
+												if (said !== 'made')
+													notify({ title: 'Not made the harness', body: said, level: 'warning' });
+											},
+											{ title: 'Make this Claude its repository’s harness' },
+										),
+									),
+								)
 								.child(paneButton('r', 'split-right', 'pane.split', { direction: 'right', pane }))
 								.child(paneButton('d', 'split-down', 'pane.split', { direction: 'down', pane }))
 								.child(paneButton('z', p.zoomed ? 'unzoom' : 'zoom', 'pane.zoom', { pane }))

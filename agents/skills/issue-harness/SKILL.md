@@ -1,6 +1,6 @@
 ---
 name: issue-harness
-description: Runs GitHub issues, or the tickets /to-tickets split a spec into, as separate Claude Code workers in herdr or herdr-app terminals, one worktree each, and supervises them through to merge. Use when implementing issues or a spec in parallel, or acting as the harness for workers.
+description: Runs GitHub issues, or the tickets /to-tickets split a spec into, as separate Claude Code (or Codex) workers in herdr or herdr-app terminals, one worktree each, and supervises them through to merge. Use when implementing issues or a spec in parallel, or acting as the harness for workers.
 ---
 
 You are the harness. Workers implement; you start them, wait on them, triage
@@ -65,6 +65,11 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/spawn.nu pg-264 issue-26
   CLAUDE.md carry the rest.
 - `--base <branch>`: cut from that branch's latest on origin instead, as for
   stacking on an unlanded PR (`references/landing.md`).
+- `--agent codex`: Codex in Claude's place (herdr-app only), with Claude
+  reviewing its work. Give it a ticket the issue specifies well enough that
+  no judgement is left to make (`ready-for-agent`), or any ticket when the
+  user's Claude limits run low; one that needs judgement stays with Claude.
+  Its PR's gate wants `claude-review-run`, which its brief tells it.
 
 Done when the line has `status: working`. Exit 2 (`stage: capacity`) means the
 machine is full: start it after another worker stops. Any other error: fix the

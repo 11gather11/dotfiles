@@ -6,10 +6,15 @@
 # From a herdr-app terminal the worker goes to herdr-core instead: the hook
 # opens a herdr-app space for the worktree, and Claude starts as a named
 # herdr-core terminal labelled into a tab of that space.
+#
+# `--agent codex` starts Codex in Claude's place (herdr-app only): for tickets
+# the issue specifies well enough that no judgement is left, or when Claude's
+# limits run low. Its review then comes from Claude (worker-brief-codex.md).
 
 use harness.nu [current-mux agents-in agent-get prompt-worker read-worker]
 
 const worker_brief = path self ../references/worker-brief.md
+const codex_note = path self ../references/worker-brief-codex.md
 const skill_dir = path self ..
 
 # The caller runs this under a 600 s Bash timeout, and a killed script prints
@@ -61,9 +66,11 @@ def main [
     --force # start even when the capacity limits say to wait
     --base: string # branch to cut a new branch from, at its latest on origin; the default branch when omitted
     --spec: int # a ticket of this spec: cut from its local integration branch, and brief the worker not to push
+    --agent: string = "claude" # claude, or codex (herdr-app only)
 ]: nothing -> nothing {
     let outcome = try {
-        spawn $name $branch $prompt $force $base $spec
+        if $agent not-in [claude codex] { error make {msg: $"--agent is claude or codex, not ($agent)"} }
+        spawn $name $branch $prompt $force $base $spec $agent
     } catch {|e| {
         exit: 1
         out: {
@@ -86,9 +93,13 @@ def spawn [
     force: bool
     base: oneof<string, nothing>
     spec: oneof<int, nothing>
+    agent: string
 ]: nothing -> record {
-    let ctx = step setup { context $name $spec }
+    let ctx = step setup { context $name $spec $agent }
     let mux = current-mux
+    if $agent == codex and $mux != hc {
+        error make {msg: "--agent codex runs only under a harness in herdr-app", code: "harness::setup"}
+    }
 
     let existing = step worktree { worktree-of $ctx.repo $branch }
     step name { check-name $name $existing $mux }
@@ -128,7 +139,7 @@ def spawn [
         }
     }
     let ws = if $mux == hc {
-        step start { start-hc $name $path $branch $ctx.brief }
+        step start { start-hc $name $path $branch $ctx.brief $agent $ctx }
     } else {
         let ws = step workspace { workspace-for $path $branch ($existing != null) }
         let pane = step workspace {
@@ -143,7 +154,12 @@ def spawn [
     }
     # A rerun after an attempt whose prompt did land must not send it twice
     if $status != working {
-        step prompt { send-prompt $name $prompt $mux }
+        # Codex has no flag that adds to its instructions as Claude's
+        # --append-system-prompt-file does: its brief is the first thing it reads.
+        let first = if $agent == codex {
+            $"Read ($ctx.brief) first: it is how you work here, under a harness. Then: ($prompt)"
+        } else { $prompt }
+        step prompt { send-prompt $name $first $mux }
     }
 
     let agent = step prompt {
@@ -151,6 +167,7 @@ def spawn [
     }
     let worker = {
         name: $name
+        agent: $agent
         branch: $branch
         workspace: $ws
         pane: $agent.where
@@ -252,8 +269,8 @@ def ms [d: duration]: nothing -> string {
 }
 
 # Resolves the main checkout and the per-repo state directory, and writes the
-# brief this worker's Claude is started with.
-def context [name: string, spec: oneof<int, nothing>]: nothing -> record {
+# brief this worker is started with.
+def context [name: string, spec: oneof<int, nothing>, agent: string]: nothing -> record {
     # The main checkout, even when called from a linked worktree
     let repo = external [git rev-parse --path-format=absolute --git-common-dir] | str trim | path dirname
     let root = $env.XDG_STATE_HOME? | default ($env.HOME | path join .local/state) | path join harness
@@ -271,6 +288,12 @@ def context [name: string, spec: oneof<int, nothing>]: nothing -> record {
     }
     [
         (open --raw $worker_brief | str replace --all "<skill-dir>" $skill_dir)
+        (
+            if $agent == codex {
+                open --raw $codex_note
+                | str replace --all "<skill-dir>" $skill_dir
+            } else { "" }
+        )
         (if $spec_branch != null { spec-note $spec $spec_branch } else { "" })
         (if ($local_brief | path exists) { open --raw $local_brief } else { "" })
     ]
@@ -646,6 +669,8 @@ def start-hc [
     path: string
     branch: string
     brief: string
+    agent: string
+    ctx: record
 ]: nothing -> string {
     let id = $name | str replace --all --regex '[^a-z0-9]' ''
     let space = $"spworker($id)"
@@ -665,11 +690,15 @@ def start-hc [
             $"herdr.space=($space)"
             --label
             $"herdr.tab=tbworker($id)"
+            --label
+            $"harness.agent=($agent)"
             --
             $shell
             -l
             -c
-            $"exec claude --append-system-prompt-file '($brief)'"
+            (
+                if $agent == codex { codex-command $path $ctx } else { $"exec claude --append-system-prompt-file '($brief)'" }
+            )
         ] | ignore
     }
     let shown = poll-until ((date now) + $workspace_budget) $workspace_poll {
@@ -690,6 +719,30 @@ def start-hc [
         ] | ignore
     }
     $space
+}
+
+# The command line that starts Codex as a worker in `path`.
+#
+# - --no-daemon: a shared Codex server would run every worker's hooks as the
+#   first one's terminal (herdr-app's notes on Codex).
+# - workspace-write, with the repository's git folder and the harness's state
+#   writable too: a worktree commits into the main checkout's .git, and the
+#   heavy-check lock and the brief live under the state folder. What needs
+#   more (the network, for a push) goes through the approval reviewer the
+#   configuration sets, as in any Codex session.
+# - the worktree trusted up front: it is new, so Codex would stop on its trust
+#   dialog, where no one answers.
+# - hooks run untrusted-by-hash: they are this machine's own, from the dotfiles
+#   (the PR gate) and herdr (the state the harness watches), and a worker cannot
+#   answer the dialog that trusts them either.
+def codex-command [path: string, ctx: record]: nothing -> string {
+    let git_dir = $ctx.repo | path join .git
+    [
+        "exec codex --no-daemon --sandbox workspace-write"
+        $"--add-dir '($git_dir)' --add-dir '($ctx.root)'"
+        $"-c 'projects.\"($path)\".trust_level=\"trusted\"'"
+        "--dangerously-bypass-hook-trust"
+    ] | str join " "
 }
 
 # Waits until `name` can take a prompt and returns its status, or the status
@@ -727,6 +780,8 @@ def start-blocker [name: string, mux: string]: nothing -> oneof<string, nothing>
     let env_hint = "check that the multiplexer's server has CLAUDE_CONFIG_DIR in its environment (restart it after a change)"
     if $screen =~ 'one you trust\?' {
         $"($name) stopped at the folder trust dialog; ($env_hint)"
+    } else if $screen =~ 'Do you trust the contents of this directory' {
+        $"($name) stopped at Codex's folder trust dialog: the trust spawn.nu passes did not take"
     } else if $screen =~ 'Not logged in' {
         $"($name) is not logged in; ($env_hint)"
     }

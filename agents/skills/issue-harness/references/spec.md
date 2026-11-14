@@ -70,6 +70,10 @@ code-review does, on the spec and every ticket:
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/review.nu --base main 412 415 416 417
 ```
 
+When a Codex worker wrote any of its tickets, run it a second time with
+`--by claude` too: the default review is Codex's, which does not count for
+what Codex wrote.
+
 Read the report; choose what to fix. A spec question goes to the user. For
 each fix, start a worker with `--spec 412` on a branch `spec-412-fix-<slug>`,
 naming the findings it fixes, and integrate it as in 3.
@@ -87,6 +91,8 @@ Merges the base's latest into `spec-412` and runs the check there.
 
 In the integration worktree, `codex-review-run --base main`. `gh pr create`
 refuses a commit it has not covered, so nothing may be committed after it.
+You open this PR, so the gate asks for a Codex review whoever wrote the
+tickets; the `--by claude` review in 4 is what covers Codex's.
 Findings to fix: a fix worker, then 5 and 6 again.
 
 ## 7. Push and open the PR

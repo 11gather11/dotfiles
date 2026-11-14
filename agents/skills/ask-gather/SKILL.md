@@ -28,10 +28,13 @@ Matt's skills are namespaced: `/mattpocock-skills:<name>`.
   needs no harness: `tdd`, or `/mattpocock-skills:diagnosing-bugs` for a bug.
 - **TDD is the local `tdd`**, not `/mattpocock-skills:tdd`: Matt's stops to
   agree each seam with the user, which a worker under a harness cannot.
-- **Codex reviews; Claude writes.** In place of `/code-review`, the harness and
-  its workers run issue-harness's `review.nu` (Matt's Standards and Spec axes,
-  by Codex), then `codex-review-run`. A hook refuses `gh pr create` from a
-  commit no Codex review covered.
+- **The other vendor reviews.** Claude writes and Codex reviews by default;
+  a Codex worker (`/issue-harness` with `--agent codex`, for well-specified
+  tickets or when Claude's limits run low) is reviewed by Claude. In place of
+  `/code-review`, the harness and its workers run issue-harness's `review.nu`
+  (Matt's Standards and Spec axes; `--by claude` for Codex's work), then
+  `codex-review-run` or `claude-review-run`. A hook in both agents refuses
+  `gh pr create` from a commit the other vendor has not reviewed.
 - **Worktrees are wt**: `wt switch`, `wt remove`, `wt switch pr:<n>`.
 - **Commits and PRs** go through the `commit` and `create-pr` skills.
 - **Retros sort their findings.** `/mattpocock-skills:retro` as usual; what

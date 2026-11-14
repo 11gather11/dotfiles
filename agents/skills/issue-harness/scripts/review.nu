@@ -1,16 +1,18 @@
 #!/usr/bin/env nu
-# Has Codex review the current branch the way Matt Pocock's code-review does:
-# against the repository's coding standards, and against the issues it
-# implements, kept as two separate reports. The code is written by Claude
-# workers; the review comes from the other vendor's model.
+# Has the other vendor's model review the current branch the way Matt
+# Pocock's code-review does: against the repository's coding standards, and
+# against the issues it implements, kept as two separate reports. Codex
+# reviews what a Claude worker wrote (the default), Claude what a Codex worker
+# wrote (`--by claude`).
 #
-# This is not the PR gate. `codex-review-run` records the commit it covers and
-# `gh pr create` checks for that record; run it after the fixes from this one.
+# This is not the PR gate. `codex-review-run` and `claude-review-run` record
+# the commit they cover and `gh pr create` checks for that record; run the one
+# the worker's brief names after the fixes from this one.
 
 use harness.nu [state-dir main-checkout]
 
-# Matt's procedure, read by Codex from the installed plugin rather than
-# copied here.
+# Matt's procedure, read by the reviewer from the installed plugin rather
+# than copied here.
 const procedure = "~/.config/claude/skills/mattpocock-skills/skills/engineering/code-review/SKILL.md"
 
 # Review HEAD of the current worktree against `base`, with `issues` as the
@@ -23,16 +25,19 @@ const procedure = "~/.config/claude/skills/mattpocock-skills/skills/engineering/
 # @example
 # review.nu 264                    # one issue, against the default branch
 # review.nu --base main 412 415 416 # a spec and its tickets
+# review.nu --by claude 264          # what a Codex worker wrote
 def main [
     ...issues: int        # the issue, or the spec and its tickets; the Spec axis reads them
     --base: string        # the branch the work goes into; the default branch when omitted
+    --by: string = "codex" # the reviewer: codex, or claude for a Codex worker's branch
 ] {
-    let out = try { review $issues $base } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run review.nu again"} }
+    let out = try { review $issues $base $by } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run review.nu again"} }
     $out | to json --raw | print
     exit (if $out.result == "reviewed" { 0 } else { 1 })
 }
 
-def review [issues: list<int>, base]: nothing -> record {
+def review [issues: list<int>, base, by: string]: nothing -> record {
+    if $by not-in [codex claude] { error make {msg: $"--by is codex or claude, not ($by)"} }
     let dir = $env.PWD
     let repo = main-checkout
     let procedure_path = $procedure | path expand
@@ -57,8 +62,8 @@ def review [issues: list<int>, base]: nothing -> record {
     let out_dir = state-dir $repo | path join reviews
     mkdir $out_dir
     let stem = $out_dir | path join ($head | str substring 0..<12)
-    # The issues are fetched here, so Codex needs neither the tracker nor
-    # network access for the Spec axis
+    # The issues are fetched here, so the reviewer needs neither the tracker
+    # nor network access for the Spec axis
     let spec_file = $"($stem)-issues.md"
     $issues | each {|n|
         let v = ^gh issue view $n --json number,title,body | complete
@@ -80,15 +85,25 @@ def review [issues: list<int>, base]: nothing -> record {
         "- Change no file and run nothing that writes. This is a review only."
         "- Your final message is the report: `## Standards`, then `## Spec`, then the one-line summary."
     ] | str join "\n"
-    let r = $prompt | ^codex exec --sandbox read-only -C $dir -o $report - | complete
+    let r = if $by == "codex" {
+        $prompt | ^codex exec --sandbox read-only -C $dir -o $report - | complete
+    } else {
+        # Claude reads, and runs only git's reading commands: -p refuses any
+        # other tool, as nobody is there to approve it.
+        let c = $prompt | ^claude -p --allowedTools Read Grep Glob Agent "Bash(git diff:*)" "Bash(git log:*)" "Bash(git show:*)" "Bash(git status:*)" | complete
+        if $c.exit_code == 0 {
+            $c.stdout | save --force $report
+        }
+        $c
+    }
     if $r.exit_code != 0 or not ($report | path exists) {
-        error make {msg: $"codex exec failed \(exit ($r.exit_code)\): ($r.stderr | lines | last 5 | str join ' ')"}
+        error make {msg: $"($by) failed \(exit ($r.exit_code)\): ($r.stderr | lines | last 5 | str join ' ')"}
     }
     {
         result: reviewed
         report: $report
         head: $head
         base: $fixed
-        next: "read the report; fix what is this branch's to fix, then run codex-review-run for the PR gate"
+        next: $"read the report; fix what is this branch's to fix, then run ($by)-review-run for the PR gate"
     }
 }

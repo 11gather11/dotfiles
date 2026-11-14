@@ -77,12 +77,8 @@ export default class HarnessList extends View {
 				const snap = JSON.parse(line);
 				this.announce(repo, snap.attention);
 				this.snaps.set(repo, snap);
-				// What the Issues panel marks each issue with: who works on it, which
-				// spec it is in, whether it landed.
-				setShared('harness.snaps', {
-					...shared('harness.snaps'),
-					[repo]: { workers: snap.workers, specs: snap.specs, queue: snap.queue, at: snap.at },
-				});
+				// The whole snapshot, for the Issues panel's marks and the Overview.
+				setShared('harness.snaps', { ...shared('harness.snaps'), [repo]: snap });
 			} catch {
 				// Keeps the line's last numbers; the next poll asks again.
 			} finally {
@@ -165,6 +161,11 @@ export default class HarnessList extends View {
 			.child(
 				// Written as the Spaces and Agents headings around it are.
 				h_flex()
+					.id('harness-heading')
+					.cursor_pointer()
+					.hover((s) => s.text_color(t.foreground))
+					// Every harness at once, as a picture (mods/overview).
+					.on_click(() => run('mod.open', { name: 'overview' }))
 					.h(SIZE.row)
 					.flex_none()
 					.px(SPACE.sm)

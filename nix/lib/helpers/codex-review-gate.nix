@@ -1,4 +1,5 @@
-# The gate that keeps `gh pr create` behind a completed Codex review.
+# The gate that keeps `gh pr create` behind a completed review by the other
+# vendor's model: Codex for what Claude wrote, Claude for what Codex wrote.
 #
 # Defined here rather than beside the hook that installs it so the flake check
 # in nix/flake/checks.nix tests the very derivation that ships. Testing the

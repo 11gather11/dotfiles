@@ -32,6 +32,23 @@ let
   ];
 
   tomlFormat = pkgs.formats.toml { };
+  jsonFormat = pkgs.formats.json { };
+
+  # The same PR gate Claude Code's hook runs, from the other side: what a Codex
+  # session opens a PR from is code Codex wrote, so the review it needs is
+  # Claude's (claude-review-run). Merged into hooks.json, which herdr's
+  # integration writes its SessionStart hook into.
+  hooks.hooks.PreToolUse = [
+    {
+      matcher = "Bash";
+      hooks = [
+        {
+          type = "command";
+          command = "${lib.getExe (helpers.codexReviewGate pkgs)} check --author codex";
+        }
+      ];
+    }
+  ];
 
   settings = {
     # Codex only runs hooks when this is on, and herdr's integration turns it
@@ -172,6 +189,9 @@ in
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "linkCodexXdgDir" ] ''
       $DRY_RUN_CMD ${mergeConfig} "${codexHomeDir}/config.toml" ${tomlFormat.generate "codex-config" settings}
       chmod 644 "${codexHomeDir}/config.toml"
+      # Codex asks once to trust a hook it has not run before, and again when
+      # its command changes: the gate's store path changes with each build of it.
+      $DRY_RUN_CMD ${mergeConfig} "${codexHomeDir}/hooks.json" ${jsonFormat.generate "codex-hooks.json" hooks}
     '';
 
     file."${codexHomeDir}/AGENTS.md".text = agentsMdText;

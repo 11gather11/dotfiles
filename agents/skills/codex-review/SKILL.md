@@ -6,7 +6,7 @@ description: Runs a code review with Codex, or a native subagent inside Codex. U
 Use the review path that matches the current session:
 
 - Outside Codex: use `codex-review-run`, which runs `codex exec review` and, when it finishes, records the commit it covered. Opening a PR is refused until such a record exists for the commit the PR comes from.
-- Inside Codex (Desktop or CLI): delegate the review to a native subagent; do not start a nested Codex process.
+- Inside Codex (Desktop or CLI): delegate the review to a native subagent; do not start a nested Codex process. That review does not open the PR gate for code Codex wrote: the gate in Codex wants Claude's review of it, `claude-review-run` with the same scope flags.
 
 ## Scope
 

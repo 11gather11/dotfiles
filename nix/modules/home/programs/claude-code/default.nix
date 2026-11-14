@@ -54,10 +54,15 @@ let
   );
   mergeConfig = helpers.mergeConfig pkgs;
 
-  # The name agents type to review. It is the same binary as the gate, so the
-  # record a review writes and the record the gate reads cannot drift apart.
+  # The names agents type to review: codex-review-run for what Claude wrote,
+  # claude-review-run for what Codex wrote. They are the same binary as the
+  # gate, so the record a review writes and the record the gate reads cannot
+  # drift apart.
   codexReviewRun = pkgs.writeShellScriptBin "codex-review-run" ''
-    exec ${codexReviewGate} run "$@"
+    exec ${codexReviewGate} run --by codex "$@"
+  '';
+  claudeReviewRun = pkgs.writeShellScriptBin "claude-review-run" ''
+    exec ${codexReviewGate} run --by claude "$@"
   '';
 
   jsonFormat = pkgs.formats.json { };
@@ -132,8 +137,9 @@ let
         }
       ];
 
-      # `gh pr create` stays shut until a Codex review has run to completion
-      # over the commit being proposed. The gate's own reasoning lives in the
+      # `gh pr create` stays shut until a review by the other vendor's model
+      # (Codex, for what Claude wrote) has run to completion over the commit
+      # being proposed. Codex's hook asks the same of Claude (codex.nix). The gate's own reasoning lives in the
       # script. The record is written by codex-review-run when the review ends,
       # not by a hook: the Skill tool returns when the skill loads, so a hook on
       # it marked the commit before anything had been read.
@@ -203,6 +209,7 @@ let
         "Bash(jq -r:*)"
         "Bash(codex exec:*)"
         "Bash(codex-review-run:*)"
+        "Bash(claude-review-run:*)"
         "Bash(codex debug:*)"
       ];
     };
@@ -228,6 +235,7 @@ in
     packages = [
       pkgs.claude-code
       codexReviewRun
+      claudeReviewRun
     ];
 
     # Set CLAUDE_CONFIG_DIR environment variable (sourced via hm-session-vars.sh in fish)

@@ -20,7 +20,8 @@ export XDG_STATE_HOME="$work/state"
 fakebin="$work/bin"
 mkdir -p "$fakebin"
 printf '#!/bin/sh\nexit "${FAKE_CODEX_STATUS:-0}"\n' >"$fakebin/codex"
-chmod +x "$fakebin/codex"
+printf '#!/bin/sh\nexit "${FAKE_CLAUDE_STATUS:-0}"\n' >"$fakebin/claude"
+chmod +x "$fakebin/codex" "$fakebin/claude"
 
 failures=0
 
@@ -60,6 +61,14 @@ check() {
 check_cmd() {
   jq -nc --arg cwd "$1" --arg c "$2" '{cwd: $cwd, tool_name: "Bash", tool_input: {command: $c}}' |
     bash "$gate" check >/dev/null 2>&1
+  echo $?
+}
+
+# Same as check, from the hook of a session that is `author` (Codex's hook
+# passes codex; Claude Code's passes nothing, which means claude).
+check_as() {
+  printf '{"cwd":"%s","tool_name":"Bash","tool_input":{"command":"gh pr create --fill"}}' "$2" |
+    bash "$gate" check --author "$1" >/dev/null 2>&1
   echo $?
 }
 
@@ -120,6 +129,30 @@ expect "a review of an older commit does not open the gate for HEAD" 2 "$(check 
 
 review "$work/repo_c" --commit HEAD
 expect "a review of the HEAD commit opens the gate" 0 "$(check "$work/repo_c")"
+
+# A review counts only when someone other than the author made it: Codex's
+# for what Claude wrote, Claude's for what Codex wrote. Without the author, a
+# Codex worker reviewing its own code with Codex opened the gate.
+mkrepo repo_d
+review "$work/repo_d" --by claude --base main
+expect "a Claude review does not open the gate for Claude's own PR" 2 "$(check "$work/repo_d")"
+expect "a Claude review opens the gate for a PR Codex wrote" 0 "$(check_as codex "$work/repo_d")"
+commit repo_d by-codex
+review "$work/repo_d" --by codex --base main
+expect "a Codex review does not open the gate for Codex's own PR" 2 "$(check_as codex "$work/repo_d")"
+expect "a Codex review opens the gate for a PR Claude wrote" 0 "$(check "$work/repo_d")"
+FAKE_CLAUDE_STATUS=1 review "$work/repo_d" --by claude --base main
+expect "a Claude review that failed leaves the earlier record as it was" 2 "$(check_as codex "$work/repo_d")"
+
+# Records from before reviewers were named are empty files, all of them Codex
+# reviews: they keep opening the gate for Claude, and only for Claude.
+commit repo_d legacy
+: >"$XDG_STATE_HOME/claude-codex-review/$(git -C "$work/repo_d" rev-parse HEAD)"
+expect "an unnamed record still opens the gate for Claude" 0 "$(check "$work/repo_d")"
+expect "an unnamed record does not open the gate for Codex" 2 "$(check_as codex "$work/repo_d")"
+
+(cd "$work/repo_d" && bash "$gate" run --by gemini --base main >/dev/null 2>&1)
+expect "an unknown reviewer is refused" 64 "$?"
 
 # The second reported hole: the payload's cwd is the session's directory, and
 # the PR comes from a worktree entered with cd.
@@ -190,7 +223,7 @@ expect "a gate with its refusal removed stops refusing" 0 "$?"
 # above. Make the marker check always succeed, and a refusal that depended on
 # a missing review has to disappear.
 lenient="$work/lenient-gate"
-sed 's/\[ ! -f "\$marker_dir\/\$sha" \]/false/' "$gate" >"$lenient"
+sed 's/! reviewed_by_other "\$sha"/false/' "$gate" >"$lenient"
 chmod +x "$lenient"
 if cmp -s "$gate" "$lenient"; then
   expect "the lenient mutation was applied" changed unchanged

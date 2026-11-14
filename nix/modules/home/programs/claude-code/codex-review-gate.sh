@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
-# Keeps `gh pr create` behind a Codex review of the tree the PR is opened from.
+# Keeps `gh pr create` behind a review of the tree the PR is opened from, by
+# the other vendor's model than the one that wrote it.
 #
-# `run` runs `codex exec review` and, when it finishes successfully, records the
-# commit that review covered. `check` refuses to open a PR from a commit with no
-# such record. `check` reads the hook payload as JSON on stdin; `run` is called
-# as a command (see codex-review-run in nix/lib/helpers/codex-review-gate.nix).
+# `run --by codex|claude` runs that model's review and, when it finishes
+# successfully, records the commit it covered and who reviewed it. `check
+# --author codex|claude` refuses to open a PR from a commit with no review by
+# someone other than the author. `check` reads the hook payload as JSON on
+# stdin; `run` is called as a command (codex-review-run and claude-review-run,
+# see nix/lib/helpers/codex-review-gate.nix).
+#
+# The author is the agent whose hook calls `check`: Claude Code's hook passes
+# claude (the default), Codex's passes codex. A worker of either kind opens its
+# own PR, so the session asking to open it is the one that wrote the code, and
+# a review by that same model is what this gate exists to keep from counting.
+# A record from before reviewers were recorded is empty: it was Codex's.
 #
 # What is recorded is a commit, not the bare fact that some review ran
 # somewhere. One marker shared by every project was opened by a review in any
@@ -43,10 +52,31 @@ commit_of() {
   git -C "$1" rev-parse --verify -q "$2^{commit}" 2>/dev/null
 }
 
+# Whether the commit was reviewed by someone other than the author. A record
+# holds its reviewer's name; an empty one predates that and was Codex's.
+reviewed_by_other() {
+  local file="$marker_dir/$1" by
+  [ -f "$file" ] || return 1
+  by=$(head -n 1 "$file")
+  [ "${by:-codex}" != "$author" ]
+}
+
 case "$mode" in
 run)
   shift
+  by=codex
+  if [ "${1:-}" = "--by" ]; then
+    by=${2:-}
+    shift 2
+  fi
   [ "${1:-}" = "--" ] && shift
+  case "$by" in
+  codex | claude) ;;
+  *)
+    echo "review-run: --by is codex or claude, not '$by'" >&2
+    exit 64
+    ;;
+  esac
 
   # Decide what this review covers before it runs: commits added while it runs
   # were not part of what it read.
@@ -64,10 +94,36 @@ run)
     prev=$arg
   done
 
-  # Closed stdin: run in the background, codex otherwise waits for more input on
-  # a stdin nobody will close, and never starts.
-  codex exec review "$@" </dev/null
-  status=$?
+  if [ "$by" = codex ]; then
+    # Closed stdin: run in the background, codex otherwise waits for more input
+    # on a stdin nobody will close, and never starts.
+    codex exec review "$@" </dev/null
+    status=$?
+  else
+    # Claude has no review command: it is told what to read, and may only read.
+    # The scope is spelled as codex exec review takes it, so one set of flags
+    # serves both.
+    what=""
+    prev=""
+    for arg in "$@"; do
+      case "$prev" in
+      --base) what="the changes on this branch: git diff $arg...HEAD and git log $arg..HEAD" ;;
+      --commit) what="the commit $arg: git show $arg" ;;
+      esac
+      case "$arg" in
+      --base=*) what="the changes on this branch: git diff ${arg#--base=}...HEAD and git log ${arg#--base=}..HEAD" ;;
+      --commit=*) what="the commit ${arg#--commit=}: git show ${arg#--commit=}" ;;
+      --uncommitted) what="the uncommitted changes: git diff HEAD" ;;
+      -*) ;;
+      *) [ "$prev" = --base ] || [ "$prev" = --commit ] || what="the changes on this branch, with this focus: $arg" ;;
+      esac
+      prev=$arg
+    done
+    [ -n "$what" ] || what="the uncommitted changes: git diff HEAD"
+    claude -p "Review $what. Read the repository's CLAUDE.md or AGENTS.md for its standards first. Report correctness bugs, risks and violations of those standards with file and line, the critical ones apart from the suggestions. Change nothing." \
+      --allowedTools "Read" "Grep" "Glob" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git show:*)" "Bash(git status:*)" </dev/null
+    status=$?
+  fi
 
   if [ "$status" -ne 0 ]; then
     exit "$status"
@@ -75,11 +131,11 @@ run)
   if [ -z "$covered" ]; then
     # --uncommitted and a free-form prompt cover no commit a PR could be opened
     # from, so they are not a review of one.
-    echo "codex-review-run: this scope covers no commit, so it does not open the PR gate. Use --base <branch> or --commit <sha>." >&2
+    echo "$by-review-run: this scope covers no commit, so it does not open the PR gate. Use --base <branch> or --commit <sha>." >&2
     exit 0
   fi
-  if mkdir -p "$marker_dir" && : >"$marker_dir/$covered"; then
-    echo "codex-review-run: recorded a review of $covered" >&2
+  if mkdir -p "$marker_dir" && printf '%s\n' "$by" >"$marker_dir/$covered"; then
+    echo "$by-review-run: recorded a review of $covered" >&2
   fi
   # A marker older than this belongs to a tree nobody is still opening a PR for,
   # and the directory otherwise grows one file per reviewed commit.
@@ -88,6 +144,8 @@ run)
   ;;
 
 check)
+  author=claude
+  if [ "${2:-}" = "--author" ]; then author=${3:-claude}; fi
   input=$(cat)
   cwd=$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)
 
@@ -171,7 +229,7 @@ ta')
       sha=$(commit_of "$dir" "$ref")
       [ -n "$sha" ] || sha=$(commit_of "$dir" "origin/$ref")
     fi
-    if [ -z "$sha" ] || [ ! -f "$marker_dir/$sha" ]; then
+    if [ -z "$sha" ] || ! reviewed_by_other "$sha"; then
       blocked=1
     fi
   done <<<"$segments"
@@ -182,7 +240,9 @@ ta')
   # Nothing is consumed on the way through: while the commit stays put the
   # review still covers the tree, and a second PR off it is as reviewed as the
   # first.
-  echo 'BLOCKED: No completed Codex review covers the commit this PR would be opened from. Run "codex-review-run --base <branch>" (or "--commit <sha>") in that worktree and let it finish, then open the PR from there. If you change directory first, give cd a literal path so the gate can find the worktree.' >&2
+  other=codex
+  [ "$author" = codex ] && other=claude
+  echo "BLOCKED: No completed review by $other covers the commit this PR would be opened from; code $author wrote is reviewed by $other. Run \"$other-review-run --base <branch>\" (or \"--commit <sha>\") in that worktree and let it finish, then open the PR from there. If you change directory first, give cd a literal path so the gate can find the worktree." >&2
   exit 2
   ;;
 esac

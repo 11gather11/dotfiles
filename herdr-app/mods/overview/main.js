@@ -28,6 +28,7 @@ import {
 	segmented,
 	row,
 	badge,
+	programIcon,
 } from './lib/ui.js';
 import { runningHarnesses } from './lib/harness.js';
 import { openDiff } from './lib/git.js';
@@ -277,9 +278,12 @@ export default class Overview extends View {
 			const p = r.pr;
 			if (wk) {
 				const needs = b.needs.has(wk.name);
-				const term = terminals().find((x) => x.name === wk.name)?.address;
+				const terminal = terminals().find((x) => x.name === wk.name);
+				const term = terminal?.address;
 				cards.push(
 					this.node(t, `${repo}-w-${wk.name}`, this.flowX(1), this.flowY(i), w, {
+						// Which AI the worker is: Claude or Codex.
+						dot: programIcon(t, terminal?.program, 14),
 						head: wk.name,
 						badge: workerBadge(wk, needs),
 						sub: wk.ticket ? `#${wk.ticket} · ${wk.branch}` : wk.branch,

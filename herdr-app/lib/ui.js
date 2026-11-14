@@ -4,7 +4,7 @@
 // imports it; see markdown.js.
 //
 // Colours are the theme's (`theme()`), passed in as `t`.
-import { div, svg } from 'gpui-kit';
+import { div, svg, image } from 'gpui-kit';
 import { h_flex, v_flex, Scrollbar } from 'gpui-base';
 
 /** Heights (px). A bar heads a pane or panel; the layout's tab bar has it too. */
@@ -426,4 +426,24 @@ export function ago(ms) {
 	if (s < 86400 * 14) return `${Math.floor(s / 86400)}d`;
 	if (s < 86400 * 60) return `${Math.floor(s / 604800)}w`;
 	return `${Math.floor(s / 2592000)}mo`;
+}
+
+/**
+ * A program's icon, as Herdr draws it in tabs: Claude's, Codex's, a shell's.
+ * A one-colour glyph takes the program's colour (or the dimmed text colour);
+ * a picture is drawn as it is. Nothing for a program without one.
+ *
+ * @param {Record<string, string>} t
+ * @param {{ icon?: string | null, tint?: boolean, color?: string | null } | null | undefined} program
+ * @param {number} [size]
+ * @returns {object | null}
+ */
+export function programIcon(t, program, size = 14) {
+	if (!program?.icon) return null;
+	return program.tint
+		? svg(program.icon)
+				.size(size)
+				.flex_none()
+				.text_color(program.color ?? t.dim)
+		: image(program.icon).w(size).h(size).flex_none();
 }

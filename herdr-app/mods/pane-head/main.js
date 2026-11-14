@@ -7,9 +7,9 @@
 // repository's harness (lib/harness.js).
 //
 // Props from the app: { pane, terminal }. Click: focus the pane.
-import { View, div, svg, image } from 'gpui-kit';
+import { View, div, svg } from 'gpui-kit';
 import { h_flex } from 'gpui-base';
-import { SIZE, SPACE, TEXT, button, badge, dot, title } from './lib/ui.js';
+import { SIZE, SPACE, TEXT, button, badge, dot, title, programIcon } from './lib/ui.js';
 import { panes, agents, props, run, theme, home, layout, terminals, notify } from 'herdr';
 import { makeHarness } from './lib/harness.js';
 
@@ -27,13 +27,6 @@ function paneFrame(node) {
 		if (frame) return frame;
 	}
 	return null;
-}
-
-function icon(p, size, color) {
-	if (!p?.icon) return null;
-	return p.tint
-		? svg(p.icon).size(size).flex_none().text_color(color)
-		: image(p.icon).w(size).h(size).flex_none();
 }
 
 function folder(cwd) {
@@ -71,7 +64,7 @@ export default class PaneHead extends View {
 		// What Claude Code is doing, from its title without the glyph in front.
 		const doing = agent?.title?.replace(/^[^\p{L}\p{N}]+/u, '').trim();
 		const detail = claude ? doing || folder(claude.cwd) : folder(p.cwd);
-		const pic = icon(program, 14, t.dim);
+		const pic = programIcon(t, program, 14);
 		const st = claude?.status ?? p.status;
 		const pane = p.pane;
 		const bottom = paneFrame(layout())?.header?.position === 'bottom';

@@ -8,7 +8,7 @@
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
 import { agents, run, theme, setAgentOrder, exec } from 'herdr';
-import { SIZE, SPACE, TEXT, RADIUS, dot } from './lib/ui.js';
+import { SIZE, SPACE, TEXT, RADIUS, dot, programIcon } from './lib/ui.js';
 
 // How often to look for a conversation a terminal lost; see init.
 const RESUME_MS = 5000;
@@ -108,6 +108,10 @@ export default class AgentsCompact extends View {
 								.when(a.focused, (el) => el.bg(t.selected))
 								.when(!a.focused, (el) => el.hover((s) => s.bg(t.hover)))
 								.on_click(() => run('agent.focus', { terminal: a.address }))
+								// Which AI it is: Claude, Codex, another.
+								.when(Boolean(programIcon(t, a.program, 13)), (el) =>
+									el.child(programIcon(t, a.program, 13)),
+								)
 								.child(
 									div()
 										.flex_1()

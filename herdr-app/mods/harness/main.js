@@ -19,6 +19,7 @@ import {
 	heading,
 	panel,
 	ago,
+	programIcon,
 } from './lib/ui.js';
 import { exec, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
@@ -142,8 +143,12 @@ export default class Harness extends View {
 
 	// One line: the dot, a name, what it is about (dimmed), and what follows.
 	line(t, id, state, name, detail, onClick, onRightClick) {
+		// The worker's AI, from its terminal, which is named after it.
+		const program = name ? terminals().find((x) => x.name === name)?.program : null;
+		const pic = programIcon(t, program, 13);
 		return row(t, id, { onClick, onRightClick })
 			.child(dot(t, this.status(state)))
+			.when(Boolean(pic), (e) => e.child(pic))
 			.child(div().flex_none().max_w(140).truncate().text_color(t.foreground).child(name))
 			.child(
 				div()

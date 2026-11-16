@@ -24,7 +24,7 @@ Run it from the worktree whose commit is being reviewed. The record is keyed to 
 codex-review-run --base main
 codex-review-run --commit <sha>
 codex-review-run --uncommitted
-codex exec review "Focus on error handling and edge cases" </dev/null
+codex exec --sandbox read-only review "Focus on error handling and edge cases" </dev/null
 ```
 
 The positional prompt cannot be combined with a scope flag, and covers no commit. Run `codex exec review --help` when flags are unclear.

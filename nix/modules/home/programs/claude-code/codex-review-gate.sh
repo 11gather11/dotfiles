@@ -97,7 +97,10 @@ run)
   if [ "$by" = codex ]; then
     # Closed stdin: run in the background, codex otherwise waits for more input
     # on a stdin nobody will close, and never starts.
-    codex exec review "$@" </dev/null
+    # Read-only, as Claude's review below is: Codex's default sandbox may write
+    # the worktree, and a login shell's direnv hook then reinstalls
+    # dependencies without network, leaving node_modules emptied.
+    codex exec --sandbox read-only review "$@" </dev/null
     status=$?
   else
     # Claude has no review command: it is told what to read, and may only read.

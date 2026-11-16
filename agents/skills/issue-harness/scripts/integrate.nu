@@ -54,7 +54,7 @@ def integrate [spec: int, branch: string]: nothing -> record {
 
     let worker = worker-of $repo $branch
     let ws = if $worker == null { "gone" } else { (worker-state $worker).state }
-    if $ws in [working busy blocked] {
+    if $ws in [working busy blocked api-error] {
         return {
             result: $ws
             worker: $worker

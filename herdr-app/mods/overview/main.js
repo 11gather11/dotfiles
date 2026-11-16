@@ -56,7 +56,8 @@ const LIST_W = 240;
 function workerBadge(w, needs) {
 	if (needs) return ['needs you', 'blocked'];
 	if (w.state === 'working' || w.state === 'busy') return ['working', 'working'];
-	if (w.state === 'blocked' || w.state === 'stuck') return [w.state, 'blocked'];
+	if (w.state === 'blocked' || w.state === 'api-error' || w.state === 'stuck')
+		return [w.state, 'blocked'];
 	return [w.state ?? 'idle', 'neutral'];
 }
 

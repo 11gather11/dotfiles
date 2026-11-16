@@ -138,7 +138,10 @@ export default class Harness extends View {
 	// A worker's state as an agent status, for the dot.
 	status(state) {
 		if (state === 'working' || state === 'busy') return 'working';
-		return { blocked: 'blocked', stuck: 'blocked', stopped: 'done' }[state] ?? null;
+		return (
+			{ blocked: 'blocked', 'api-error': 'blocked', stuck: 'blocked', stopped: 'done' }[state] ??
+			null
+		);
 	}
 
 	// One line: the dot, a name, what it is about (dimmed), and what follows.

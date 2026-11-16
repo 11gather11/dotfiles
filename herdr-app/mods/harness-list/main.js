@@ -34,7 +34,7 @@ const attentionKey = (a) => `${a.kind}:${a.worker ?? a.spec}:${a.detail}`;
  */
 function statusOf(snap) {
 	const kinds = new Set(snap.attention.map((a) => a.kind));
-	if (kinds.has('blocked') || kinds.has('stuck')) return 'blocked';
+	if (kinds.has('blocked') || kinds.has('api-error') || kinds.has('stuck')) return 'blocked';
 	if (snap.attention.length) return 'done';
 	if (snap.workers.some((w) => w.state === 'working' || w.state === 'busy')) return 'working';
 	return 'idle';
@@ -99,7 +99,7 @@ export default class HarnessList extends View {
 				notify({
 					title: a.worker ? `${a.worker} ${a.kind}` : `spec #${a.spec} ${a.kind}`,
 					body: a.detail,
-					level: a.kind === 'blocked' ? 'warning' : 'info',
+					level: a.kind === 'blocked' || a.kind === 'api-error' ? 'warning' : 'info',
 				});
 			}
 		}

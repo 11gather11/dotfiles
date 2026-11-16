@@ -225,6 +225,7 @@ def open-specs [state: string]: nothing -> list<record> {
 # urgent first. A worker that stopped on a PR the queue already holds is the
 # queue's to wake: queue.nu asks it for merges and fixes itself.
 def attention [workers: list<record>, specs: list<record>, queued: list<int>]: nothing -> list<record> {
+    let errored = $workers | where state == api-error | each {|w| {kind: api-error, worker: $w.name, detail: ($w.detail? | default "an error only a person can clear")} }
     let blocked = $workers | where state == blocked | each {|w| {kind: blocked, worker: $w.name, detail: "permission prompt or dialog"} }
     let stopped = $workers
     | where state == stopped and ($it.pr == null or $it.pr.number not-in $queued)
@@ -233,5 +234,5 @@ def attention [workers: list<record>, specs: list<record>, queued: list<int>]: n
         {kind: stopped, worker: $w.name, detail: $detail}
     }
     let stuck = $specs | where result == stuck | each {|s| {kind: stuck, spec: $s.spec, detail: "no ticket can start and none is under way"} }
-    $blocked | append $stopped | append $stuck
+    $errored | append $blocked | append $stopped | append $stuck
 }

@@ -398,7 +398,7 @@ def snapshot [
         let ws = if $worker == null { "gone" } else { (worker-state $worker).state }
         # land.nu is the one judge of a PR; it is skipped only where its answer
         # cannot be used this pass, and reused while nothing it reads changed
-        let verdict = if $stacked or $ws in [working busy blocked] {
+        let verdict = if $stacked or $ws in [working busy blocked api-error] {
             {result: skipped, sha: $p.headRefOid}
         } else {
             let fp = [

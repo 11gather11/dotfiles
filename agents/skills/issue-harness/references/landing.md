@@ -57,6 +57,8 @@ returns when:
   it back.
 - `stalled`: no queued PR can move and no worker is at work, such as a
   stacked PR whose lower PR is not queued. Follow `next`.
+- `api-error`: a worker stopped on an error only the user can clear
+  (`/login`, a usage limit). Bring it to them, then run the queue again.
 - `no-runner`: the head's CI jobs have sat queued for 30 minutes with none
   started. Check the repository's runners (a self-hosted one offline, Actions
   minutes or billing spent) before running the queue again.

@@ -15,3 +15,7 @@ overrides it where the two differ:
   does not count for code you wrote.
 - Do not start a review with your own subagents in place of these: a review
   by Codex of Codex's work is what the gate does not accept.
+- When you stop short of the PR (you cannot reproduce it, a step fails, a
+  question), end with what you tried, what you found, and what you would try
+  next, not just the verdict: the harness decides from that alone, and a bare
+  "could not reproduce" sends it back to read everything again.

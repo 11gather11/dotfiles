@@ -7,6 +7,11 @@
 # the footer below the prompt box is searched: the transcript above it quotes
 # CI and shell output ("render is still running").
 const background_footer = '(?i)\b\d+\s+(shells?|monitors?|background tasks?)\b|still running'
+# Claude Code's own reports that the session cannot go on until a person acts:
+# signed out, an API error it gave up retrying (a Cloudflare 403), a usage
+# limit. They print as a result line (`⎿  API Error: …`) or a bare notice, so
+# a line merely quoting such text from CI output does not match.
+const api_error_line = '^\s*(⎿\s*)?(API Error:|Please run /login|Not logged in|You.ve hit your .*limit)'
 
 # The harness's state directory for `repo`: `~/.local/state/harness/<name>`.
 #
@@ -83,6 +88,9 @@ export def worker-of [repo: string, branch: string]: nothing -> oneof<string, no
 # - `working`: the multiplexer says so.
 # - `busy`: idle or done, but a background shell or monitor is still running.
 # - `blocked`: a permission prompt or a dialog waits for an answer.
+# - `api-error`: Claude Code stopped on an error only a person can clear
+#   (`/login`, a usage limit); `detail` holds its line. A prompt from the
+#   harness does not reach such a worker, so it goes to the user.
 # - `stopped`: the turn is over; read the screen for a PR URL or a question.
 # - `gone`: no such agent, as after land.nu removed its worktree.
 # `footer` carries the lines the decision was read from.
@@ -108,29 +116,60 @@ export def worker-state [
                 footer: []
             }
         }
-        blocked => {
-            return {
-                state: blocked
-                agent_status: $status
-                footer: []
-            }
+    }
+    let screen = visible-screen $name $mux
+    # Looked for whether the multiplexer says blocked or idle: such an error
+    # can leave either behind
+    let error = $screen | api-error-in
+    if $error != null {
+        return {
+            state: api-error
+            agent_status: $status
+            detail: $error
+            footer: []
         }
     }
-    let footer = footer-of $name $mux
+    if $status == blocked {
+        return {
+            state: blocked
+            agent_status: $status
+            footer: []
+        }
+    }
+    let footer = footer-of $screen
     let state = if ($footer | any {|l| $l =~ $background_footer }) { "busy" } else { "stopped" }
     {state: $state, agent_status: $status, footer: $footer}
 }
 
-# The lines below the last prompt line (`❯`) of the visible screen: the
-# status bar where Claude Code lists background shells and monitors.
-def footer-of [name: string, mux: string]: nothing -> list<string> {
+# The line of an error only a person can clear near the bottom of a worker's
+# screen, or null. It counts only while nothing replied after it, or a session
+# that went on after a /login would still read as stuck.
+#
+# @example
+# ["⏺ Running tests" "  ⎿  API Error: 403 Attention Required! | Cloudflare" "❯ "] | api-error-in
+# # => "⎿  API Error: 403 Attention Required! | Cloudflare"
+export def api-error-in []: list<string> -> oneof<string, nothing> {
+    let tail = $in | last 15 | enumerate
+    let error = $tail | where $it.item =~ $api_error_line | last
+    if $error == null { return null }
+    if ($tail | skip $error.index + 1 | any {|l| $l.item =~ '^\s*[⏺•]' }) { return null }
+    $error.item | str trim
+}
+
+# The visible screen of the worker, empty when it cannot be read.
+def visible-screen [name: string, mux: string]: nothing -> list<string> {
     # `hc read` prints the screen alone unless asked for history.
     let r = match $mux {
         hc => (^hc read $name | complete)
         _ => (^herdr agent read $name --source visible | complete)
     }
     if $r.exit_code != 0 { return [] }
-    let screen = $r.stdout | lines
+    $r.stdout | lines
+}
+
+# The lines below the last prompt line (`❯`) of the screen: the status bar
+# where Claude Code lists background shells and monitors.
+def footer-of [screen: list<string>]: nothing -> list<string> {
     let prompt = $screen | enumerate | where ($it.item | str trim | str starts-with "❯") | last
     let footer = if $prompt == null {
         $screen | last 4

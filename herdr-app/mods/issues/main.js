@@ -58,9 +58,13 @@ export function harnessMark(snap, n) {
 	if (!snap) return null;
 	const w = snap.workers?.find((x) => x.ticket === n);
 	if (w) {
-		const tone = { working: 'working', busy: 'working', blocked: 'blocked', stuck: 'blocked' }[
-			w.state
-		];
+		const tone = {
+			working: 'working',
+			busy: 'working',
+			blocked: 'blocked',
+			'api-error': 'blocked',
+			stuck: 'blocked',
+		}[w.state];
 		return { text: w.pr ? `${w.name} · #${w.pr.number}` : w.name, tone: tone ?? 'done' };
 	}
 	for (const s of snap.specs ?? []) {

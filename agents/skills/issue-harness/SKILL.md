@@ -89,7 +89,8 @@ One background command for every worker that has no PR in the queue:
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/watch.nu pg-264 pg-265 pg-270
 ```
 
-It returns the first worker that is `stopped`, `blocked` or `gone`. A worker
+It returns the first worker that is `stopped`, `blocked`, `api-error` or
+`gone`. A worker
 whose turn ended while a background shell or monitor still runs counts as
 working. A worker already stopped returns at once, so pass only the ones you
 are waiting on. After triage, start it again with the rest. Done when one
@@ -102,6 +103,9 @@ Read before you act: `worker.nu read <name> --lines 40`.
 
 - **blocked**: a permission prompt. Answer it or bring it to the user, per
   [`references/triage.md`](references/triage.md).
+- **api-error**: Claude Code stopped on what only the user can clear (signed
+  out, a Cloudflare 403, a usage limit), quoted in `detail`. A prompt does not
+  reach it: bring it to the user at once.
 - **stopped with a question**: workers ask in plain text and end their turn.
   Answer from what decides it, or bring it to the user, per triage.md.
 - **stopped with a PR**: read the PR, then queue it (4).
@@ -143,7 +147,7 @@ what to do. One runner holds a repository's queue: a second `run` returns
 `running` with the first one's pid, and a bare `queue.nu` only lists the
 queue. How it orders PRs, and the results that need your judgement
 (`blocked`, `no-progress`, `flaky`, the limits, `optional-failed`,
-`no-runner`, `busy`), are in
+`no-runner`, `busy`, `api-error`), are in
 [`references/landing.md`](references/landing.md); read it the first time the
 queue stops on one. `queue.nu run --dry-run` shows what each PR would get,
 changing nothing. Landing by hand, `no-land` and stacked PRs are there too.

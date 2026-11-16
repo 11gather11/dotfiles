@@ -8,7 +8,7 @@ use harness.nu [worker-state]
 # Wait until one of `agents` stops, blocks or disappears.
 #
 # Prints one JSON line: `{result, agent, agent_status, footer}`, where result
-# is `stopped`, `blocked`, `gone` or `timeout`. A worker already stopped when
+# is `stopped`, `blocked`, `api-error` (with `detail`), `gone` or `timeout`. A worker already stopped when
 # this starts is returned at once, so pass only the workers you are waiting on.
 # Exit status: 0 a worker needs the harness; 2 timeout; 1 error.
 #
@@ -34,6 +34,7 @@ def main [
                 result: $hit.state
                 agent: $hit.agent
                 agent_status: $hit.agent_status
+                detail: ($hit.detail? | default null)
                 footer: $hit.footer
             } | to json --raw | print
             exit 0

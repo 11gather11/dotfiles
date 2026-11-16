@@ -135,6 +135,16 @@ def decide-one [it: record, head_taken: bool, history: list<record>]: nothing ->
             return (do $halt $v.result $v.detail $v.next)
         }
     }
+    if $it.worker_state == api-error {
+        return (
+            (do
+                $halt
+                api-error
+                $"($it.worker) stopped on an error only a person can clear"
+                $"bring it to the user: they clear it in ($it.worker)'s terminal \(/login, or wait out a usage limit\), then run `queue.nu run` again"
+            )
+        )
+    }
     if $it.worker_state == blocked {
         return (
             (do

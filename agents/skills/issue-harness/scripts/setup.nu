@@ -108,6 +108,9 @@ def check-all []: nothing -> record {
         (if not ($state | path join check | path exists) {
             {marker: check, why: "a spec's tickets merge into its integration branch only after this command passes (references/spec.md); write what can run on this machine", place: $"echo 'just check' > ($state)/check"}
         })
+        (if (needs-install-hook $repo) {
+            {marker: null, why: "a new worktree has no installed dependencies, so the check a ticket must pass fails in every worker's worktree and the spec's", place: "add a pre-start hook that installs them to the repository's .config/wt.toml (`[pre-start]` then `install = \"just install\"`, say), and have the user approve it once with `wt config approvals add`"}
+        })
         (if not ($repo | path join docs agents issue-tracker.md | path exists) {
             {marker: null, why: "/to-tickets and the review read the repository's tracker setup", place: "run /mattpocock-skills:setup-matt-pocock-skills before working a spec"}
         })
@@ -129,6 +132,18 @@ def check-all []: nothing -> record {
             if ($failing | is-empty) { "start workers with spawn.nu" } else { "settle each check that is not ok, then run setup.nu again" }
         )
     }
+}
+
+# Whether the repository installs JavaScript packages but has no worktrunk
+# project hook to install them when wt creates a worktree. Every worker and
+# integration worktree is created by wt, so that hook is the one place the
+# install happens for all of them.
+def needs-install-hook [repo: string]: nothing -> bool {
+    let locks = [pnpm-lock.yaml package-lock.json yarn.lock bun.lock bun.lockb]
+    let installs = $locks | any {|f| $repo | path join $f | path exists }
+    let config = $repo | path join .config wt.toml
+    let hooked = ($config | path exists) and ((open --raw $config) =~ '(?m)^\s*\[?\s*pre-start')
+    $installs and not $hooked
 }
 
 def check [

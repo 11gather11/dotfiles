@@ -34,6 +34,7 @@ const cases = [
     "a pending head still lets a clean PR behind it land"
     "a busy or working worker is passed over"
     "a blocked worker stops the queue"
+    "a worker stopped on an API error stops the queue for the user"
     "a stacked PR waits for the PR under it"
     "a repeated ask on the same head stops the queue"
     "a new head after an ask is asked again"
@@ -305,6 +306,14 @@ def run-case [name: string] {
             assert equal $long.stop.result busy
             # The PR behind it still lands this pass
             assert equal (actions-of $long) ["1:stop" "2:land"]
+        }
+        "a worker stopped on an API error stops the queue for the user" => {
+            let d = decide [
+                (pr 1 skipped | update worker_state api-error)
+                (pr 2 would-merge)
+            ]
+            assert equal $d.stop.result api-error
+            assert equal (actions-of $d) ["1:stop" "2:land"]
         }
         "the worker's NOT-THIS-PR reply is read from a herdr screen" => {
             let screen = [

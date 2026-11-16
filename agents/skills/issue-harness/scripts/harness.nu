@@ -159,13 +159,20 @@ export def agent-get [name: string, mux: string]: nothing -> oneof<record, nothi
                 status: ($t.status?.state?)
                 cwd: $t.cwd
                 where: $t.address
+                # spawn.nu's label; a terminal started otherwise runs Claude
+                agent: ($t.labels? | get -o "harness.agent" | default claude)
             }
         }
         _ => {
             let r = ^herdr agent get $name | complete
             if $r.exit_code != 0 { return null }
             let a = $r.stdout | from json | get result.agent
-            {status: $a.agent_status, cwd: $a.cwd, where: $a.pane_id}
+            {
+                status: $a.agent_status
+                cwd: $a.cwd
+                where: $a.pane_id
+                agent: claude
+            }
         }
     }
 }

@@ -3,7 +3,15 @@
 # ticket, this is where a ticket is checked: the commit is pinned, the
 # repository's integration check runs on it, and only that commit is merged.
 
-use harness.nu [main-checkout worker-of worker-state heavy-check prompt-worker]
+use harness.nu [
+    main-checkout
+    worker-of
+    worker-state
+    heavy-check
+    prompt-worker
+    agent-get
+    current-mux
+]
 use spec.nu [load-spec save-spec git-out taken-tickets read-graph]
 use spec-rules.nu [frontier]
 
@@ -93,6 +101,25 @@ def integrate [spec: int, branch: string]: nothing -> record {
         )
     }
 
+    # Correctness is reviewed per ticket, by the vendor that did not write it,
+    # while its worker still has the context to fix what is found: left to the
+    # spec's one review at the end, the faults came back round after round
+    # to fix workers that had to rebuild that context
+    let author = if $worker == null { "claude" } else {
+        (agent-get $worker (current-mux)).agent? | default claude
+    }
+    let reviewer = if $author == "codex" { "claude" } else { "codex" }
+    if not (reviewed $repo $sha $author $tip) {
+        return (
+            (do
+                $say
+                unreviewed
+                $"no finished review by ($reviewer) covers ($sha | str substring 0..<7)"
+                $"Run `($reviewer)-review-run --base ($s.branch)` on your last commit and let it finish. Fix what it finds that is this ticket's, commit, and run it again; list what belongs elsewhere under Deferred: in the last commit's message. End your turn with DONE."
+            )
+        )
+    }
+
     let label = $"spec-($spec)-($branch)"
     let check = heavy-check $repo $path $label
     if not $check.ok {
@@ -145,6 +172,32 @@ def integrate [spec: int, branch: string]: nothing -> record {
             if $f.done { $"spec.nu frontier ($spec) for the review step" } else if ($f.ready | is-empty) { "wait for the running workers" } else { $"start workers for ($f.ready | str join ', ') \(spec.nu frontier ($spec) has the commands\)" }
         )
     }
+}
+
+# Whether a review by someone other than `author` finished on `sha`, read from
+# the record codex-review-run and claude-review-run leave for the PR gate.
+# A merge counts as reviewed when its first parent was, its second is part of
+# the integration branch at `tip`, and its tree is the one git's own merge
+# makes: no line in it was written by hand.
+export def reviewed [
+    repo: string
+    sha: string
+    author: string
+    tip: string
+]: nothing -> bool {
+    let record = $env.XDG_STATE_HOME? | default ($env.HOME | path join .local/state) | path join claude-codex-review $sha
+    if ($record | path exists) {
+        # An empty record predates the reviewer's name and was Codex's
+        let by = open --raw $record | lines | get -o 0 | default "" | str trim
+        if (if $by == "" { "codex" } else { $by }) != $author { return true }
+    }
+    let parents = git-out $repo [rev-list --parents -n 1 $sha] | split row " " | skip 1
+    if ($parents | length) != 2 { return false }
+    if (^git -C $repo merge-base --is-ancestor $parents.1 $tip | complete).exit_code != 0 { return false }
+    let merged = ^git -C $repo merge-tree --write-tree $parents.0 $parents.1 | complete
+    if $merged.exit_code != 0 { return false }
+    if ($merged.stdout | lines | first) != (git-out $repo [rev-parse $"($sha)^{tree}"]) { return false }
+    reviewed $repo $parents.0 $author $tip
 }
 
 def worktree-path [repo: string, branch: string]: nothing -> oneof<string, nothing> {

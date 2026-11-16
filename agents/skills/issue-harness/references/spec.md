@@ -36,8 +36,10 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/spawn.nu kn-415 issue-41
 ```
 
 `--spec` cuts the branch from the local `spec-412` and briefs the worker not
-to push, to merge `spec-412` when asked, and to end with `DONE`. Machine
-capacity applies as for any worker.
+to push, to merge `spec-412` when asked, to have its last commit reviewed by
+the other vendor (`codex-review-run --base spec-412`, `claude-review-run` for
+a Codex worker), and to end with `DONE`. Machine capacity applies as for any
+worker.
 
 ## 3. Integrate each ticket that ends with DONE
 
@@ -52,8 +54,11 @@ One at a time: every merge moves `spec-412`.
 
 - `integrated`: merged, worktree removed (the branch stays until the spec
   lands). Start the tickets in `ready`.
-- `behind`, `dirty`, `check-failed`: already sent to the worker. Wait on it,
-  and integrate again when it ends with `DONE`.
+- `behind`, `dirty`, `unreviewed`, `check-failed`: already sent to the
+  worker. Wait on it, and integrate again when it ends with `DONE`.
+  `unreviewed` means no finished review by the other vendor covers the
+  branch's head; a clean merge of `spec-412` on top of a reviewed commit
+  needs none.
 - `working`, `busy`, `blocked`: the worker has not stopped; wait.
 - `head-moved`: the branch moved during the check; run it again.
 

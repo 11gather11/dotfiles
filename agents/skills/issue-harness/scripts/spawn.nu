@@ -294,7 +294,9 @@ def context [name: string, spec: oneof<int, nothing>, agent: string]: nothing ->
                 | str replace --all "<skill-dir>" $skill_dir
             } else { "" }
         )
-        (if $spec_branch != null { spec-note $spec $spec_branch } else { "" })
+        (
+            if $spec_branch != null { spec-note $spec $spec_branch $agent } else { "" }
+        )
         (if ($local_brief | path exists) { open --raw $local_brief } else { "" })
     ]
     | where $it != ""
@@ -313,21 +315,29 @@ def context [name: string, spec: oneof<int, nothing>, agent: string]: nothing ->
 # What changes for a worker on one ticket of a spec. It comes after the shared
 # brief and overrides its push, PR and review steps: the harness merges the
 # ticket into the integration branch, and the spec reaches the base as one PR.
-def spec-note [spec: int, branch: string]: nothing -> string {
+# The other vendor still reviews each ticket, as integrate.nu checks: found
+# here, a fault goes back to the worker that has the context to fix it.
+def spec-note [spec: int, branch: string, agent: string]: nothing -> string {
+    let review = if $agent == codex { "claude-review-run" } else { "codex-review-run" }
     $"## One ticket of spec #($spec)
 
 Your branch was cut from `($branch)`, the local integration branch of spec
 #($spec); it is not on GitHub. This overrides the shared steps on pushing, the
 PR and the review:
 
-- Do not push, open a PR, or run review.nu or codex-review-run. Nothing of
-  this branch goes to GitHub; the harness reviews the whole spec at the end.
+- Do not push, open a PR, or run review.nu. Nothing of this branch goes to
+  GitHub; the harness reviews the whole spec against it at the end.
 - Merge the local branch `($branch)` \(not origin\) when the harness asks,
   and before you finish.
-- When you finish: commit everything, make the last commit's message carry a
-  `Decisions:` and a `Deferred:` section \(the harness copies them into the
-  spec's PR\), and end your turn with one line: `DONE`, or what you are stuck
-  on."
+- When you finish: commit everything, and make the last commit's message
+  carry a `Decisions:` and a `Deferred:` section \(the harness copies them
+  into the spec's PR\). Then run `($review) --base ($branch)` and let it
+  finish \(it takes minutes\). Fix what it finds that is this ticket's,
+  commit, and run it again; what belongs elsewhere goes under `Deferred:`.
+  The harness integrates only a commit that review has covered, so run it
+  last. A merge of `($branch)` that needed no hand-made change after it does
+  not need another.
+- End your turn with one line: `DONE`, or what you are stuck on."
 }
 
 # The checkout path of `branch`'s worktree, or null when it has none.

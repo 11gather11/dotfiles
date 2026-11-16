@@ -55,15 +55,20 @@ When you finish:
   in the background (it takes minutes). Fix what is this PR's to fix. Then run
   `codex-review-run --base <base branch>`: `gh pr create` refuses a commit it
   has not covered, so run it last, after your final commit.
-- If the author has to verify something before it lands (on screen, on real
-  hardware, in production), list it in its own section of the PR body and put
+- If the author has to decide or verify something before it lands (a choice
+  you made that the issue left to them; a look on screen, on real hardware,
+  in production), list it in its own section of the PR body and put
   `<!-- needs-author -->` on the line below its heading: the harness's queue
-  will not take the PR until the author has.
+  will not take the PR until the author has. Say where they can see each
+  thing before the merge (a story's URL, a command). What can only be seen
+  after a deploy goes in a section of its own, without the marker.
 - Open the PR with `Closes #<issue>` and stop there, without waiting for CI,
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that
   another worker could use.
 - End your last turn with one line: the PR URL, or what you are stuck on.
+  Stop the background shells and monitors you started first: while one runs,
+  the harness counts you as at work and passes your PR over.
 
 The repository's CLAUDE.md decides everything else: tests, checks to pass
 before the PR, the PR body, when to stop for a spec decision.

@@ -14,6 +14,9 @@ After `updated` (it merged the base into the PR), wait for the new CI: lines
 that merge cleanly can still disagree. Under `no-land` it returns
 `manual-land` with the CI verdict: send a failure back, wait on a pending one,
 and give the user the PR URL once it passes. It never lands a PR from a fork.
+Run on a PR a person already merged (under `no-land`, or `gh pr merge
+--auto`), it returns `merged` and removes the worktree and worker the PR left;
+the queue does the same for a queued PR merged that way.
 
 After three send-backs on one issue, stop and bring it to the user.
 
@@ -54,7 +57,18 @@ returns when:
   it back.
 - `stalled`: no queued PR can move and no worker is at work, such as a
   stacked PR whose lower PR is not queued. Follow `next`.
-- `timeout`: run it again.
+- `no-runner`: the head's CI jobs have sat queued for 30 minutes with none
+  started. Check the repository's runners (a self-hosted one offline, Actions
+  minutes or billing spent) before running the queue again.
+- `busy`: a worker ended its turn 30 minutes ago with a background shell or
+  monitor still running, so the queue has been passing its PR over. Read it;
+  if what runs is left over (a CI watch after the PR opened), ask it to stop
+  that.
+- `running`: another runner holds the queue. With `stale: true` it started
+  before the skill was updated and runs the old scripts: stop it and run the
+  queue again.
+- `timeout`: run it again, and report what `landed` holds.
 - anything else: follow `next`.
 
-Its `landed` holds the PR numbers this run landed; `queue.nu list` has the rest.
+Its `landed` holds the PR numbers this run landed. `queue.nu list` shows the
+queue, its runner and the last few landings; `--all` every ask and landing.

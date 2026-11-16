@@ -3,7 +3,7 @@
 # changing the rules; it prints one line per case and exits 1 on a failure.
 
 use std/assert
-use queue-rules.nu [decide max_fix_asks max_merge_asks]
+use queue-rules.nu [decide max_fix_asks max_merge_asks stuck_minutes not-this-pr-in]
 
 # A queued PR with a stopped worker and no earlier asks.
 def pr [n: int, result: string, --sha: string = "s1"]: nothing -> record {
@@ -45,6 +45,12 @@ const cases = [
     "a queue nobody can move stops as stalled"
     "a failure the worker judged not its own is rerun once"
     "a check judged not their own on two PRs is flaky"
+    "a head whose CI jobs no runner starts stops as no-runner"
+    "a worker left busy for long stops the queue"
+    "the worker's NOT-THIS-PR reply is read from a herdr screen"
+    "the worker's NOT-THIS-PR reply is read through herdr-core's tag"
+    "the worker's NOT-THIS-PR reply is read from a Codex screen"
+    "the ask's own quote of the mark is not a reply"
 ]
 
 def run-case [name: string] {
@@ -259,6 +265,82 @@ def run-case [name: string] {
                 }
             ]
             assert equal $own.stop null
+        }
+        "a head whose CI jobs no runner starts stops as no-runner" => {
+            let short = decide [
+                (
+                    pr 1 pending
+                    | insert stuck {kind: queued, minutes: ($stuck_minutes - 1)}
+                )
+            ]
+            assert equal (actions-of $short) ["1:wait"]
+            assert equal $short.stop null
+            let long = decide [
+                (
+                    pr 1 pending
+                    | insert stuck {kind: queued, minutes: $stuck_minutes}
+                )
+            ]
+            assert equal $long.stop.result no-runner
+            # Running jobs are CI taking its time, not a missing runner
+            let running = decide [
+                (pr 1 pending | insert stuck null)
+            ]
+            assert equal $running.stop null
+        }
+        "a worker left busy for long stops the queue" => {
+            let busy = {|minutes: int|
+                pr 1 skipped | update worker_state busy | insert stuck {kind: busy, minutes: $minutes}
+            }
+            let short = decide [
+                (do $busy ($stuck_minutes - 1))
+                (pr 2 would-merge)
+            ]
+            assert equal (actions-of $short) ["1:skip" "2:land"]
+            assert equal $short.stop null
+            let long = decide [
+                (do $busy $stuck_minutes)
+                (pr 2 would-merge)
+            ]
+            assert equal $long.stop.result busy
+            # The PR behind it still lands this pass
+            assert equal (actions-of $long) ["1:stop" "2:land"]
+        }
+        "the worker's NOT-THIS-PR reply is read from a herdr screen" => {
+            let screen = [
+                "❯ CI failed on abc1234: e2e (run 9): https://x. If it is not this PR's, end"
+                "  with a line of its own that starts with NOT-THIS-PR: and says why."
+                "⏺ Reading the log."
+                "⏺ NOT-THIS-PR: e2e timed out on a loaded runner"
+            ]
+            assert equal ($screen | not-this-pr-in abc1234def) "e2e timed out on a loaded runner"
+        }
+        "the worker's NOT-THIS-PR reply is read through herdr-core's tag" => {
+            let screen = [
+                '❯ <hc from="t4b">CI failed on abc1234: e2e (run 9): https://x'
+                "⏺ NOT-THIS-PR: story timing out on code this PR does not touch"
+            ]
+            assert equal ($screen | not-this-pr-in abc1234def) "story timing out on code this PR does not touch"
+        }
+        "the worker's NOT-THIS-PR reply is read from a Codex screen" => {
+            let screen = [
+                '› <hc from="t4b">CI failed on abc1234: e2e (run 9): https://x'
+                "• NOT-THIS-PR: flaky teardown"
+            ]
+            assert equal ($screen | not-this-pr-in abc1234def) "flaky teardown"
+        }
+        "the ask's own quote of the mark is not a reply" => {
+            let screen = [
+                "❯ CI failed on abc1234: e2e (run 9). End with a line that starts with"
+                "NOT-THIS-PR: and says why."
+            ]
+            assert equal ($screen | not-this-pr-in abc1234def) null
+            # An ask for an older head is not this head's
+            let older = [
+                "❯ CI failed on 0000000: e2e"
+                "⏺ NOT-THIS-PR: old"
+            ]
+            assert equal ($older | not-this-pr-in abc1234def) null
         }
     }
 }

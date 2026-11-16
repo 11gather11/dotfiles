@@ -14,16 +14,18 @@ use harness.nu [
     read-worker
     prompt-worker
 ]
-use queue-rules.nu [decide]
+use queue-rules.nu [decide not-this-pr-in not_this_pr_mark]
 
 const land_script = path self land.nu
 # A land.nu verdict is reused while the PR, its checks and the base look the
 # same, so a quiet pass costs one `gh pr list`; this bounds how stale it gets.
 const verdict_ttl = 10min
 const prompt_timeout = 30sec
-# What a worker writes, at the start of a line, when it judges a CI failure
-# not its PR's. The queue reads it rather than guessing from free text.
-const not_this_pr_mark = "NOT-THIS-PR:"
+# Where this revision of the skill's scripts lives. A runner records it in the
+# lock, so a runner started before the skill was updated can be told apart.
+const scripts_dir = path self .
+# Landings `queue.nu list` shows without `--all`.
+const recent_landings = 5
 # What a worker puts at the top of the PR body's section listing what the
 # author has to verify before it lands (worker-brief.md). A fixed comment,
 # because each repository titles that section in its own language.
@@ -61,11 +63,15 @@ def "main run" [
         } else {
             let holder = take-lock $repo
             if $holder != null {
+                let stale = runner-stale $holder
                 {
                     result: running
                     pid: $holder.pid
-                    detail: $"another runner \(pid ($holder.pid), since ($holder.at)\) holds this queue"
-                    next: "wait on that runner, or stop it before starting another; `queue.nu add` reaches it while it runs"
+                    stale: $stale
+                    detail: $"another runner \(pid ($holder.pid), since ($holder.at)\) holds this queue(if $stale { ', started from an older revision of the skill' } else { '' })"
+                    next: (
+                        if $stale { $"stop it \(kill ($holder.pid)\), then run `queue.nu run` again: it runs the scripts as they were when it started" } else { "wait on that runner, or stop it before starting another; `queue.nu add` reaches it while it runs" }
+                    )
                 }
             } else {
                 let r = try { run-queue $repo $interval $timeout } catch {|e| {result: error, detail: $e.msg, next: "fix the cause, then run queue.nu run again"} }
@@ -132,16 +138,32 @@ def "main allow-optional" [pr: int] {
     main list
 }
 
-# Show the queue, the asks made so far and what has landed.
-def "main list" [] {
+# Show the queue, its runner, the asks made to the PRs still queued and the
+# last few landings.
+def "main list" [
+    --all  # every ask and landing the repository's queue has recorded
+] {
     let repo = main-checkout
     let st = load-state $repo
     let q = load-queue $repo
+    let queued = $q.prs | where $it not-in $st.dropped
+    let asks = if $all { $st.asks } else {
+        $queued | reduce --fold {} {|n, acc|
+            let a = $st.asks | get -o ($n | into string)
+            if $a == null { $acc } else { $acc | insert ($n | into string) $a }
+        }
+    }
     {
-        queue: ($q.prs | where $it not-in $st.dropped)
+        queue: $queued
+        runner: (runner-of $repo)
         allow_optional: $q.allow_optional
-        asks: $st.asks
-        landed: $st.landed
+        asks: $asks
+        landed: (
+            if $all { $st.landed } else {
+                $st.landed | last $recent_landings
+            }
+        )
+        landed_total: ($st.landed | length)
     } | to json --raw | print
 }
 
@@ -222,8 +244,30 @@ def take-lock [repo: string]: nothing -> oneof<record, nothing> {
     {
         pid: $nu.pid
         at: (date now | format date "%+")
+        scripts: ($scripts_dir | path expand)
     } | to json --raw | save --force $f
     null
+}
+
+# The live runner of this repository's queue, `{pid, at, stale}`, or null.
+def runner-of [repo: string]: nothing -> oneof<record, nothing> {
+    let f = lock-file $repo
+    if not ($f | path exists) { return null }
+    let held = try {
+        open $f | from json
+    } catch { null }
+    if $held == null or not (runner-alive $held.pid) { return null }
+    {
+        pid: $held.pid
+        at: $held.at
+        stale: (runner-stale $held)
+    }
+}
+
+# Whether a runner runs other scripts than these: the skill was updated (a new
+# store path) after it started, and it goes on with the old rules.
+def runner-stale [held: record]: nothing -> bool {
+    ($held.scripts? | default null) != ($scripts_dir | path expand)
 }
 
 def runner-alive [pid: int]: nothing -> bool {
@@ -321,14 +365,22 @@ def gone-pr [pr: int]: nothing -> record {
 # ── one pass ──
 
 # Reads every queued PR into the record queue-rules.nu decides on.
-# `cache` maps a PR to `{key, at, verdict}` from earlier passes.
-def snapshot [repo: string, st: record, cache: record]: nothing -> record {
+# `cache` maps a PR to `{key, at, verdict}` from earlier passes, and `since`
+# to `{kind, sha, at}`: since when its head has waited on one thing outside the
+# queue (`stuck` in queue-rules.nu). Both come back updated.
+def snapshot [
+    repo: string
+    st: record
+    cache: record
+    since: record
+]: nothing -> record {
     let q = load-queue $repo
     let order = $q.prs | where $it not-in $st.dropped
     let open = open-prs
     let open_branches = $open | values | get headRefName
     let tips = branch-tips
     mut cache = $cache
+    mut since = $since
     mut items = []
     for n in $order {
         let key = $n | into string
@@ -366,9 +418,30 @@ def snapshot [repo: string, st: record, cache: record]: nothing -> record {
         let said = if $verdict.result == ci-failed and $fix_asked and $ws == stopped {
             not-this-pr-of $worker $verdict.sha
         }
-        $items = $items | append {pr: $n, verdict: $verdict, base: $p.baseRefName, stacked: $stacked, allow_optional: $allow, worker: $worker, worker_state: $ws, asks: $asks, said: $said}
+        let kind = if $ws == busy { "busy" } else if (jobs-queued $p) { "queued" }
+        let prev = $since | get -o $key
+        let at = if $kind == null { null } else if $prev != null and $prev.kind == $kind and $prev.sha == $p.headRefOid { $prev.at } else { date now }
+        $since = if $at == null {
+            $since | reject -o $key
+        } else {
+            $since | upsert $key {kind: $kind, sha: $p.headRefOid, at: $at}
+        }
+        let stuck = if $at != null {
+            {
+                kind: $kind
+                minutes: (((date now) - $at) / 1min | math floor)
+            }
+        }
+        $items = $items | append {pr: $n, verdict: $verdict, base: $p.baseRefName, stacked: $stacked, allow_optional: $allow, worker: $worker, worker_state: $ws, asks: $asks, said: $said, stuck: $stuck}
     }
-    {items: $items, cache: $cache}
+    {items: $items, cache: $cache, since: $since}
+}
+
+# Whether the head's CI has jobs waiting and none of them has started, which
+# is what a repository whose runners are gone or out of minutes looks like.
+def jobs-queued [p: record]: nothing -> bool {
+    let open = $p.statusCheckRollup | where ($it.status? | default COMPLETED) != COMPLETED
+    ($open | is-not-empty) and ($open | all {|c| $c.status == QUEUED })
 }
 
 # The prompt asking a worker to merge the base.
@@ -383,26 +456,9 @@ def fix-ask [v: record]: nothing -> string {
 }
 
 # The reason after `not_this_pr_mark` in the worker's reply to the fix ask for
-# `sha`, or null. Only the reply is searched: the ask quotes the mark, and a
-# wrapped line of it can start with the mark too.
+# `sha`, or null.
 def not-this-pr-of [agent: string, sha: string]: nothing -> oneof<string, nothing> {
     read-worker $agent --lines 400 | lines | not-this-pr-in $sha
-}
-
-# `not-this-pr-of` on a screen already read.
-export def not-this-pr-in [sha: string]: list<string> -> oneof<string, nothing> {
-    let screen = $in | enumerate
-    let asked = $screen | where ($it.item | str starts-with $"❯ CI failed on ($sha | str substring 0..<7):") | last
-    if $asked == null { return null }
-    let reply = $screen | skip ($asked.index + 1) | skip until {|l| $l.item | str starts-with "⏺" }
-    $reply
-    | get item
-    | each { str trim | str replace --regex '^⏺\s*' '' }
-    | where ($it | str starts-with $not_this_pr_mark)
-    | last
-    | if $in == null { null } else {
-        str substring ($not_this_pr_mark | str length).. | str trim
-    }
 }
 
 # Sends `text` and waits only for its receipt. The ask is recorded before this
@@ -415,7 +471,7 @@ def ask [agent: string, text: string]: nothing -> nothing {
 def dry-run [repo: string]: nothing -> record {
     if (setting-on $repo no-land) { return (no-land-result) }
     let st = load-state $repo
-    let snap = snapshot $repo $st {}
+    let snap = snapshot $repo $st {} {}
     let d = decide $snap.items $st.not_this_pr
     {
         result: dry-run
@@ -444,11 +500,13 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
     if (setting-on $repo no-land) { return (no-land-result) }
     let deadline = (date now) + $timeout
     mut cache = {}
+    mut since = {}
     mut landed = []
     loop {
         mut st = load-state $repo
-        let snap = snapshot $repo $st $cache
+        let snap = snapshot $repo $st $cache $since
         $cache = $snap.cache
+        $since = $snap.since
         if ($snap.items | is-empty) {
             return {
                 result: done
@@ -467,6 +525,9 @@ def run-queue [repo: string, interval: duration, timeout: duration]: nothing -> 
             match $a.action {
                 drop => {
                     $st = $st | update dropped { append $a.pr | uniq }
+                    # Merged by someone else: land.nu removes what the worker
+                    # left, as it does after a merge of its own
+                    land $a.pr $item.worker false false | ignore
                 }
                 ask-merge | ask-fix => {
                     let kind = if $a.action == ask-merge { "merge" } else { "fix" }

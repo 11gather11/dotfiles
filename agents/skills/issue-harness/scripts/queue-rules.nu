@@ -7,6 +7,47 @@ export const max_fix_asks = 3
 # Merges of the base asked of one PR. Each comes from another PR landing
 # first, so a PR waits through several before it is a sign of trouble.
 export const max_merge_asks = 5
+# Minutes a PR may wait on one thing outside the queue (CI jobs no runner has
+# picked up, a worker whose turn ended with a background task still running)
+# before the queue stops and says so, rather than waiting out its timeout.
+export const stuck_minutes = 30
+
+# What a worker writes, at the start of a line, when it judges a CI failure
+# not its PR's. The queue reads it rather than guessing from free text.
+export const not_this_pr_mark = "NOT-THIS-PR:"
+# The start of a line the user typed on a worker's screen: Claude Code's ❯ or
+# Codex's ›, then the `<hc from=…>` tag herdr-core puts before a message it
+# delivered.
+const prompt_line = '^\s*[❯›]\s*(<hc\b[^>]*>\s*)?'
+# The start of a reply: Claude Code's ⏺ or Codex's •.
+const reply_line = '^\s*[⏺•]\s*'
+
+# The reason after `not_this_pr_mark` in the worker's reply to the fix ask for
+# `sha`, or null, from the worker's screen lines. Only the reply is searched:
+# the ask quotes the mark, and a wrapped line of it can start with the mark
+# too.
+#
+# @example
+# ['❯ <hc from="t4b">CI failed on abc1234: e2e' '⏺ NOT-THIS-PR: runner timeout'] | not-this-pr-in abc1234def
+# # => "runner timeout"
+export def not-this-pr-in [sha: string]: list<string> -> oneof<string, nothing> {
+    let screen = $in | enumerate
+    let ask = $"CI failed on ($sha | str substring 0..<7):"
+    let asked = $screen
+    | where {|l| $l.item =~ $prompt_line and ($l.item | str replace --regex $prompt_line '' | str starts-with $ask) }
+    | last
+    if $asked == null { return null }
+    $screen
+    | skip ($asked.index + 1)
+    | skip until {|l| $l.item =~ $reply_line }
+    | get item
+    | each { str replace --regex $reply_line '' | str trim }
+    | where ($it | str starts-with $not_this_pr_mark)
+    | last
+    | if $in == null { null } else {
+        str substring ($not_this_pr_mark | str length).. | str trim
+    }
+}
 
 # Decides one pass over the queue.
 #
@@ -20,6 +61,9 @@ export const max_merge_asks = 5
 #                         # merge, fix or rerun
 #   said: string?         # after a fix ask on this head, the worker's
 #                         # NOT-THIS-PR line: it judged the failure not its own
+#   stuck: record?        # {kind, minutes}: how long this head has waited on
+#                         # one thing, kind `queued` (CI jobs none started) or
+#                         # `busy` (the worker's background task)
 #
 # `history` holds the failures workers judged not their PR's, one record per
 # failed check: {check, pr, sha, run, reason}.
@@ -103,6 +147,23 @@ def decide-one [it: record, head_taken: bool, history: list<record>]: nothing ->
     }
     if $it.stacked {
         return (do $r skip "stacked on a PR that has not landed")
+    }
+    let stuck = {|kind: string|
+        let s = $it.stuck? | default null
+        if $s != null and $s.kind == $kind and $s.minutes >= $stuck_minutes { $s.minutes }
+    }
+    # A worker that ended its turn with a background shell or monitor left
+    # behind would otherwise be passed over until the timeout
+    let busy_for = do $stuck busy
+    if $it.worker_state == busy and $busy_for != null {
+        return (
+            (do
+                $halt
+                busy
+                $"($it.worker) ended its turn ($busy_for) min ago with a background shell or monitor still running"
+                $"read it with `worker.nu read ($it.worker)`; if what runs is left over, ask it to stop that, then run `queue.nu run` again"
+            )
+        )
     }
     if $it.worker_state in [working busy] {
         # A worker carrying out the merge it was asked for keeps the head, or
@@ -204,6 +265,17 @@ def decide-one [it: record, head_taken: bool, history: list<record>]: nothing ->
             }
         }
         pending | no-checks | unknown-mergeable | unknown | updated | head-moved => {
+            let queued_for = do $stuck queued
+            if $v.result == pending and $queued_for != null {
+                return (
+                    (do
+                        $halt
+                        no-runner
+                        $"its CI jobs have been queued for ($queued_for) min and none has started"
+                        "check the repository's runners (a self-hosted runner offline, Actions minutes or billing spent); once jobs run again, run `queue.nu run` again"
+                    )
+                )
+            }
             {
                 action: wait
                 reason: $v.result

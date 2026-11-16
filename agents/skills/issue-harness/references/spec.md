@@ -105,7 +105,11 @@ Pushes `spec-412` and returns `closes`, and in `commits` the path of a file
 with each ticket's last commit message, which carries its Decisions and
 Deferred. From the integration worktree, open
 the PR in the repository's PR format with those decisions, ending with
-`closes`. File the Deferred items as issues. Then `queue.nu add <pr>` and
+`closes`. Where a ticket's decisions include one the issue left to the author,
+or a ticket asks the author to verify something, gather them in one section
+with `<!-- needs-author -->` on the line below its heading, as worker-brief.md
+has workers do. File the Deferred items as issues. Then `queue.nu add <pr>`
+(with `--verified` once the author has settled that section) and
 `queue.nu run`; the tickets close when the PR lands.
 
 ## 8. CI fails on the spec's PR

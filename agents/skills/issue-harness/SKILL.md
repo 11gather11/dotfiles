@@ -142,7 +142,8 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/queue.nu run
 what to do. One runner holds a repository's queue: a second `run` returns
 `running` with the first one's pid, and a bare `queue.nu` only lists the
 queue. How it orders PRs, and the results that need your judgement
-(`blocked`, `no-progress`, `flaky`, the limits, `optional-failed`), are in
+(`blocked`, `no-progress`, `flaky`, the limits, `optional-failed`,
+`no-runner`, `busy`), are in
 [`references/landing.md`](references/landing.md); read it the first time the
 queue stops on one. `queue.nu run --dry-run` shows what each PR would get,
 changing nothing. Landing by hand, `no-land` and stacked PRs are there too.

@@ -314,14 +314,28 @@ def land [
     let base = $pr.baseRefName
     let say = {|result: string, detail: string, next: string| report $result $n $sha $detail $next }
 
+    # Merged by a person or `gh pr merge --auto`: the worktree and worker it
+    # leaves are removed as after a landing, since nothing else would
     if $pr.state == "MERGED" {
+        if $dry_run {
+            return (
+                (do
+                    $say
+                    merged
+                    $"($pr.url) is already merged"
+                    "run land.nu without --dry-run to remove its worktree"
+                )
+            )
+        }
+        let cleaned = clean-up $repo $pr.headRefName $agent
+        let none_left = ($cleaned.cleanup_error? | default "") =~ "no worktree found"
         return (
-            (do
+            do
                 $say
                 merged
-                $"($pr.url) is already merged"
-                $"nothing to land; `wt remove ($pr.headRefName)` if its worktree remains"
-            )
+                (if $cleaned.worktree != null { $"($pr.url) is already merged; removed ($cleaned.worktree)" } else { $"($pr.url) is already merged" })
+                (if $none_left or $cleaned.cleanup_error? == null { "nothing to land" } else { "clean up by hand: see cleanup_error" })
+            | merge (if $none_left { {} } else { $cleaned | reject -o worktree })
         )
     }
     if $pr.state != "OPEN" {

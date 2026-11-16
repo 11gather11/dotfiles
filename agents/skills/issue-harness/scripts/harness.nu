@@ -152,7 +152,8 @@ export def api-error-in []: list<string> -> oneof<string, nothing> {
     let tail = $in | last 15 | enumerate
     let error = $tail | where $it.item =~ $api_error_line | last
     if $error == null { return null }
-    if ($tail | skip $error.index + 1 | any {|l| $l.item =~ '^\s*[⏺•]' }) { return null }
+    let after = $tail | skip ($error.index + 1)
+    if ($after | any {|l| $l.item =~ '^\s*[⏺•]' }) { return null }
     $error.item | str trim
 }
 

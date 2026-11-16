@@ -94,6 +94,10 @@ run)
     prev=$arg
   done
 
+  # A reviewer's shell would otherwise enter the project's dev environment
+  # (zsh/zshenv), whose shellHook may install dependencies into the worktree.
+  export SKIP_DIRENV=1
+
   if [ "$by" = codex ]; then
     # Closed stdin: run in the background, codex otherwise waits for more input
     # on a stdin nobody will close, and never starts.
@@ -104,6 +108,9 @@ run)
     status=$?
   else
     # Claude has no review command: it is told what to read, and may only read.
+    # --allowedTools only spares the listed tools a prompt, and the settings'
+    # auto mode would let any other through, so --tools narrows what exists and
+    # manual mode refuses whatever the list does not name.
     # The scope is spelled as codex exec review takes it, so one set of flags
     # serves both.
     what=""
@@ -124,6 +131,7 @@ run)
     done
     [ -n "$what" ] || what="the uncommitted changes: git diff HEAD"
     claude -p "Review $what. Read the repository's CLAUDE.md or AGENTS.md for its standards first. Report correctness bugs, risks and violations of those standards with file and line, the critical ones apart from the suggestions. Change nothing." \
+      --tools Read Grep Glob Bash --permission-mode manual \
       --allowedTools "Read" "Grep" "Glob" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git show:*)" "Bash(git status:*)" </dev/null
     status=$?
   fi

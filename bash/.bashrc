@@ -13,7 +13,10 @@ export PATH="/opt/homebrew/bin:$PATH"
 # modules, and programs.bash is not enabled — so nothing else sets these hooks
 # up for bash. Removing either one removes the feature from this shell.
 eval "$(zoxide init bash)"
-eval "$(direnv hook bash)"
+# zsh/zshenv says why SKIP_DIRENV turns it off.
+if [ -z "${SKIP_DIRENV:-}" ]; then
+    eval "$(direnv hook bash)"
+fi
 
 # man pager
 if command -v nvim &> /dev/null; then

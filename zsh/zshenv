@@ -4,6 +4,8 @@ setopt NO_EQUALS
 
 # Enter the project dev environment in non-interactive zsh invocations (e.g.
 # agent-spawned shells), which never reach the interactive direnv hook.
-if command -v direnv >/dev/null 2>&1 && [ -f .envrc ]; then
+# SKIP_DIRENV keeps a reader, such as a code review, out of a shellHook that
+# would write to the tree.
+if [ -z "${SKIP_DIRENV:-}" ] && command -v direnv >/dev/null 2>&1 && [ -f .envrc ]; then
     eval "$(direnv export zsh)"
 fi

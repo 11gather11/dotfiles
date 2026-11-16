@@ -6,7 +6,8 @@ fi
 # never reach the interactive direnv hook. zsh does not need a branch here —
 # zsh/zshenv runs for every zsh invocation, interactive or not, and does this
 # already; this file is only reached from zshrc, which is interactive-only.
-if command -v direnv >/dev/null 2>&1; then
+# zsh/zshenv says why SKIP_DIRENV turns it off.
+if [ -z "${SKIP_DIRENV:-}" ] && command -v direnv >/dev/null 2>&1; then
     eval "$(direnv export bash)"
 fi
 

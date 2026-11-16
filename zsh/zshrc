@@ -3,7 +3,11 @@ source ~/.bash_profile
 fpath=(~/.zsh/completion $fpath)
 autoload -Uz compinit && compinit -i
 
-eval "$(direnv hook zsh)"
+# zshenv says why SKIP_DIRENV turns it off. Claude Code's shell snapshot
+# sources this file, so zshenv alone does not keep a reviewer out.
+if [ -z "${SKIP_DIRENV:-}" ]; then
+    eval "$(direnv hook zsh)"
+fi
 
 # tirith: pre-execution command security hooks
 if (( $+commands[tirith] )); then

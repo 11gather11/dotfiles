@@ -48,9 +48,17 @@ capture a stable screenshot`) that names no line of the PR. A real
   including load:
   `gh run rerun <run> --failed`, once (the queue has done so on `flaky`).
   A flake gets an issue rather than another rerun, which would only hide it.
-  If no issue covers it yet
+  Before filing, see whether it is already fixed: a failing run older than a
+  merged fix fails on code the base no longer has. Compare the run's commit
+  with what the base gained since (`gh run view <run> --json headSha`, then
+  `git log --oneline <headSha>..origin/<base> -- <the failing test and the
+code it covers>`); a fix there settles it, and the PR needs only the base
+  merged in. Otherwise, if no issue covers it yet
   (`gh issue list --search "<test name>"`), file one with the repository's
-  triage label. Leave it for the user to schedule rather than starting a worker
+  triage label, quoting the failing lines and linking the run. A run's
+  artifacts (screenshots, traces) expire, so save them with
+  `gh run download <run> -D ~/.local/state/harness/<repo>/runs/<run>` and
+  give that path to whoever diagnoses it. Leave it for the user to schedule rather than starting a worker
   for it in this batch, unless the user has left you to run the batch through
   unattended: then start a `diagnosing-bugs` worker for it, so the flake does
   not keep stalling the issues behind it.

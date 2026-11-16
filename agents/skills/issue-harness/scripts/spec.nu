@@ -303,6 +303,6 @@ def push [spec: int]: nothing -> record {
         tickets: $tickets
         human: $human
         commits: $notes
-        next: $"from ($wt): gh pr create --base ($s.base) --head ($s.branch), the body in the repository's PR format with each ticket's Decisions and Deferred \(from the commits file\) and ending with `closes`; file the Deferred items as issues; then queue.nu add <pr>($human_note)"
+        next: $"from ($wt): regenerate what CI makes if the spec changes it, then `codex-review-run --base ($s.base)`, then gh pr create --base ($s.base) --head ($s.branch), the body in the repository's PR format with each ticket's Decisions and Deferred \(from the commits file\) and ending with `closes`; file the Deferred items as issues; then queue.nu add <pr>($human_note) \(references/spec.md 6–8\)"
     }
 }

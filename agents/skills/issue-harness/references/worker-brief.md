@@ -66,6 +66,12 @@ When you finish:
   even where the repository's CLAUDE.md asks you to: the harness waits on CI,
   sends you any failure, and merges. A worker waiting on CI holds a slot that
   another worker could use.
+- One exception: if your change alters files the repository has CI generate
+  and commit (screenshot baselines), regenerate them yourself, as its
+  CLAUDE.md says, once the PR is open (the run opening it starts would cancel
+  one started before). Push nothing until its commit is on your branch,
+  since a push cancels it too; bring it in with `git pull --no-rebase --ff`, then end your
+  turn. The harness does not start it, so it never runs twice.
 - End your last turn with one line: the PR URL, or what you are stuck on.
   Stop the background shells and monitors you started first: while one runs,
   the harness counts you as at work and passes your PR over.

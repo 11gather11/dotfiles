@@ -9,7 +9,7 @@ one PR, so CI runs once for the whole spec.
 The integration check is the command in `~/.local/state/harness/<repo>/check`
 (`just check && just test-core`, say): whatever can run on this machine.
 What only CI runs (e2e, screenshots) is first seen on the spec's PR, so a
-failure there is traced back to a ticket by its merge (step 8).
+failure there is traced back to a ticket by its merge (step 9).
 
 Run `spec.nu` in the foreground; `integrate.nu` and `review.nu` in the
 background.
@@ -92,15 +92,7 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/spec.nu finish 412
 Merges the base's latest into `spec-412` and runs the check there.
 `base-conflict` or `check-failed`: a fix worker as in 4, then finish again.
 
-## 6. The PR gate's review
-
-In the integration worktree, `codex-review-run --base main`. `gh pr create`
-refuses a commit it has not covered, so nothing may be committed after it.
-You open this PR, so the gate asks for a Codex review whoever wrote the
-tickets; the `--by claude` review in 4 is what covers Codex's.
-Findings to fix: a fix worker, then 5 and 6 again.
-
-## 7. Push and open the PR
+## 6. Push, and regenerate what CI makes
 
 ```bash
 nix shell nixpkgs#nushell --command <skill-dir>/scripts/spec.nu push 412
@@ -108,16 +100,37 @@ nix shell nixpkgs#nushell --command <skill-dir>/scripts/spec.nu push 412
 
 Pushes `spec-412` and returns `closes`, and in `commits` the path of a file
 with each ticket's last commit message, which carries its Decisions and
-Deferred. From the integration worktree, open
-the PR in the repository's PR format with those decisions, ending with
-`closes`. Where a ticket's decisions include one the issue left to the author,
-or a ticket asks the author to verify something, gather them in one section
-with `<!-- needs-author -->` on the line below its heading, as worker-brief.md
-has workers do. File the Deferred items as issues. Then `queue.nu add <pr>`
+Deferred.
+
+If the spec changes files the repository has CI generate and commit
+(screenshot baselines), regenerate them now, as its CLAUDE.md says, and wait
+for the commit. Now, before the PR exists, because the pull_request run that
+opening it starts, like any push, can cancel the regeneration. Then bring the
+commit into the integration worktree with
+`git merge --ff-only origin/spec-412`. You start it, not a worker: no worker
+holds the integration branch.
+
+## 7. The PR gate's review
+
+In the integration worktree, `codex-review-run --base main`. `gh pr create`
+refuses a commit it has not covered, so nothing may be committed after it;
+that is why the regeneration in 6 comes first. You open this PR, so the gate
+asks for a Codex review whoever wrote the tickets; the per-ticket reviews
+and the `--by claude` review in 4 are what cover Codex's.
+Findings to fix: a fix worker, then 5, 6 and 7 again.
+
+## 8. Open the PR
+
+From the integration worktree, open the PR in the repository's PR format
+with the tickets' decisions from the commits file, ending with `closes`.
+Where a ticket's decisions include one the issue left to the author, or a
+ticket asks the author to verify something, gather them in one section with
+`<!-- needs-author -->` on the line below its heading, as worker-brief.md has
+workers do. File the Deferred items as issues. Then `queue.nu add <pr>`
 (with `--verified` once the author has settled that section) and
 `queue.nu run`; the tickets close when the PR lands.
 
-## 8. CI fails on the spec's PR
+## 9. CI fails on the spec's PR
 
 The queue stops with `no-worker`: no worker holds the integration branch.
 Find the ticket from the failing files:
@@ -127,11 +140,11 @@ git log --first-parent --merges --format='%h %s' spec-412
 git diff --stat <merge>^1 <merge>^2 -- <failing path>
 ```
 
-A flaky test goes per triage.md. Otherwise a fix worker as in 4, then 5, 6,
-and `spec.nu push` again: the PR updates, and the queue picks it up when run
-again.
+A flaky test goes per triage.md. Otherwise a fix worker as in 4, then 5, 6
+and 7: the push updates the PR (with it open, push nothing while a
+regeneration runs), and the queue picks it up when run again.
 
-## 9. After it lands
+## 10. After it lands
 
 land.nu removes the integration worktree. Delete the ticket branches, which
 `spec-412.json` in the state directory lists, then that file.

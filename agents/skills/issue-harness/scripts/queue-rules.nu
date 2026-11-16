@@ -305,7 +305,7 @@ def not-this-pr [it: record, said: string, history: list<record>]: nothing -> re
     let checks = $failed | get -o name | default [] | uniq
     let runs = $failed | get -o run | default [] | compact | uniq
     let names = $checks | str join ", "
-    let file = "file an issue for the flaky test if none covers it, and get it fixed by a `diagnosing-bugs` worker, per triage.md"
+    let file = "check whether a fix reached the base after the failing run; if not, file an issue for the flaky test if none covers it, with the run's artifacts saved, and get it fixed by a `diagnosing-bugs` worker, per triage.md"
     if ($it.asks | any {|a| $a.kind == "rerun" and $a.sha == $v.sha }) {
         return {
             action: stop

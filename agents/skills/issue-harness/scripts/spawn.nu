@@ -738,8 +738,12 @@ def start-hc [
 # - workspace-write, with the repository's git folder and the harness's state
 #   writable too: a worktree commits into the main checkout's .git, and the
 #   heavy-check lock and the brief live under the state folder. What needs
-#   more (the network, for a push) goes through the approval reviewer the
-#   configuration sets, as in any Codex session.
+#   more goes through the approval reviewer the configuration sets, as in any
+#   Codex session.
+# - the network, and pnpm's store when there is one: a project's shellHook
+#   installs dependencies on the worker's first command. Without the network
+#   the install failed, and without the store pnpm switched to an empty one in
+#   the worktree and rebuilt node_modules from it, leaving it emptied.
 # - the worktree trusted up front: it is new, so Codex would stop on its trust
 #   dialog, where no one answers.
 # - hooks run untrusted-by-hash: they are this machine's own, from the dotfiles
@@ -747,12 +751,18 @@ def start-hc [
 #   answer the dialog that trusts them either.
 def codex-command [path: string, ctx: record]: nothing -> string {
     let git_dir = $ctx.repo | path join .git
+    let data_home = $env.XDG_DATA_HOME? | default ($nu.home-dir | path join .local share)
+    let pnpm_store = $data_home | path join pnpm store
     [
         "exec codex --no-daemon --sandbox workspace-write"
         $"--add-dir '($git_dir)' --add-dir '($ctx.root)'"
+        "-c sandbox_workspace_write.network_access=true"
+        (
+            if ($pnpm_store | path exists) { $"--add-dir '($pnpm_store)'" } else { "" }
+        )
         $"-c 'projects.\"($path)\".trust_level=\"trusted\"'"
         "--dangerously-bypass-hook-trust"
-    ] | str join " "
+    ] | where $it != "" | str join " "
 }
 
 # Waits until `name` can take a prompt and returns its status, or the status

@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-14eOMMT52T7Z1CNewg+nRUqoBgFfWDWB+o08IzTQICE=",
+				"hash": "sha256-B9QjljpGht+tnis/t3agh6TrgBG/T6urDQ1rhN5hU2A=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "53384771fbafc261ba67608ac806dd5aa70b84f0",
+				"revision": "b06e2533ba9b3823b8a96c859d455cb55f4d7893",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/53384771fbafc261ba67608ac806dd5aa70b84f0.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/b06e2533ba9b3823b8a96c859d455cb55f4d7893.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -145,29 +145,29 @@
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-m/2XzXQ6/gGzeWrdFsnUy7OjHAvKb+a0Q4NjZ868Bdc=",
+				"hash": "sha256-A3tzJg4lXaQz4RN0d+N/nKwNm4DqUzG1S0w5l6FKWCg=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "cbf893b954222276bf1af57e5f23379231e0efb9",
+				"revision": "5108325ecceabc899c761e07aa617b09c02445ee",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/cbf893b954222276bf1af57e5f23379231e0efb9.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/5108325ecceabc899c761e07aa617b09c02445ee.tar.gz"
 			},
 			"gh-stack": {
 				"branch": "main",
-				"hash": "sha256-qc+uhjFA9X1GdoAwkSzSYJ5FWva30KiCyeUMaKw5e/c=",
+				"hash": "sha256-bctwLafwZ2MhfyfmriEZhcfO9VkMuDDH/dK7yx5GFGY=",
 				"repository": {
 					"owner": "github",
 					"repo": "gh-stack",
 					"type": "GitHub"
 				},
-				"revision": "b1bfce9e51d0cd92fc23efd6ecb37ff68139e7db",
+				"revision": "80b6d6e910cc1b7eaa26b961d7721ade21084fed",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/github/gh-stack/archive/b1bfce9e51d0cd92fc23efd6ecb37ff68139e7db.tar.gz"
+				"url": "https://github.com/github/gh-stack/archive/80b6d6e910cc1b7eaa26b961d7721ade21084fed.tar.gz"
 			},
 			"mattpocock": {
 				"branch": "main",
@@ -184,16 +184,16 @@
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-fXXJRZnQZlTfOemfJgC0zSMxsfcvxRhGo21T09/6xic=",
+				"hash": "sha256-VFEMIRgUEY3/HRlKIqkJdidxoXzgHX7jIL/dhYRr0sU=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7",
+				"revision": "e1cc03121a0e71129a4fb730d7c5528a0a3e43c8",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/bf0c7cd80abdbf7fe47b634978a7d1b4071f71a7.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/e1cc03121a0e71129a4fb730d7c5528a0a3e43c8.tar.gz"
 			}
 		},
 		"version": 8

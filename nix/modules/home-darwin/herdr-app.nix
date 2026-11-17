@@ -66,13 +66,27 @@ let
   # each Claude started there skip saving its transcript, CLAUDECODE, the
   # session's id and its messaging socket and token. Removed for every call,
   # since one that does not start the core passes none of it on anyway.
+  #
+  # The wrappers run a copy signed with a stable identity rather than the
+  # store's binary. macOS grants Accessibility and Screen Recording to the
+  # process that launchd started, which for everything in a terminal is
+  # herdr-core's holder, and the store binary is ad-hoc signed: its identity is
+  # a hash of the build, so every update dropped the grants. Signed with a
+  # certificate, the designated requirement names the certificate instead.
+  # Nix cannot sign in its build sandbox, which has no keychain, so activation
+  # copies and signs; the package stays in `paths` to root the libraries the
+  # copy links against.
+  herdrCoreUnsigned = pkgs.llm-agents.herdr-core;
+  herdrCoreSignedDir = "${config.xdg.dataHome}/herdr-core-signed";
+  # Self-signed, in the login keychain; any Mac without it keeps the copy
+  # ad-hoc signed, which behaves as the store's binary does.
+  signingIdentity = "11gather11 Local Signing";
   herdrCore = pkgs.symlinkJoin {
-    name = "herdr-core-${pkgs.llm-agents.herdr-core.version}";
-    paths = [ pkgs.llm-agents.herdr-core ];
-    nativeBuildInputs = [ pkgs.makeWrapper ];
+    name = "herdr-core-${herdrCoreUnsigned.version}";
+    paths = [ herdrCoreUnsigned ];
     postBuild =
       let
-        unset = lib.concatMapStringsSep " " (v: "--unset ${v}") [
+        unset = lib.concatStringsSep " " [
           "CLAUDECODE"
           "CLAUDE_CODE_CHILD_SESSION"
           "CLAUDE_CODE_ENTRYPOINT"
@@ -85,13 +99,16 @@ let
           "CLAUDE_PID"
         ];
       in
-      # Each wrapper runs the package's own file rather than a renamed copy
-      # (wrapProgram's .hc-wrapped): hc reads its name from the path it runs
-      # from, and its help would otherwise call it `.hc-wrapped`.
+      # Written by hand because makeWrapper refuses a target outside the store,
+      # which the signed copy is. Each runs the copy's own file rather than a
+      # renamed one: hc reads its name from the path it runs from.
       ''
         for bin in hc herdr-core; do
           rm "$out/bin/$bin"
-          makeWrapper "${pkgs.llm-agents.herdr-core}/bin/$bin" "$out/bin/$bin" ${unset}
+          printf '#!/bin/sh\nunset %s\nexec "%s" "$@"\n' \
+            ${lib.escapeShellArg unset} \
+            ${lib.escapeShellArg "${herdrCoreSignedDir}/bin/"}"$bin" >"$out/bin/$bin"
+          chmod +x "$out/bin/$bin"
         done
       '';
   };
@@ -386,6 +403,32 @@ in
   xdg.configFile."herdr-app/emoji.json".source = emojiMap;
 
   home.activation = {
+    # Copies and signs again only when the package changed or the copy no
+    # longer verifies, so an unchanged switch leaves the signature, and the
+    # grants keyed to it, alone. A new folder replaces the copy rather than the
+    # file being rewritten in place: the holder runs from it, and macOS kills a
+    # process whose signed executable changes under it.
+    signHerdrCore = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      src=${herdrCoreUnsigned}
+      dest=${lib.escapeShellArg herdrCoreSignedDir}
+      identity=${lib.escapeShellArg signingIdentity}
+      if [ "$(cat "$dest/.source" 2>/dev/null)" != "$src" ] \
+        || ! /usr/bin/codesign --verify --strict "$dest/bin/herdr-core" 2>/dev/null; then
+        mkdir -p "$(dirname "$dest")"
+        tmp=$(mktemp -d "$dest.XXXXXX")
+        cp -R "$src/bin" "$tmp/bin"
+        chmod -R u+w "$tmp"
+        if /usr/bin/security find-identity -v -p codesigning | grep -qF "\"$identity\""; then
+          /usr/bin/codesign --force --sign "$identity" "$tmp/bin/herdr-core"
+        else
+          echo "signHerdrCore: signing identity '$identity' not found; keeping the ad-hoc signature" >&2
+        fi
+        echo "$src" > "$tmp/.source"
+        rm -rf "$dest"
+        mv "$tmp" "$dest"
+      fi
+    '';
+
     writeHerdrAppSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       $DRY_RUN_CMD ${mergeConfig} ${lib.escapeShellArg "${appHome}/settings.json"} ${
         (pkgs.formats.json { }).generate "herdr-app-settings.json" settings

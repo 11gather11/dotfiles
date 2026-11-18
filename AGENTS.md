@@ -35,6 +35,8 @@ configuration has been applied once.
 - Per-directory docs are READMEs (`agents/README.md`, `fish/README.md`), not
   `CLAUDE.md`: they describe the directory rather than instruct an agent, and a
   nested `CLAUDE.md` would load itself into every session that touches the tree.
+  `agents/AGENTS.md` and `codex/AGENTS.md` are the global instructions under the
+  name their agents read, not directory docs.
 
 ## Scripting Language Choice
 

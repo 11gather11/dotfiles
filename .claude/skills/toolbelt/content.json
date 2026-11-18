@@ -497,7 +497,7 @@
 						},
 						{
 							"name": "Claude への指示",
-							"desc": "agents/AGENTS.md（全プロジェクト・両エージェント共通）／ CLAUDE.md（このリポジトリ）／ agents/shared/*.md（その断片）"
+							"desc": "agents/AGENTS.md（全プロジェクト・両エージェント共通）／ AGENTS.md（このリポジトリ）／ agents/shared/*.md（その断片）"
 						},
 						{
 							"name": "エージェントスキル",

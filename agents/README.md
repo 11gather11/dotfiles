@@ -6,8 +6,10 @@ Shared skills for AI agents (Claude Code, Codex, etc.) managed via [agent-skills
 
 `agents/shared/*.md` is the single source of truth for instruction sections used by multiple agents (Code Comments Policy, Command Privacy, Git Staging, Git Worktrees):
 
-- **Claude Code**: `claude/CLAUDE.md` imports them via `@~/.config/claude/shared/*.md` (the directory is symlinked by `nix/modules/home/programs/claude-code/default.nix`, so edits apply without a switch)
-- **Codex**: `~/.codex/AGENTS.md` (`$CODEX_HOME`) is generated at switch time by concatenating `codex/AGENTS.md` with these fragments (`nix/modules/home/programs/codex.nix`)
+`agents/AGENTS.md` is the entry point every agent shares, and imports the fragments with `@~/.config/claude/shared/*.md`:
+
+- **Claude Code**: reads `agents/AGENTS.md` as `~/.config/claude/CLAUDE.md`, a symlink, so edits apply without a switch (`nix/modules/home/programs/claude-code/default.nix`)
+- **Codex**: `~/.codex/AGENTS.md` (`$CODEX_HOME`) is generated at switch time from `agents/AGENTS.md`, with the imports replaced by the fragments' text and `codex/AGENTS.md` (Codex-only sections) appended (`nix/modules/home/programs/codex.nix`)
 
 Edit the fragments here, never the per-agent copies. Codex picks up changes only after `nix run .#switch`.
 

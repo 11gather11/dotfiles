@@ -271,7 +271,9 @@ in
   # Note: settings.json is written via activation script above (writable file)
   # Note: All skills (external and local) are managed by agent-skills module
   xdg.configFile = {
-    "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/CLAUDE.md";
+    # User-scope memory is read only under the name CLAUDE.md, never AGENTS.md,
+    # so the instructions every agent shares are linked in under that name.
+    "claude/CLAUDE.md".source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agents/AGENTS.md";
     # Shared instruction fragments imported by CLAUDE.md via @~/.config/claude/shared/*.md
     "claude/shared".source = config.lib.file.mkOutOfStoreSymlink "${dotfilesDir}/agents/shared";
     "claude/commands".source = config.lib.file.mkOutOfStoreSymlink "${claudeDotfilesDir}/commands";

@@ -5,7 +5,7 @@ description: Conventions for agent instructions and skills in this repository. U
 
 # Agent Instructions
 
-Global instructions (`claude/CLAUDE.md`, `claude/rules/*.md`, `agents/shared/*.md`,
+Global instructions (`agents/AGENTS.md`, `claude/rules/*.md`, `agents/shared/*.md`,
 `codex/AGENTS.md`) and every skill's name and description load into every
 session; skill bodies load only when chosen. Every line has to earn that cost.
 
@@ -60,10 +60,9 @@ Background: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/be
 - Renaming a skill means updating every reference:
   `rg -n '<old-name>' --hidden -g '!.git'`, including other skills,
   `agents/shared/`, and the `.claude/skills/` pages and records.
-- A new `agents/shared/` fragment needs an `@` import in `claude/CLAUDE.md` and
-  an entry in `agentsMdText` in `nix/modules/home/programs/codex.nix`. A rule
-  only Claude Code can act on goes in `claude/rules/` instead, since the shared
-  fragments are concatenated into Codex's AGENTS.md.
+- A new `agents/shared/` fragment needs only an `@` import in `agents/AGENTS.md`:
+  Codex's AGENTS.md is built from those imports. A rule only Claude Code can act
+  on goes in `claude/rules/`, and one only Codex can in `codex/AGENTS.md`.
 - For a pointer to a repo file as the source of truth, `codex-review` is the
   model: it says the model choice "is made and explained in
   `nix/modules/home/programs/codex.nix`" rather than restating it.

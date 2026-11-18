@@ -25,9 +25,11 @@ configuration has been applied once.
   `darwin-system/`). A module in the wrong one is applied to the wrong
   configuration: `home.*` and `programs.*` under `home*/`, anything nix-darwin owns
   under `darwin-system/`. `nix/lib/` is not modules.
-- `agents/shared/` fragments are imported by `claude/CLAUDE.md` and concatenated
-  into Codex's `AGENTS.md` at switch time. Edit them once; never copy text between
-  the two.
+- `agents/AGENTS.md` is the global instructions for every agent: Claude Code reads
+  it as its user CLAUDE.md, and Codex's `AGENTS.md` is generated from it at switch
+  time with its `agents/shared/` imports inlined. Edit it and the fragments once;
+  never copy text between agents. Only what one agent alone can act on goes apart:
+  `claude/rules/` for Claude Code, `codex/AGENTS.md` for Codex.
 - `claude/` is symlinked to `~/.config/claude`, so edits there apply to the running
   Claude Code without a switch.
 - Per-directory docs are READMEs (`agents/README.md`, `fish/README.md`), not

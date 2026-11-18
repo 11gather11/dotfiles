@@ -13,23 +13,30 @@ let
   codexHomeDir = "${config.home.homeDirectory}/.codex";
   codexXdgDir = "${config.xdg.configHome}/codex";
 
-  # Global instructions are assembled from the Codex-specific file plus the
-  # shared fragments in agents/shared/, which are the single source of truth
-  # also imported by claude/CLAUDE.md. Codex has no import mechanism, so the
-  # final AGENTS.md is generated at switch time instead of symlinked (edits
-  # therefore apply only after nix run .#switch).
-  agentsMdText = lib.concatMapStringsSep "\n" builtins.readFile [
-    ../../../../codex/AGENTS.md
-    ../../../../agents/shared/how-to-work.md
-    ../../../../agents/shared/tools.md
-    ../../../../agents/shared/code-comments.md
-    ../../../../agents/shared/command-privacy.md
-    ../../../../agents/shared/delegate-work.md
-    ../../../../agents/shared/git-staging.md
-    ../../../../agents/shared/git-worktrees.md
-    ../../../../agents/shared/git-signing.md
-    ../../../../agents/shared/nix.md
-  ];
+  # agents/AGENTS.md is the global instructions every agent shares; Claude
+  # Code reads it as its CLAUDE.md, imports and all. Codex has no import
+  # mechanism, so its AGENTS.md is generated at switch time: the `@` imports,
+  # which only Claude Code resolves, are dropped and the fragments they name
+  # appended in the same order, then codex/AGENTS.md, which only Codex needs.
+  # Edits therefore reach Codex only after nix run .#switch.
+  sharedImportPrefix = "@~/.config/claude/shared/";
+  globalLines = lib.splitString "\n" (builtins.readFile ../../../../agents/AGENTS.md);
+  isSharedImport = lib.hasPrefix sharedImportPrefix;
+  sharedFragments = map (
+    line: ../../../../agents/shared + "/${lib.removePrefix sharedImportPrefix line}"
+  ) (lib.filter isSharedImport globalLines);
+  # Each import sits in its own paragraph, so removing them leaves runs of
+  # blank lines; each run becomes one.
+  globalText = lib.concatStringsSep "\n" (
+    lib.foldl' (
+      acc: line: if line == "" && acc != [ ] && lib.last acc == "" then acc else acc ++ [ line ]
+    ) [ ] (lib.filter (line: !isSharedImport line) globalLines)
+  );
+  agentsMdText = lib.concatStringsSep "\n" (
+    [ globalText ]
+    ++ map builtins.readFile sharedFragments
+    ++ [ (builtins.readFile ../../../../codex/AGENTS.md) ]
+  );
 
   tomlFormat = pkgs.formats.toml { };
   jsonFormat = pkgs.formats.json { };

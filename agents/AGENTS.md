@@ -1,6 +1,6 @@
-# User Memory
+# Global Agent Instructions
 
-Personal preferences that apply to all projects.
+Personal preferences that apply to all projects, for every agent.
 
 ## About Me
 

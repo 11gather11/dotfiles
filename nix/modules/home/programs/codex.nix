@@ -162,6 +162,23 @@ let
       "weekly-limit"
     ];
   };
+
+  # Commands the owner has decided always to allow, so the auto_review
+  # approver does not stop a Codex worker each time it asks Claude for a
+  # review. Codex splits a `zsh -lc '…'` script into its commands and checks
+  # each one, so these need no form for the wrapped call.
+  execRules = pkgs.writeText "codex-nix.rules" ''
+    prefix_rule(
+        pattern = [
+            "gh-nix", "nix", "shell", "nixpkgs#nushell", "--command",
+            "${config.home.homeDirectory}/.config/claude/skills/issue-harness/scripts/review.nu",
+            "--by", "claude",
+        ],
+        decision = "allow",
+        justification = "Owner-approved: send the diff to Claude for code review",
+    )
+    prefix_rule(pattern = ["claude-review-run"], decision = "allow")
+  '';
 in
 {
   home = {
@@ -196,6 +213,10 @@ in
     activation.writeCodexConfig = lib.hm.dag.entryAfter [ "linkCodexXdgDir" ] ''
       $DRY_RUN_CMD ${mergeConfig} "${codexHomeDir}/config.toml" ${tomlFormat.generate "codex-config" settings}
       chmod 644 "${codexHomeDir}/config.toml"
+      # A real file, not a home.file symlink: Codex skips symlinks in rules/
+      # (codex-cli 0.169.0). Not default.rules, which Codex rewrites itself
+      # when a command is allowed for good at the prompt.
+      $DRY_RUN_CMD install -D -m644 ${execRules} "${codexHomeDir}/rules/nix.rules"
       # Codex asks once to trust a hook it has not run before, and again when
       # its command changes: the gate's store path changes with each build of it.
       $DRY_RUN_CMD ${mergeConfig} "${codexHomeDir}/hooks.json" ${jsonFormat.generate "codex-hooks.json" hooks}

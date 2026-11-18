@@ -138,7 +138,13 @@ let
     notice.fast_default_opt_out = true;
     personality = "pragmatic";
     web_search_request = true;
-    project_doc_fallback_filenames = [ "CLAUDE.md" ];
+    # Read where a repository has no AGENTS.md. CLAUDE.local.md is the
+    # untracked notes the work checkout keeps for Claude Code, which Codex
+    # otherwise never saw.
+    project_doc_fallback_filenames = [
+      "CLAUDE.md"
+      "CLAUDE.local.md"
+    ];
     # Let Codex launch the configured login shell so commands run in the
     # fish-based environment declared by these dotfiles.
     allow_login_shell = true;

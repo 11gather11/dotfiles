@@ -1,6 +1,6 @@
 // A lazy file browser for the focused pane's folder.
 //
-// Herdr's `files` mod with three changes:
+// Herdr's `files` mod with four changes:
 // - each entry gets the icon VS Code's Material Icon Theme gives it, from the
 //   icons and lookup tables nix/modules/home-darwin/herdr-app.nix links to
 //   file-icons/;
@@ -9,6 +9,9 @@
 //   and left a collapsed folder looking clean;
 // - a file opens in the viewer mod over the window, in place of a preview
 //   squeezed into the panel.
+// - a right-click opens the file-menu mod's menu for the entry: reveal in
+//   Finder, open in its default app, copy its path, as VS Code's explorer
+//   offers.
 import { View, div, svg, image } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
 import {
@@ -377,6 +380,15 @@ export default class Files extends View {
 					.cursor_pointer()
 					.hover((s) => s.bg(t.hover))
 					.on_click((_e, cx) => (entry.dir ? this.toggle(path, cx) : this.open(path)))
+					.on_mouse_down('right', (_e, cx) => {
+						cx.stop_propagation();
+						openOverlay({
+							mod: 'file-menu',
+							kind: 'popup',
+							width: 230,
+							props: { root: this.root, path, dir: entry.dir, on: this.on ?? null },
+						});
+					})
 					.child(
 						entry.dir
 							? svg(`mods/files/chevron-${open ? 'down' : 'right'}.svg`)

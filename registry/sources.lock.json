@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-iVQ5rbQdf/ujQQVmLe6pJKwFhOrK3ic668oiG7j5DOY=",
+				"hash": "sha256-6iXmKkVzwKF42zy90LTC0xaRT068syYBnC6WwYOEE1E=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "d2dfc782ccdd79d25a9b4f0acced9321789cecb8",
+				"revision": "e0d56f21bb81a7e72c6ea8550de00e091d2668ac",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/d2dfc782ccdd79d25a9b4f0acced9321789cecb8.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/e0d56f21bb81a7e72c6ea8550de00e091d2668ac.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",

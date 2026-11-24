@@ -119,16 +119,16 @@
 		"pins": {
 			"agent-browser": {
 				"branch": "main",
-				"hash": "sha256-6iXmKkVzwKF42zy90LTC0xaRT068syYBnC6WwYOEE1E=",
+				"hash": "sha256-BsnL2q29HhtehBcUoNh1K9Qkvv3BCP2ita3lIa1oFGQ=",
 				"repository": {
 					"owner": "vercel-labs",
 					"repo": "agent-browser",
 					"type": "GitHub"
 				},
-				"revision": "e0d56f21bb81a7e72c6ea8550de00e091d2668ac",
+				"revision": "0a923358ea989d7602f0d06507ad3447c62ffe9b",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/vercel-labs/agent-browser/archive/e0d56f21bb81a7e72c6ea8550de00e091d2668ac.tar.gz"
+				"url": "https://github.com/vercel-labs/agent-browser/archive/0a923358ea989d7602f0d06507ad3447c62ffe9b.tar.gz"
 			},
 			"ast-grep": {
 				"branch": "main",
@@ -145,16 +145,16 @@
 			},
 			"cloudflare": {
 				"branch": "main",
-				"hash": "sha256-A3tzJg4lXaQz4RN0d+N/nKwNm4DqUzG1S0w5l6FKWCg=",
+				"hash": "sha256-50afPPoq1/Xd+es0P6HOoL7U0b9oT9dxUpPgq4n3UUQ=",
 				"repository": {
 					"owner": "cloudflare",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "5108325ecceabc899c761e07aa617b09c02445ee",
+				"revision": "ff191de7d903788eceaf516a514ae7d3b56b924a",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cloudflare/skills/archive/5108325ecceabc899c761e07aa617b09c02445ee.tar.gz"
+				"url": "https://github.com/cloudflare/skills/archive/ff191de7d903788eceaf516a514ae7d3b56b924a.tar.gz"
 			},
 			"gh-stack": {
 				"branch": "main",
@@ -171,29 +171,29 @@
 			},
 			"mattpocock": {
 				"branch": "main",
-				"hash": "sha256-fc5+qmchp1IQ/rQP1olWKC1eC4VdYhaB7YYzC3+JBe0=",
+				"hash": "sha256-kn99yoU6xzp3FydMJtiPdKz1uvUMkuIugr6xwJd1lwg=",
 				"repository": {
 					"owner": "mattpocock",
 					"repo": "skills",
 					"type": "GitHub"
 				},
-				"revision": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+				"revision": "d65391149dbb5fe76478e76fa8d5122b2aa5a70e",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/mattpocock/skills/archive/abeeaf95660ba9e8b7c753eb38f441ca707a8823.tar.gz"
+				"url": "https://github.com/mattpocock/skills/archive/d65391149dbb5fe76478e76fa8d5122b2aa5a70e.tar.gz"
 			},
 			"pstack": {
 				"branch": "main",
-				"hash": "sha256-prQwn1as83NuoYIDee+ZJ2ETDVNoFbHNabSwzpy70mk=",
+				"hash": "sha256-KTFLq+fYVaLyGxdzgIK4QFJ5eQQhjYAO8IMRGMspws8=",
 				"repository": {
 					"owner": "cursor",
 					"repo": "plugins",
 					"type": "GitHub"
 				},
-				"revision": "7a583913eb1b8d1a0ee76753d1a2cf072e7b54f9",
+				"revision": "ca782ed8b3c2c521cead8e1720d55c3a5dbf2347",
 				"submodules": false,
 				"type": "Git",
-				"url": "https://github.com/cursor/plugins/archive/7a583913eb1b8d1a0ee76753d1a2cf072e7b54f9.tar.gz"
+				"url": "https://github.com/cursor/plugins/archive/ca782ed8b3c2c521cead8e1720d55c3a5dbf2347.tar.gz"
 			}
 		},
 		"version": 8

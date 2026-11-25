@@ -170,39 +170,43 @@ export default class Finder extends View {
 		const slash = hit.path.lastIndexOf('/');
 		const name = hit.path.slice(slash + 1);
 		const dir = slash >= 0 ? hit.path.slice(0, slash) : '';
-		return h_flex()
-			.id(`find-${i}`)
-			.h(hit.kind === 'text' ? 40 : 26)
-			.flex_none()
-			.px(10)
-			.gap(SPACE.md)
-			.items_center()
-			.rounded(RADIUS.control)
-			.cursor_pointer()
-			.when(on, (e) => e.bg(t.selected))
-			.when(!on, (e) => e.hover((s) => s.bg(t.hover)))
-			.on_click(() => this.open(hit))
-			.child(
-				hit.kind === 'file'
-					? h_flex()
-							.flex_1()
-							.min_w(0)
-							.gap(SPACE.sm)
-							.child(div().flex_none().text_color(t.foreground).child(name))
-							.child(div().min_w(0).truncate().text_size(TEXT.meta).text_color(t.dim).child(dir))
-					: v_flex()
-							.flex_1()
-							.min_w(0)
-							.child(
-								h_flex()
-									.gap(SPACE.sm)
-									.text_size(TEXT.meta)
-									.child(div().flex_none().text_color(t.muted).child(name))
-									.child(div().flex_none().text_color(t.dim).child(`:${hit.line}`))
-									.child(div().min_w(0).truncate().text_color(t.dim).child(dir)),
-							)
-							.child(div().truncate().text_color(t.foreground).child(hit.text)),
-			);
+		return (
+			h_flex()
+				.id(`find-${i}`)
+				// Dropped on a terminal, it types the path there.
+				.drag_paths([`${this.root}/${hit.path}`], { on: this.on })
+				.h(hit.kind === 'text' ? 40 : 26)
+				.flex_none()
+				.px(10)
+				.gap(SPACE.md)
+				.items_center()
+				.rounded(RADIUS.control)
+				.cursor_pointer()
+				.when(on, (e) => e.bg(t.selected))
+				.when(!on, (e) => e.hover((s) => s.bg(t.hover)))
+				.on_click(() => this.open(hit))
+				.child(
+					hit.kind === 'file'
+						? h_flex()
+								.flex_1()
+								.min_w(0)
+								.gap(SPACE.sm)
+								.child(div().flex_none().text_color(t.foreground).child(name))
+								.child(div().min_w(0).truncate().text_size(TEXT.meta).text_color(t.dim).child(dir))
+						: v_flex()
+								.flex_1()
+								.min_w(0)
+								.child(
+									h_flex()
+										.gap(SPACE.sm)
+										.text_size(TEXT.meta)
+										.child(div().flex_none().text_color(t.muted).child(name))
+										.child(div().flex_none().text_color(t.dim).child(`:${hit.line}`))
+										.child(div().min_w(0).truncate().text_color(t.dim).child(dir)),
+								)
+								.child(div().truncate().text_color(t.foreground).child(hit.text)),
+				)
+		);
 	}
 
 	render() {

@@ -158,10 +158,14 @@ export default class GitChanges extends View {
 	fileRow(t, section, f, shown) {
 		const selected =
 			shown?.kind === 'worktree' && shown.root === this.root && shown.file === f.path;
-		return row(t, `c-${section}-${f.path}`, { selected, onClick: () => this.show(f.path) })
-			.child(changeMark(t, f.status))
-			.child(pathLabel(t, f.path))
-			.child(counts(t, f.add, f.del));
+		return (
+			row(t, `c-${section}-${f.path}`, { selected, onClick: () => this.show(f.path) })
+				// Dropped on a terminal, it types the path there.
+				.drag_paths([`${this.root}/${f.path}`], { on: this.on })
+				.child(changeMark(t, f.status))
+				.child(pathLabel(t, f.path))
+				.child(counts(t, f.add, f.del))
+		);
 	}
 
 	render(cx) {

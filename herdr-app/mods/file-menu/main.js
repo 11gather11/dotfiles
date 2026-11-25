@@ -39,10 +39,11 @@ function items(p) {
 }
 
 function open(args) {
-	exec('open', args).then((r) => {
-		if (r.code !== 0)
-			notify({ title: 'Could not open', body: r.stderr.trim(), level: 'error', timeout: 4000 });
-	});
+	const fail = (body) => notify({ title: 'Could not open', body, level: 'error', timeout: 4000 });
+	exec('open', args).then(
+		(r) => r.code !== 0 && fail(r.stderr.trim()),
+		(e) => fail(String(e.message ?? e)),
+	);
 }
 
 function copy(cx, text, what) {

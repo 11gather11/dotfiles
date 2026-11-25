@@ -61,6 +61,18 @@ const base = (path) => path.replace(/\/+$/, '').split('/').pop();
 // Changes made outside Herdr (an editor's save, a commit in another app): looked
 // for this often, in repos the list shows, while the window is in front.
 const FALLBACK = 60000;
+// Places looked at together (two git runs each). All at once, a few hundred spaces
+// run out of the app's open files (256 when started from the Dock on macOS) or
+// past a machine core's 16 running execs, and those spaces wait for FALLBACK.
+const AT_ONCE = 6;
+
+// Both runs, finished: a place isn't done while one of its runs still holds a slot.
+async function both(a, b) {
+	const done = await Promise.allSettled([a, b]);
+	const failed = done.find((d) => d.status === 'rejected');
+	if (failed) throw failed.reason;
+	return done.map((d) => d.value);
+}
 
 // A space speaks up only when something in it needs you.
 export function glyph(status) {
@@ -97,7 +109,7 @@ export default class Spaces extends View {
 		this.busy = {}; // pane -> an agent working or a program in front of its shell
 		this.ready = {}; // machine -> its layout was readable at the last look
 		this.at = {}; // space -> its where() at the last look
-		this.watching = new Set(); // local repos' git folders
+		this.watching = new Map(); // local repo's git folder -> its pending watch
 		// Spaces made while this runs wait (at most a moment) for their git, so a
 		// worktree appears under its repo instead of jumping there.
 		this.shown = new Set(spaces().map((s) => s.id));
@@ -105,9 +117,25 @@ export default class Spaces extends View {
 		this.pressed = null;
 		this.over = null;
 		this.machines = [];
-		this.reconnecting = JSON.parse(localStorage.getItem('machines.reconnecting') ?? '{}');
-		for (const state of Object.values(this.reconnecting)) state.busy = false;
-		this.folded = new Set(JSON.parse(localStorage.getItem('machines.folded') ?? '[]'));
+		// A damaged saved value would otherwise throw here and take the sidebar
+		// with it.
+		try {
+			this.reconnecting = JSON.parse(localStorage.getItem('machines.reconnecting') ?? '{}');
+			if (
+				!this.reconnecting ||
+				typeof this.reconnecting !== 'object' ||
+				Array.isArray(this.reconnecting)
+			)
+				this.reconnecting = {};
+			for (const state of Object.values(this.reconnecting)) state.busy = false;
+		} catch {
+			this.reconnecting = {};
+		}
+		try {
+			this.folded = new Set(JSON.parse(localStorage.getItem('machines.folded') ?? '[]'));
+		} catch {
+			this.folded = new Set();
+		}
 		this.refreshMachines(cx);
 		cx.timer.every(15000, (cx) => this.refreshMachines(cx));
 		// Refresh only when the refs could have changed (see `due`).
@@ -132,6 +160,25 @@ export default class Spaces extends View {
 		for (const s of sp) at[s.id] = where(s, ps);
 		const keys = new Set(Object.values(at).filter((k) => JSON.parse(k)[1]));
 		const due = new Set([...keys].filter((k) => !(k in this.git)));
+		// Places no space is at any more: their git is forgotten and a repo
+		// nothing shows stops being watched, rather than read again at every
+		// change for a row that is gone.
+		for (const k of Object.keys(this.git))
+			if (!keys.has(k)) {
+				delete this.git[k];
+				delete this.checked[k];
+				this.unsure.delete(k);
+			}
+		const repos = new Set(
+			Object.values(this.git)
+				.filter(Boolean)
+				.map((g) => g.repo),
+		);
+		for (const [repo, pending] of this.watching)
+			if (!repos.has(JSON.stringify([null, repo]))) {
+				this.watching.delete(repo);
+				pending.cancel();
+			}
 		for (const [id, k] of Object.entries(at))
 			if (this.at[id] && this.at[id] !== k && keys.has(k)) due.add(k);
 		this.at = at;
@@ -239,16 +286,13 @@ export default class Spaces extends View {
 			while (this.pending.size) {
 				const keys = [...this.pending];
 				this.pending.clear();
-				await Promise.all(keys.map((key) => this.check(key, cx)));
+				let next = 0;
+				await Promise.all(
+					Array.from({ length: Math.min(AT_ONCE, keys.length) }, async () => {
+						while (next < keys.length) await this.check(keys[next++], cx);
+					}),
+				);
 			}
-			const used = new Set(
-				Object.values(this.git)
-					.filter(Boolean)
-					.map((g) => JSON.parse(g.repo))
-					.filter(([on]) => !on)
-					.map(([, repo]) => repo),
-			);
-			for (const repo of this.watching) if (!used.has(repo)) this.watching.delete(repo);
 			this.refreshing = false;
 			cx.notify();
 		});
@@ -262,24 +306,26 @@ export default class Spaces extends View {
 		try {
 			// Ref-only reads avoid scanning the worktree or waking its index watch.
 			// Two reads: a folder name may itself contain a newline.
-			const [r, common] = await Promise.all([
+			const [r, common] = await both(
 				exec('git', ['rev-parse', '--path-format=absolute', '--show-toplevel'], { cwd, on }),
 				exec('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], { cwd, on }),
-			]);
+			);
 			if (r.code !== 0 || common.code !== 0) {
 				// Only git's own "no" is remembered as no repo; anything else is asked again.
-				if (!/not a git repository/i.test(r.code !== 0 ? r.stderr : common.stderr))
+				// A passing failure keeps the branch it showed.
+				if (!/not a git repository/i.test(r.code !== 0 ? r.stderr : common.stderr)) {
 					this.unsure.add(key);
-				this.git[key] = null;
+					this.git[key] ??= null;
+				} else this.git[key] = null;
 				return;
 			}
 			// The repo's own .git folder names it; a worktree's top differs from it.
 			const top = r.stdout.replace(/\n$/, ''),
 				repo = common.stdout.replace(/\n$/, '');
-			const [branch, counts] = await Promise.all([
+			const [branch, counts] = await both(
 				exec('git', ['symbolic-ref', '-q', 'HEAD'], { cwd, on }),
 				exec('git', ['rev-list', '--left-right', '--count', 'HEAD...@{upstream}'], { cwd, on }),
-			]);
+			);
 			const name = repo.endsWith('/.git')
 				? base(repo.slice(0, -5))
 				: base(repo).replace(/\.git$/, '');
@@ -305,21 +351,24 @@ export default class Spaces extends View {
 
 	watch(repo, cx) {
 		if (this.watching.has(repo)) return;
-		this.watching.add(repo);
+		const pending = watchFolder(repo);
+		this.watching.set(repo, pending);
 		cx.spawn(async (cx) => {
+			let current = pending;
 			try {
-				while (this.watching.has(repo)) {
-					await watchFolder(repo);
+				for (;;) {
+					await current;
+					// Replaced or cancelled (see due): this loop is no longer the repo's.
+					if (this.watching.get(repo) !== current) return;
 					const mine = JSON.stringify([null, repo]);
-					if (this.watching.has(repo))
-						this.refreshGit(
-							Object.keys(this.git).filter((k) => this.git[k]?.repo === mine),
-							cx,
-						);
+					const keys = Object.keys(this.git).filter((k) => this.git[k]?.repo === mine);
+					if (!keys.length) break;
+					this.refreshGit(keys, cx);
+					current = watchFolder(repo);
+					this.watching.set(repo, current);
 				}
-			} catch {
-				this.watching.delete(repo);
-			}
+			} catch {}
+			if (this.watching.get(repo) === current) this.watching.delete(repo);
 		});
 	}
 

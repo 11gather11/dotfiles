@@ -9,7 +9,7 @@
 // Props from the app: { pane, terminal }. Click: focus the pane.
 import { View, div, svg } from 'gpui-kit';
 import { h_flex } from 'gpui-base';
-import { SIZE, SPACE, TEXT, button, badge, dot, title, programIcon } from './lib/ui.js';
+import { SIZE, SPACE, TEXT, button, badge, dot, title, programIcon, agentTitle } from './lib/ui.js';
 import { panes, agents, props, run, theme, home, layout, terminals, notify } from 'herdr';
 import { makeHarness } from './lib/harness.js';
 
@@ -62,7 +62,7 @@ export default class PaneHead extends View {
 				p.program?.name ||
 				'shell';
 		// What Claude Code is doing, from its title without the glyph in front.
-		const doing = agent?.title?.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+		const doing = agentTitle(agent?.title);
 		const detail = claude ? doing || folder(claude.cwd) : folder(p.cwd);
 		const pic = programIcon(t, program, 14);
 		const st = claude?.status ?? p.status;

@@ -447,3 +447,28 @@ export function programIcon(t, program, size = 14) {
 				.text_color(program.color ?? t.dim)
 		: image(program.icon).w(size).h(size).flex_none();
 }
+
+/**
+ * An agent's live title without the status glyph its program puts in front,
+ * or null when the title says nothing of the work: empty, or a shell's folder
+ * or user@host. As Herdr's agents and tabs mods read it (0.1.16): a leading
+ * bracket or quote stays, where stripping every non-letter dropped the `[`
+ * of "[web] login", and the "[ ! ] " some agents prefix goes.
+ *
+ * @param {string | null | undefined} title
+ * @returns {string | null}
+ * @example
+ * agentTitle("✳ Fix login") // => "Fix login"
+ * agentTitle("✳ [web] login") // => "[web] login"
+ * agentTitle("~/src/app") // => null
+ */
+export function agentTitle(title) {
+	const raw = title ?? '';
+	const live = raw
+		.replace(/^[^\p{L}\p{N}\p{Ps}\p{Pi}]+/u, '')
+		.replace(/^\[ [!.] \] /, '')
+		.trim();
+	// Tested with only the glyph gone: the cleaning above strips a leading ~ or /.
+	const path = /^[~/]|^[A-Za-z]:\\/.test(raw.replace(/^[^\p{L}\p{N}~/]+/u, ''));
+	return live && !path && !live.includes('@') ? live : null;
+}

@@ -8,7 +8,7 @@
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
 import { agents, run, theme, setAgentOrder, exec } from 'herdr';
-import { SIZE, SPACE, TEXT, RADIUS, dot, programIcon } from './lib/ui.js';
+import { SIZE, SPACE, TEXT, RADIUS, dot, programIcon, agentTitle } from './lib/ui.js';
 
 // How often to look for a conversation a terminal lost; see init.
 const RESUME_MS = 5000;
@@ -43,8 +43,7 @@ function ordered(list) {
  * label({ title: "✳ Fix login", tab_name: "1" }) // => "Fix login"
  */
 function label(a) {
-	const title = (a.title ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
-	return title || a.tab_name || a.program?.name || a.address;
+	return agentTitle(a.title) || a.tab_name || a.program?.name || a.address;
 }
 
 export default class AgentsCompact extends View {

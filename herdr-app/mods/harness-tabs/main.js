@@ -1,6 +1,6 @@
 import { View, div, svg, image } from 'gpui-kit';
 import { h_flex, ScrollHandle } from 'gpui-base';
-import { SIZE, SPACE, TEXT, RADIUS, button as uiButton } from './lib/ui.js';
+import { SIZE, SPACE, TEXT, RADIUS, button as uiButton, agentTitle } from './lib/ui.js';
 import { widthOf, saveWidth, resizePanel } from './lib/panels.js';
 import {
 	spaces,
@@ -39,7 +39,7 @@ const PANELS = {
  * titleOf({ title: "✳ Fix login" }) // => "Fix login"
  */
 function titleOf(pane) {
-	const title = (pane?.title ?? '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+	const title = agentTitle(pane?.title);
 	// Before its first title the terminal shows its program's own name.
 	return title && title !== pane.program?.name && title.toLowerCase() !== 'claude' ? title : null;
 }

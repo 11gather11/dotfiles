@@ -7,7 +7,7 @@
 // status, those headers spent half the height repeating it.
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
-import { agents, run, theme, setAgentOrder, exec } from 'herdr';
+import { agents, run, theme, setAgentOrder, exec, checking } from 'herdr';
 import { SIZE, SPACE, TEXT, RADIUS, dot, programIcon, agentTitle } from './lib/ui.js';
 
 // How often to look for a conversation a terminal lost; see init.
@@ -52,6 +52,9 @@ export default class AgentsCompact extends View {
 	// whenever the window is: from the start, which covers a restart, and
 	// while the core is stopped and started under it.
 	init(_props, cx) {
+		// `herdr-app check` runs init for real, and a check is no reason to
+		// send `claude --resume` into the terminals.
+		if (checking()) return;
 		const resume = () => exec('claude-resume', []).catch(() => null);
 		resume();
 		cx.timer.every(RESUME_MS, resume);

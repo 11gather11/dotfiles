@@ -144,6 +144,12 @@ export default class Viewer extends View {
 	// after the file and its modification time so an edited picture is copied
 	// again rather than shown from the cache.
 	loadPicture(cx) {
+		// md-asset and stat run on this Mac, so another machine's path would
+		// name a missing file, or a different one that happens to sit there.
+		if (this.on) {
+			this.error = 'Pictures on another machine are not shown';
+			return;
+		}
 		cx.spawn(async (cx) => {
 			try {
 				const st = await exec('stat', ['-f', '%m', this.file]);

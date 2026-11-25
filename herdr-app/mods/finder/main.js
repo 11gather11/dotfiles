@@ -9,7 +9,7 @@ import { View, div, svg } from 'gpui-kit';
 import { v_flex, h_flex, InputState, Input } from 'gpui-base';
 import { exec, theme, props, closeOverlay, openOverlay } from 'herdr';
 import { SIZE, SPACE, TEXT, RADIUS } from './lib/ui.js';
-import { focusedFolder } from './lib/focus.js';
+import { focusedPlace } from './lib/focus.js';
 
 // Typing pauses this long before ripgrep runs, so a word is searched once
 // rather than once per letter.
@@ -21,8 +21,6 @@ const MAX_TEXT = 150;
 const MIN_TEXT = 3;
 // The results list's height (px at zoom 1).
 const RESULTS_H = 440;
-
-const folder = focusedFolder;
 
 /**
  * How well `query` matches `path` as a subsequence, or -1 when it does not.
@@ -76,13 +74,19 @@ export default class Finder extends View {
 	// Every file git would show, tracked or not, minus what it ignores. Read
 	// once per opening: the finder lives as long as one search.
 	loadFiles(cx) {
-		const cwd = folder();
+		// On the space's machine, where the folder is: run here, a remote
+		// space's path named nothing, or another folder that happened to match.
+		const { folder: cwd, on } = focusedPlace();
 		if (!cwd) return;
+		this.on = on;
 		cx.spawn(async (cx) => {
-			const top = await exec('git', ['rev-parse', '--show-toplevel'], { cwd }).catch(() => null);
+			const top = await exec('git', ['rev-parse', '--show-toplevel'], { cwd, on }).catch(
+				() => null,
+			);
 			this.root = top?.code === 0 ? top.stdout.trim() : cwd;
 			const ls = await exec('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
 				cwd: this.root,
+				on,
 			}).catch(() => null);
 			this.files = ls?.code === 0 ? ls.stdout.split('\n').filter(Boolean) : [];
 			cx.notify();
@@ -114,7 +118,7 @@ export default class Finder extends View {
 						'--',
 						query,
 					],
-					{ cwd: this.root, timeout: 10000 },
+					{ cwd: this.root, on: this.on, timeout: 10000 },
 				).catch(() => null);
 				if (this.query.trim() !== query) return;
 				this.searching = false;
@@ -153,7 +157,11 @@ export default class Finder extends View {
 			kind: 'dialog',
 			width: 0.8,
 			height: 0.85,
-			props: { file: `${this.root}/${hit.path}`, line: hit.kind === 'text' ? hit.line : null },
+			props: {
+				file: `${this.root}/${hit.path}`,
+				on: this.on,
+				line: hit.kind === 'text' ? hit.line : null,
+			},
 		});
 	}
 

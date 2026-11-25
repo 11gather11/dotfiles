@@ -61,7 +61,16 @@ export default class Tabs extends View {
 	init(_props, cx) {
 		this.pressed = null;
 		this.scroll = ScrollHandle.new();
-		this.panels = JSON.parse(localStorage.getItem('panels') ?? '{}');
+		// A damaged saved value would otherwise throw here and take the tab
+		// bar with it.
+		try {
+			this.panels = JSON.parse(localStorage.getItem('panels') ?? '{}');
+		} catch {
+			this.panels = {};
+		}
+		if (!this.panels || typeof this.panels !== 'object' || Array.isArray(this.panels))
+			this.panels = {};
+		this.swipe = { acc: 0, steps: 0, at: 0, last: 0 };
 		// "harness-tabs.<panel id>" in keys.json opens that panel, or closes it
 		// when it is the one shown.
 		cx.spawn(async (cx) => {
@@ -136,6 +145,33 @@ export default class Tabs extends View {
 		}
 		if (!shown || !px || settling) return;
 		if (px !== widthOf(shown)) saveWidth(shown, px);
+	}
+
+	// One tab per wheel notch. A touchpad or smooth-scrolling mouse sends many
+	// small events per gesture, and switching on each one skipped several tabs
+	// in one flick, so the next keystroke went to another agent. A short swipe
+	// or one smoothed notch (about 25 px) switches one tab, a longer swipe
+	// keeps going a tab per 60 px, at most one every 100 ms so each shows.
+	// Herdr's tabs mod, as of 0.1.16.
+	wheel(e) {
+		if (e.delta_lines) {
+			if (e.delta_lines.y) run(e.delta_lines.y > 0 ? 'tab.prev' : 'tab.next');
+			return;
+		}
+		const s = this.swipe,
+			now = Date.now();
+		// Phases often arrive only as moves (a macOS touchpad included): a pause
+		// or a turn starts a new gesture.
+		if (e.touch_phase === 'started' || now - s.at > 250 || e.delta.y * s.acc < 0)
+			Object.assign(s, { acc: 0, steps: 0 });
+		s.at = now;
+		s.acc += e.delta.y;
+		const need = s.steps ? 60 : 20;
+		if (Math.abs(s.acc) < need || now - s.last < 100) return;
+		s.acc -= Math.sign(s.acc) * need;
+		s.steps++;
+		s.last = now;
+		run(e.delta.y > 0 ? 'tab.prev' : 'tab.next');
 	}
 
 	render() {
@@ -285,9 +321,7 @@ export default class Tabs extends View {
 			.on_mouse_up('left', () => {
 				this.pressed = null;
 			})
-			.on_scroll_wheel((e) => {
-				if (Math.abs(e.delta.y) >= 1) run(e.delta.y > 0 ? 'tab.prev' : 'tab.next');
-			})
+			.on_scroll_wheel((e) => this.wheel(e))
 			.child(
 				h_flex()
 					.id('tab-scroll')

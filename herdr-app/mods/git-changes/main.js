@@ -8,7 +8,7 @@
 // itself, too narrow for most lines, and in one colour.
 import { View, div } from 'gpui-kit';
 import { v_flex } from 'gpui-base';
-import { shared, theme, watchFolder, nextCommand } from 'herdr';
+import { shared, theme, nextCommand } from 'herdr';
 import {
 	SPACE,
 	TEXT,
@@ -26,6 +26,7 @@ import {
 import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 import { resetSlot } from './lib/panels.js';
+import { refollow } from './lib/watch.js';
 
 // The watch catches edits; this catches what it cannot (another machine).
 const FALLBACK_MS = 10000;
@@ -57,7 +58,7 @@ export default class GitChanges extends View {
 		this.error = null;
 		this.loading = false;
 		this.again = false;
-		this.watched = null;
+		this.watch = null;
 		this.refresh(cx);
 		cx.timer.every(FALLBACK_MS, (cx) => this.refresh(cx));
 		// "git-changes.diff" (keys.json): every change in the diff pane.
@@ -130,7 +131,13 @@ export default class GitChanges extends View {
 					.filter(([, files]) => files.length)
 					.map(([name, files]) => ({ name, files }));
 				this.error = null;
-				this.watch(root, cx);
+				this.watch = refollow(
+					this.watch,
+					cx,
+					on ? null : root,
+					(cx) => this.refresh(cx),
+					SETTLE_MS,
+				);
 			} catch (e) {
 				if (where === this.where) this.error = String(e.message ?? e);
 			} finally {
@@ -140,21 +147,6 @@ export default class GitChanges extends View {
 					this.again = false;
 					this.refresh(cx);
 				}
-			}
-		});
-	}
-
-	watch(root, cx) {
-		if (this.on || this.watched === root) return;
-		this.watched = root;
-		cx.spawn(async (cx) => {
-			try {
-				while (this.watched === root) {
-					await watchFolder(root);
-					if (this.watched === root) cx.timer.after(SETTLE_MS, (cx) => this.refresh(cx));
-				}
-			} catch {
-				this.watched = null;
 			}
 		});
 	}

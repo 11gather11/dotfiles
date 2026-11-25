@@ -11,12 +11,13 @@
 // harness's workers did.
 import { div, PathBuilder, View } from 'gpui-kit';
 import { h_flex, Scrollbar, v_virtual_list } from 'gpui-base';
-import { shared, theme, watchFolder } from 'herdr';
+import { shared, theme } from 'herdr';
 import { SPACE, TEXT, RADIUS, bar, spacer, button, badge, card, ago } from './lib/ui.js';
 import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 import { layoutLanes } from './lanes.js';
 import { resetSlot } from './lib/panels.js';
+import { refollow } from './lib/watch.js';
 
 const LIMIT = 400;
 const ROW = 24;
@@ -87,7 +88,7 @@ export default class Graph extends View {
 		this.error = null;
 		this.loading = false;
 		this.again = false;
-		this.watched = null;
+		this.watch = null;
 		this.load(cx);
 		cx.timer.every(STATUS_MS, (cx) => this.load(cx));
 	}
@@ -166,7 +167,15 @@ export default class Graph extends View {
 				const remoteBase = base.code === 0 ? base.stdout.trim() : null;
 				this.base = remoteBase?.replace(/^[^/]+\//, '') ?? 'main';
 				this.error = null;
-				this.watch(common.startsWith('/') ? common : `${root}/${common}`, cx);
+				// The repository's git folder: a commit, checkout or fetch from
+				// any terminal moves a ref there. Not another machine's.
+				this.watch = refollow(
+					this.watch,
+					cx,
+					on ? null : common.startsWith('/') ? common : `${root}/${common}`,
+					(cx) => this.load(cx),
+					SETTLE_MS,
+				);
 			} catch (e) {
 				if (where === this.where) this.error = String(e.message ?? e);
 			} finally {
@@ -176,23 +185,6 @@ export default class Graph extends View {
 					this.again = false;
 					this.load(cx);
 				}
-			}
-		});
-	}
-
-	// The repository's git folder: a commit, checkout or fetch from any
-	// terminal moves a ref there.
-	watch(dir, cx) {
-		if (this.on || this.watched === dir) return;
-		this.watched = dir;
-		cx.spawn(async (cx) => {
-			try {
-				while (this.watched === dir) {
-					await watchFolder(dir);
-					if (this.watched === dir) cx.timer.after(SETTLE_MS, (cx) => this.load(cx));
-				}
-			} catch {
-				this.watched = null;
 			}
 		});
 	}

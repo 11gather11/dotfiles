@@ -7,7 +7,7 @@
 // Uncommitted changes follow the working tree as it changes.
 import { View, div } from 'gpui-kit';
 import { h_flex, Scrollbar, v_virtual_list, VirtualListScrollHandle } from 'gpui-base';
-import { shared, theme, settings, watchFolder } from 'herdr';
+import { shared, theme, settings } from 'herdr';
 import {
 	SPACE,
 	TEXT,
@@ -21,6 +21,7 @@ import {
 	sheet,
 } from './lib/ui.js';
 import { git } from './lib/git.js';
+import { refollow } from './lib/watch.js';
 import { languageOf, tokens, changedSpan, marked } from './highlight.js';
 
 const LINE_H = 20;
@@ -151,6 +152,7 @@ function dress(file) {
 export default class Diff extends View {
 	init(_props, cx) {
 		this.target = null;
+		this.watch = null;
 		this.seq = null;
 		this.files = [];
 		this.rows = [];
@@ -180,7 +182,17 @@ export default class Diff extends View {
 		this.sizes = [];
 		this.folded.clear();
 		this.load(cx);
-		this.follow(cx);
+		// Uncommitted changes are read again as the working tree changes,
+		// until another target replaces this one. A commit or a range never
+		// changes, and another machine's folder cannot be watched.
+		const live = next.kind === 'worktree' && !next.on;
+		this.watch = refollow(
+			this.watch,
+			cx,
+			live ? next.root : null,
+			(cx) => this.load(cx),
+			SETTLE_MS,
+		);
 	}
 
 	load(cx) {
@@ -234,24 +246,6 @@ export default class Diff extends View {
 			if (file) out.push({ ...file, path, status: 'A' });
 		}
 		return out;
-	}
-
-	// Re-reads uncommitted changes as the working tree changes, until another
-	// target replaces this one. A commit or a range never changes.
-	follow(cx) {
-		const target = this.target;
-		if (target.kind !== 'worktree' || target.on) return;
-		cx.spawn(async (cx) => {
-			try {
-				while (target === this.target) {
-					await watchFolder(target.root);
-					if (target !== this.target) break;
-					cx.timer.after(SETTLE_MS, (cx) => this.load(cx));
-				}
-			} catch {
-				// A folder that cannot be watched leaves the diff as first read.
-			}
-		});
 	}
 
 	// The rows the list draws: each file's header, then its lines unless folded.

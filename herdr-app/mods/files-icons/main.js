@@ -14,20 +14,11 @@
 //   offers.
 import { View, div, svg, image } from 'gpui-kit';
 import { v_flex, h_flex } from 'gpui-base';
-import {
-	spaces,
-	focused,
-	exec,
-	readTextFile,
-	watchFolder,
-	theme,
-	window,
-	appHome,
-	openOverlay,
-} from 'herdr';
+import { spaces, focused, exec, readTextFile, theme, window, appHome, openOverlay } from 'herdr';
 import { SIZE, SPACE, TEXT, RADIUS } from './lib/ui.js';
 import { focusedFolder } from './lib/focus.js';
 import { resetSlot } from './lib/panels.js';
+import { refollow } from './lib/watch.js';
 
 /**
  * The theme's icon for one entry, the way VS Code resolves it: a folder by its
@@ -68,6 +59,8 @@ function location() {
 	return { cwd: focusedFolder(), on, space: space?.id };
 }
 const key = () => JSON.stringify(location());
+// A burst of changes (a checkout, an install) is read once it settles.
+const SETTLE_MS = 300;
 const PER_FOLDER = 500,
 	TOTAL = 5000;
 
@@ -201,24 +194,10 @@ export default class Files extends View {
 		this.folders = new Set();
 		this.pending = new Set();
 		this.marks = {};
+		this.watch = null;
+		this.again = false;
 		this.refresh(cx);
 		cx.timer.every(10000, (cx) => this.refresh(cx));
-	}
-
-	watch(root, cx) {
-		if (this.on || this.watched === root) return;
-		this.watched = root;
-		const context = this.context;
-		cx.spawn(async (cx) => {
-			try {
-				while (this.context === context) {
-					await watchFolder(root);
-					if (this.current(context)) this.refresh(cx);
-				}
-			} catch {
-				if (this.context === context) this.watched = null;
-			}
-		});
 	}
 
 	current(context) {
@@ -254,12 +233,17 @@ export default class Files extends View {
 			this.folders = new Set(saved?.folders);
 			this.pending = new Set();
 			this.marks = {};
-			this.watched = null;
 			this.error = null;
 			this.limited = false;
 			this.loading = false;
 		}
-		if (!cwd || this.loading) return;
+		if (!cwd) return;
+		// One read at a time; a change during it reads once more after, where
+		// it used to be dropped until the 10-second timer.
+		if (this.loading) {
+			this.again = true;
+			return;
+		}
 		const context = this.context;
 		this.loading = true;
 		this.limited = false;
@@ -309,12 +293,22 @@ export default class Files extends View {
 				this.ignored = ignored;
 				this.folderMarks = folderMarks(marks, top?.code === 0 ? top.stdout.trim() : null);
 				this.error = null;
-				this.watch(cwd, cx);
+				this.watch = refollow(
+					this.watch,
+					cx,
+					on ? null : cwd,
+					(cx) => this.current(context) && this.refresh(cx),
+					SETTLE_MS,
+				);
 			} catch (e) {
 				if (this.current(context)) this.error = String(e);
 			} finally {
 				if (this.context === context) this.loading = false;
 				cx.notify();
+				if (this.again && !this.loading) {
+					this.again = false;
+					this.refresh(cx);
+				}
 			}
 		});
 	}

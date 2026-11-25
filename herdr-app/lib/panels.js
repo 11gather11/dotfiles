@@ -45,6 +45,19 @@ function find(node, id) {
 	return null;
 }
 
+/**
+ * Whether the side panel is open on this panel. A panel in the stack keeps
+ * running while another is shown, so its polls ask this before doing work
+ * nobody will see.
+ *
+ * @param {string} id the panel's id in the layout's panel-body stack
+ * @returns {boolean}
+ */
+export function showing(id) {
+	const root = layout();
+	return !find(root, 'panel')?.hidden && find(root, 'panel-body')?.active === id;
+}
+
 /** The side panel's width now, in layout px; null when it is hidden. */
 export function panelPx() {
 	const panel = find(layout(), 'panel');

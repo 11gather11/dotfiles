@@ -25,7 +25,7 @@ import { exec, theme, terminals, run } from 'herdr';
 import { focusedFolder } from './lib/focus.js';
 import { openDiff } from './lib/git.js';
 import { runningHarnesses, startHarness } from './lib/harness.js';
-import { resetSlot } from './lib/panels.js';
+import { resetSlot, showing } from './lib/panels.js';
 
 // status.nu reads GitHub and every worker's screen, about two seconds a run,
 // so the panel polls gently and offers a refresh for when it matters now.
@@ -43,7 +43,15 @@ export default class Harness extends View {
 		this.reading = new Set(); // repositories being read now
 		this.dir = null;
 		this.refresh(cx);
-		cx.timer.every(POLL_MS, (cx) => this.refresh(cx));
+		// harness-status takes a couple of seconds and asks GitHub, and the
+		// sidebar's harness list already polls the running ones. While another
+		// panel is shown the poll only notes that the read is due, and the
+		// next draw (the panel shown again) makes it.
+		this.due = false;
+		cx.timer.every(POLL_MS, (cx) => {
+			if (showing('harness')) this.refresh(cx);
+			else this.due = true;
+		});
 	}
 
 	// Reads the repository's harness again. Safe from render: it only starts
@@ -301,7 +309,10 @@ export default class Harness extends View {
 
 	render(cx) {
 		const t = theme();
-		if (folder() !== this.dir) this.refresh(cx);
+		if (folder() !== this.dir || this.due) {
+			this.due = false;
+			this.refresh(cx);
+		}
 		const s = this.snap;
 		const running = s ? runningHarnesses().has(s.repo) : false;
 		const header = bar(t, 'harness-bar')

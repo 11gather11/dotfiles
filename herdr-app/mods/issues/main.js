@@ -7,7 +7,7 @@
 // this panel reads only GitHub, and only while it is shown.
 import { View, div } from 'gpui-kit';
 import { v_flex, h_flex, Input, InputState } from 'gpui-base';
-import { exec, theme, shared, layout } from 'herdr';
+import { exec, theme, shared } from 'herdr';
 import {
 	SPACE,
 	TEXT,
@@ -24,27 +24,12 @@ import {
 import { focusedPlace } from './lib/focus.js';
 import { git } from './lib/git.js';
 import { openBeside } from './lib/pane.js';
-import { resetSlot } from './lib/panels.js';
+import { resetSlot, showing } from './lib/panels.js';
 
 // GitHub is asked again this often while the panel shows.
 const SYNC_MS = 30000;
 const LIMIT = 100;
 const FIELDS = 'number,title,labels,assignees,updatedAt,comments';
-
-function find(node, id) {
-	if (node?.id === id) return node;
-	for (const child of node?.children ?? []) {
-		const found = find(child, id);
-		if (found) return found;
-	}
-	return null;
-}
-
-// The panel is in the layout's side stack: shown when that is open on it.
-function showing() {
-	const root = layout();
-	return !find(root, 'panel')?.hidden && find(root, 'panel-body')?.active === 'issues';
-}
 
 /**
  * What a repository's harness is doing about an issue, from its shared
@@ -87,6 +72,7 @@ export default class Issues extends View {
 		this.issues = [];
 		this.error = null;
 		this.loading = false;
+		this.again = false;
 		this.state = 'open';
 		this.mine = false;
 		this.query = '';
@@ -97,7 +83,7 @@ export default class Issues extends View {
 		});
 		this.refresh(cx);
 		cx.timer.every(SYNC_MS, (cx) => {
-			if (showing()) this.refresh(cx);
+			if (showing('issues')) this.refresh(cx);
 		});
 	}
 
@@ -114,7 +100,15 @@ export default class Issues extends View {
 				this.issues = [];
 			}
 		}
-		if (!folder || this.loading) return;
+		if (!folder) return;
+		// One read at a time. A change made during it (another folder, state
+		// or filter) reads once more after: the read under way is for the old
+		// one and is thrown away, and nothing else would ask again until the
+		// next sync.
+		if (this.loading) {
+			this.again = true;
+			return;
+		}
 		this.loading = true;
 		cx.spawn(async (cx) => {
 			try {
@@ -161,6 +155,10 @@ export default class Issues extends View {
 			} finally {
 				this.loading = false;
 				cx.notify();
+				if (this.again) {
+					this.again = false;
+					this.refresh(cx);
+				}
 			}
 		});
 	}
@@ -216,7 +214,7 @@ export default class Issues extends View {
 	render(cx) {
 		const t = theme();
 		const { folder, on } = focusedPlace();
-		if (JSON.stringify([folder, on, this.state, this.mine]) !== this.where && showing())
+		if (JSON.stringify([folder, on, this.state, this.mine]) !== this.where && showing('issues'))
 			this.refresh(cx);
 		const snap = this.root ? shared('harness.snaps')?.[this.root] : null;
 		const shown = shared('issue.target');

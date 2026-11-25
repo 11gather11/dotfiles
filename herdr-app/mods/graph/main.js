@@ -16,7 +16,7 @@ import { SPACE, TEXT, RADIUS, bar, spacer, button, badge, card, ago } from './li
 import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 import { layoutLanes } from './lanes.js';
-import { resetSlot } from './lib/panels.js';
+import { resetSlot, showing } from './lib/panels.js';
 import { refollow } from './lib/watch.js';
 
 const LIMIT = 400;
@@ -25,9 +25,13 @@ const LANE = 12;
 const PAD = 6;
 const DOT = 8;
 const SETTLE_MS = 500;
-// The working tree's changes are looked at this often; refs are watched.
+// The working tree's changes are looked at this often while the graph shows;
+// refs are watched.
 const STATUS_MS = 5000;
 const UNCOMMITTED = 'uncommitted';
+const STATUS = ['status', '--porcelain=v1', '-z', '--untracked-files=normal'];
+/** @param {string} out `git status -z` output */
+const count = (out) => out.split('\0').filter(Boolean).length;
 // Fields of a commit, NUL-separated: hash, parents, author time, refs, subject.
 const FORMAT = '%H%x00%P%x00%at%x00%D%x00%s';
 
@@ -89,8 +93,25 @@ export default class Graph extends View {
 		this.loading = false;
 		this.again = false;
 		this.watch = null;
+		this.changed = 0; // uncommitted files at the last read
 		this.load(cx);
-		cx.timer.every(STATUS_MS, (cx) => this.load(cx));
+		cx.timer.every(STATUS_MS, (cx) => this.poll(cx));
+	}
+
+	// Only the working tree can change without a ref moving, so the poll asks
+	// git status alone and reads the history again only when its count moved.
+	// The full read is five git commands, a 400-commit log among them, and
+	// ran every five seconds whether anyone was looking or not.
+	poll(cx) {
+		if (!showing('graph') || this.loading || !this.root) return;
+		const { folder, on } = focusedPlace();
+		const where = this.where;
+		if (JSON.stringify([folder, on]) !== where) return this.load(cx);
+		cx.spawn(async (cx) => {
+			const status = await git(this.root, on, STATUS).catch(() => null);
+			if (status?.code === 0 && where === this.where && count(status.stdout) !== this.changed)
+				this.load(cx);
+		});
 	}
 
 	load(cx) {
@@ -135,14 +156,14 @@ export default class Graph extends View {
 						`-n${LIMIT}`,
 						`--format=${FORMAT}`,
 					]),
-					run(['status', '--porcelain=v1', '-z', '--untracked-files=normal']),
+					run(STATUS),
 					run(['branch', '--show-current']),
 					run(['symbolic-ref', '--short', 'refs/remotes/origin/HEAD']),
 				]);
 				if (log.code !== 0) throw new Error(log.stderr.trim().split('\n').pop());
 				if (where !== this.where) return;
 				let commits = parseLog(log.stdout);
-				const changed = status.stdout.split('\0').filter(Boolean).length;
+				const changed = count(status.stdout);
 				const head = commits.find((c) => c.head)?.hash;
 				if (changed && head)
 					commits = [
@@ -162,6 +183,7 @@ export default class Graph extends View {
 				this.commits = commits;
 				this.rows = rows;
 				this.lanes = width;
+				this.changed = changed;
 				this.branch = branch.stdout.trim() || null;
 				// origin/main, or main where there is no remote.
 				const remoteBase = base.code === 0 ? base.stdout.trim() : null;

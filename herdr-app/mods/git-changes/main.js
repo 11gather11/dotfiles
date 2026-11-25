@@ -27,10 +27,11 @@ import { focusedPlace } from './lib/focus.js';
 import { git, openDiff } from './lib/git.js';
 import { resetSlot } from './lib/panels.js';
 import { refollow } from './lib/watch.js';
+import { repoStatus, focusedWindow, POLL_MS } from './lib/scan.js';
 
-// The watch catches edits; this catches what it cannot (another machine).
-const FALLBACK_MS = 10000;
 const SETTLE_MS = 300;
+// How often a read put off (window behind, slow repository) is looked at.
+const TICK_MS = 500;
 const MAX_FILES = 1000;
 
 /**
@@ -59,12 +60,26 @@ export default class GitChanges extends View {
 		this.loading = false;
 		this.again = false;
 		this.watch = null;
+		this.changedAt = 0; // when the watch saw a change not yet read; 0: none
+		this.settleAt = 0; // a change is read no sooner than this
+		this.dueAt = 0; // the poll reads again at this
 		this.refresh(cx);
-		cx.timer.every(FALLBACK_MS, (cx) => this.refresh(cx));
+		// The watch catches edits; the poll catches what it cannot (another
+		// machine).
+		cx.timer.every(TICK_MS, (cx) => this.tick(cx));
 		// "git-changes.diff" (keys.json): every change in the diff pane.
 		cx.spawn(async () => {
 			for (;;) if ((await nextCommand()) === 'diff' && this.root) this.show(null);
 		});
+	}
+
+	// Reads again for a change once the last scan's back-off has passed, and
+	// on the poll; neither while the window is behind another, where nothing
+	// is looked at. The first tick after it comes to the front catches up.
+	tick(cx) {
+		if (!focusedWindow()) return;
+		const now = Date.now();
+		if ((this.changedAt && now >= this.settleAt) || now >= this.dueAt) this.refresh(cx);
 	}
 
 	place() {
@@ -79,13 +94,20 @@ export default class GitChanges extends View {
 			this.root = null;
 			this.sections = [];
 			this.error = null;
+			this.changedAt = 0;
 		}
+		// Set before anything can fail, so a folder outside git or a failed
+		// read waits for the next poll rather than the next tick.
+		this.dueAt = Date.now() + POLL_MS;
 		if (!folder) return;
 		// One read at a time; a change during it reads once more after.
 		if (this.loading) {
 			this.again = true;
 			return;
 		}
+		// The change this read answers; one seen from here on reads again.
+		const since = this.changedAt;
+		this.changedAt = 0;
 		this.loading = true;
 		cx.spawn(async (cx) => {
 			try {
@@ -96,18 +118,16 @@ export default class GitChanges extends View {
 					return;
 				}
 				const root = top.stdout.trim();
-				const [status, staged, unstaged, branch] = await Promise.all([
-					git(root, on, [
-						'status',
-						'--porcelain=v1',
-						'-z',
-						'--no-renames',
-						'--untracked-files=all',
-					]),
+				const [scan, staged, unstaged, branch] = await Promise.all([
+					repoStatus(cx, root, on, since, () => where === this.where),
 					git(root, on, ['diff', '--cached', '--numstat', '-z', '--no-renames']),
 					git(root, on, ['diff', '--numstat', '-z', '--no-renames']),
 					git(root, on, ['branch', '--show-current']),
 				]);
+				if (!scan) return;
+				this.settleAt = scan.finished + scan.delay;
+				this.dueAt = scan.finished + Math.max(POLL_MS, scan.delay);
+				const { status } = scan;
 				if (status.code !== 0) throw new Error(status.stderr.trim());
 				if (where !== this.where) return;
 				const inIndex = numstat(staged.stdout);
@@ -135,7 +155,10 @@ export default class GitChanges extends View {
 					this.watch,
 					cx,
 					on ? null : root,
-					(cx) => this.refresh(cx),
+					(cx) => {
+						this.changedAt ||= Date.now();
+						this.tick(cx);
+					},
 					SETTLE_MS,
 				);
 			} catch (e) {

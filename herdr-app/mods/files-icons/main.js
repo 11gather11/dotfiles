@@ -20,6 +20,7 @@ import { SIZE, SPACE, TEXT, RADIUS } from './lib/ui.js';
 import { focusedFolder } from './lib/focus.js';
 import { resetSlot } from './lib/panels.js';
 import { refollow } from './lib/watch.js';
+import { repoStatus, focusedWindow, POLL_MS } from './lib/scan.js';
 
 /**
  * The theme's icon for one entry, the way VS Code resolves it: a folder by its
@@ -62,6 +63,8 @@ function location() {
 const key = () => JSON.stringify(location());
 // A burst of changes (a checkout, an install) is read once it settles.
 const SETTLE_MS = 300;
+// How often a read put off (window behind, slow repository) is looked at.
+const TICK_MS = 500;
 const PER_FOLDER = 500,
 	TOTAL = 5000;
 
@@ -197,8 +200,20 @@ export default class Files extends View {
 		this.marks = {};
 		this.watch = null;
 		this.again = false;
+		this.changedAt = 0; // when the watch saw a change not yet read; 0: none
+		this.settleAt = 0; // a change is read no sooner than this
+		this.dueAt = 0; // the poll reads again at this
 		this.refresh(cx);
-		cx.timer.every(10000, (cx) => this.refresh(cx));
+		cx.timer.every(TICK_MS, (cx) => this.tick(cx));
+	}
+
+	// Reads again for a change once the last scan's back-off has passed, and
+	// on the poll; neither while the window is behind another, where nothing
+	// is looked at. The first tick after it comes to the front catches up.
+	tick(cx) {
+		if (!focusedWindow()) return;
+		const now = Date.now();
+		if ((this.changedAt && now >= this.settleAt) || now >= this.dueAt) this.refresh(cx);
 	}
 
 	current(context) {
@@ -237,7 +252,11 @@ export default class Files extends View {
 			this.error = null;
 			this.limited = false;
 			this.loading = false;
+			this.changedAt = 0;
 		}
+		// Set before anything can fail, so a folder outside git or a failed
+		// read waits for the next poll rather than the next tick.
+		this.dueAt = Date.now() + POLL_MS;
 		if (!cwd) return;
 		// One read at a time; a change during it reads once more after, where
 		// it used to be dropped until the 10-second timer.
@@ -246,6 +265,9 @@ export default class Files extends View {
 			return;
 		}
 		const context = this.context;
+		// The change this read answers; one seen from here on reads again.
+		const since = this.changedAt;
+		this.changedAt = 0;
 		this.loading = true;
 		this.limited = false;
 		cx.spawn(async (cx) => {
@@ -260,21 +282,12 @@ export default class Files extends View {
 				const marks = {};
 				let ignored = { paths: new Set(), dirs: [] };
 				if (top?.code === 0) {
-					// Writes nothing under .git (index lock, fsmonitor cookie): the folder watch would refresh again.
-					const status = await exec(
-						'git',
-						[
-							'--no-optional-locks',
-							'-c',
-							'core.fsmonitor=false',
-							'status',
-							'--porcelain=v1',
-							'-z',
-							'--no-renames',
-							'--untracked-files=all',
-						],
-						{ cwd, on },
-					).catch(() => null);
+					const root = top.stdout.trim();
+					const scan = await repoStatus(cx, root, on, since, () => this.current(context));
+					if (!scan) return;
+					this.settleAt = scan.finished + scan.delay;
+					this.dueAt = scan.finished + Math.max(POLL_MS, scan.delay);
+					const { status } = scan;
 					if (status?.code === 0)
 						for (const entry of status.stdout.split('\0').filter(Boolean).slice(0, TOTAL)) {
 							const xy = entry.slice(0, 2);
@@ -298,7 +311,11 @@ export default class Files extends View {
 					this.watch,
 					cx,
 					on ? null : cwd,
-					(cx) => this.current(context) && this.refresh(cx),
+					(cx) => {
+						if (!this.current(context)) return;
+						this.changedAt ||= Date.now();
+						this.tick(cx);
+					},
 					SETTLE_MS,
 				);
 			} catch (e) {

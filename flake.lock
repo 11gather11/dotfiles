@@ -592,11 +592,11 @@
         "treefmt-nix": "treefmt-nix_3"
       },
       "locked": {
-        "lastModified": 1794827654,
-        "narHash": "sha256-ZAYuhtKtQ2X18BKG8c1qNMXiTkpwl+C2s9yhYsc7+Rw=",
+        "lastModified": 1795417301,
+        "narHash": "sha256-QYCR/u6HkXYSKwPUwlkLYiZ8mvT3pEuapb1glNeSIu4=",
         "owner": "ryoppippi",
         "repo": "tgrab",
-        "rev": "da0fff68e0975f3b12f375651b6dc7bdfc83e3ad",
+        "rev": "58b4332b68f67c6572ad41f8e838957dc879712a",
         "type": "github"
       },
       "original": {

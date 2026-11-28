@@ -21,7 +21,7 @@ permissions:
 jobs:
   # Check if Nix-related files changed
   changes:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     # paths-filter lists a pull request's files through the API.
     permissions:
       contents: read
@@ -93,7 +93,7 @@ jobs:
 
   build-ubuntu-arm:
     needs: changes
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 30
     steps:
       - name: Skip if no Nix changes
